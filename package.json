@@ -1,0 +1,20 @@
+{
+  "name": "productivity-log-app",
+  "version": "1.0.0",
+  "description": "Production-ready Full-Stack Productivity Log Application with Top-Down Goal Hierarchy and Serverless Sync",
+  "main": "api/goals/sync.js",
+  "scripts": {
+    "start": "vercel dev",
+    "dev": "vercel dev"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^0.9.4",
+    "bcryptjs": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "pg": "^8.12.0"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18.x"
+  }
+}
