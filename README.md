@@ -34,22 +34,21 @@ A production-ready full-stack productivity web application built with **Vanilla 
 ```
 productivity-app/
 ├── package.json          # Node dependencies (@neondatabase/serverless, pg, bcryptjs, jsonwebtoken)
-├── vercel.json           # Static routing & serverless API configuration
+├── vercel.json           # Serverless API configuration & CORS headers
 ├── .env.example          # Environment variable template
 ├── .gitignore            # Git ignore configuration
-├── api/
-│   ├── lib/
-│   │   ├── db.js         # PostgreSQL connection pool & auto-table schema initialization
-│   │   └── auth.js       # JWT signing/verification & bcrypt password hashing
-│   ├── auth/
-│   │   ├── register.js   # User registration endpoint
-│   │   └── login.js      # User login & JWT issuance endpoint
-│   └── goals/
-│       └── sync.js       # Protected GET & POST goal sync endpoint
-└── public/
-    ├── index.html        # Semantic HTML5 frontend & Auth Modal
-    ├── styles.css        # Vanilla CSS design system & dark/light theme tokens
-    └── script.js         # Client-side state manager, rings, timer & sync engine
+├── index.html            # Semantic HTML5 frontend interface & Auth Modal
+├── styles.css            # Vanilla CSS design system & dark/light theme tokens
+├── script.js             # Client-side state manager, rings, timer & sync engine
+└── api/
+    ├── lib/
+    │   ├── db.js         # PostgreSQL connection pool & auto-table schema initialization
+    │   └── auth.js       # JWT signing/verification & bcrypt password hashing
+    ├── auth/
+    │   ├── register.js   # User registration endpoint
+    │   └── login.js      # User login & JWT issuance endpoint
+    └── goals/
+        └── sync.js       # Protected GET & POST goal sync endpoint
 ```
 
 ---
