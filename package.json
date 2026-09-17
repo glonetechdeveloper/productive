@@ -4,8 +4,9 @@
   "description": "Production-ready Full-Stack Productivity Log Application with Top-Down Goal Hierarchy and Serverless Sync",
   "main": "api/goals/sync.js",
   "scripts": {
-    "start": "vercel dev",
-    "dev": "vercel dev"
+    "start": "node dev-server.js",
+    "dev": "node dev-server.js",
+    "vercel-dev": "vercel dev"
   },
   "dependencies": {
     "@neondatabase/serverless": "^0.9.4",
