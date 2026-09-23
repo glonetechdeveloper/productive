@@ -84,6 +84,8 @@
     sidebarPrimary: document.getElementById('sidebarPrimary'),
     sidebarToggleBtn: document.getElementById('sidebarToggleBtn'),
     sidebarToggleIcon: document.getElementById('sidebarToggleIcon'),
+    mobileHamburgerBtn: document.getElementById('mobileHamburgerBtn'),
+    mobileSidebarOverlay: document.getElementById('mobileSidebarOverlay'),
     themeToggleBtn: document.getElementById('themeToggleBtn'),
     globalSearchInput: document.getElementById('globalSearchInput'),
     subpanelSearchInput: document.getElementById('subpanelSearchInput'),
@@ -1549,8 +1551,41 @@
   // ==========================================================================
   // EVENT LISTENERS BINDING
   // ==========================================================================
+
+  // Mobile sidebar toggle helpers
+  function isMobileView() {
+    return window.matchMedia('(max-width: 768px)').matches;
+  }
+
+  function openMobileSidebar() {
+    dom.sidebarPrimary.classList.add('mobile-open');
+    dom.mobileSidebarOverlay.classList.add('active');
+    dom.mobileHamburgerBtn.classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeMobileSidebar() {
+    dom.sidebarPrimary.classList.remove('mobile-open');
+    dom.mobileSidebarOverlay.classList.remove('active');
+    dom.mobileHamburgerBtn.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  function toggleMobileSidebar() {
+    const isOpen = dom.sidebarPrimary.classList.contains('mobile-open');
+    if (isOpen) {
+      closeMobileSidebar();
+    } else {
+      openMobileSidebar();
+    }
+  }
+
   function bindEventListeners() {
-    // Chevron Sidebar toggle: < to collapse, > to expand
+    // Mobile hamburger toggle
+    dom.mobileHamburgerBtn.addEventListener('click', toggleMobileSidebar);
+    dom.mobileSidebarOverlay.addEventListener('click', closeMobileSidebar);
+
+    // Chevron Sidebar toggle: < to collapse, > to expand (desktop only)
     dom.sidebarToggleBtn.addEventListener('click', () => {
       const isCollapsed = dom.sidebarPrimary.classList.toggle('collapsed');
       dom.sidebarToggleBtn.setAttribute('title', isCollapsed ? 'Expand sidebar' : 'Collapse sidebar');
@@ -1582,6 +1617,7 @@
       if (e.key === 'Escape') {
         closeNewItemModal();
         closeAuthModal();
+        closeMobileSidebar();
       }
     });
 
@@ -1630,6 +1666,10 @@
     dom.navButtons.forEach(btn => {
       btn.addEventListener('click', () => {
         switchToLevel(btn.dataset.level);
+        // Auto-close sidebar on mobile after navigation
+        if (isMobileView()) {
+          closeMobileSidebar();
+        }
       });
     });
 
