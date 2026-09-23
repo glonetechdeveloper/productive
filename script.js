@@ -1,7 +1,7 @@
 /**
  * ============================================================================
- * LUMEN PRODUCTIVITY OS - CLIENT ENGINE
- * Full-Stack Goal Hierarchy, Hourly Micro-Schedule, & Serverless Synchronization
+ * PRODUCTIVE WORKSPACE - CLIENT ENGINE
+ * Minimalist Monochrome SaaS Interface | Zero Emojis | Full Sync
  * ============================================================================
  */
 
@@ -9,12 +9,10 @@
   'use strict';
 
   // --- Constants & Config ---
-  const STORAGE_KEY = 'lumen_productivity_data_v2';
-  const AUTH_TOKEN_KEY = 'lumen_jwt_token';
-  const AUTH_USER_KEY = 'lumen_user_info';
-  const THEME_KEY = 'lumen_theme';
-
-  const CIRCLE_CIRCUMFERENCE = 289; // 2 * PI * 46
+  const STORAGE_KEY = 'productive_workspace_data_v1';
+  const AUTH_TOKEN_KEY = 'productive_jwt_token';
+  const AUTH_USER_KEY = 'productive_user_info';
+  const THEME_KEY = 'productive_theme';
 
   const TIME_SLOTS = [
     { key: '06:00', label: '06:00 AM - 07:00 AM' },
@@ -34,7 +32,7 @@
     { key: '20:00', label: '08:00 PM - 09:00 PM' },
     { key: '21:00', label: '09:00 PM - 10:00 PM' },
     { key: '22:00', label: '10:00 PM - 11:00 PM' },
-    { key: '23:00', label: '11:00 PM - 12:00 AM' },
+    { key: '23:00', label: '11:00 PM - 12:00 AM' }
   ];
 
   const DEFAULT_CATEGORIES = [
@@ -43,9 +41,19 @@
     'Meetings',
     'Health & Fitness',
     'Learning',
-    'Routine Admin',
+    'Admin & Ops',
     'Rest & Recharge'
   ];
+
+  // SVG Icons Helpers (Zero Emojis)
+  const ICONS = {
+    check: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`,
+    cross: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`,
+    trash: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`,
+    info: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`,
+    success: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`,
+    alert: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`
+  };
 
   // --- Application State ---
   const state = {
@@ -58,6 +66,7 @@
     hourlyFilter: 'all',
     currentHorizon: 'h1',
     selectedMonthWeek: 1,
+    searchQuery: '',
     year_data: {
       yearly_goals: [],
       four_months: {},
@@ -71,8 +80,15 @@
   // --- DOM Elements Cache ---
   const dom = {
     html: document.documentElement,
+    sidebarPrimary: document.getElementById('sidebarPrimary'),
+    sidebarToggleBtn: document.getElementById('sidebarToggleBtn'),
     themeToggleBtn: document.getElementById('themeToggleBtn'),
+    globalSearchInput: document.getElementById('globalSearchInput'),
+    subpanelSearchInput: document.getElementById('subpanelSearchInput'),
+    subpanelItemsContainer: document.getElementById('subpanelItemsContainer'),
+    dailyMiniProgressFill: document.getElementById('dailyMiniProgressFill'),
     yearSelector: document.getElementById('yearSelector'),
+    btnQuickNewTask: document.getElementById('btnQuickNewTask'),
     btnPrevDay: document.getElementById('btnPrevDay'),
     btnNextDay: document.getElementById('btnNextDay'),
     btnJumpToday: document.getElementById('btnJumpToday'),
@@ -83,41 +99,29 @@
     syncStatusBadge: document.getElementById('syncStatusBadge'),
     syncDot: document.getElementById('syncDot'),
     syncStatusText: document.getElementById('syncStatusText'),
+    sidebarSyncDot: document.getElementById('sidebarSyncDot'),
+    btnSidebarSync: document.getElementById('btnSidebarSync'),
+    btnSidebarBackup: document.getElementById('btnSidebarBackup'),
     authTriggerBtn: document.getElementById('authTriggerBtn'),
     userEmailDisplay: document.getElementById('userEmailDisplay'),
     userAvatarText: document.getElementById('userAvatarText'),
+    topAvatarInitials: document.getElementById('topAvatarInitials'),
+    userStatusSub: document.getElementById('userStatusSub'),
     logoutBtn: document.getElementById('logoutBtn'),
     dbStatusBadge: document.getElementById('dbStatusBadge'),
+    sidebarTodayPendingBadge: document.getElementById('sidebarTodayPendingBadge'),
 
-    // Dashboard Rings
-    dailyRingProgress: document.getElementById('dailyRingProgress'),
-    dailyPercentageText: document.getElementById('dailyPercentageText'),
-    dailyBlockRatio: document.getElementById('dailyBlockRatio'),
-    dailyStatusPill: document.getElementById('dailyStatusPill'),
-
-    weeklyRingProgress: document.getElementById('weeklyRingProgress'),
-    weeklyPercentageText: document.getElementById('weeklyPercentageText'),
-    weeklyBlockRatio: document.getElementById('weeklyBlockRatio'),
-    weeklyStatusPill: document.getElementById('weeklyStatusPill'),
-
-    monthlyRingProgress: document.getElementById('monthlyRingProgress'),
-    monthlyPercentageText: document.getElementById('monthlyPercentageText'),
-    monthTargetRatio: document.getElementById('monthTargetRatio'),
-    monthlyStatusPill: document.getElementById('monthlyStatusPill'),
-
-    yearlyRingProgress: document.getElementById('yearlyRingProgress'),
-    yearlyPercentageText: document.getElementById('yearlyPercentageText'),
-    yearlyGoalRatio: document.getElementById('yearlyGoalRatio'),
-    yearlyStatusPill: document.getElementById('yearlyStatusPill'),
-
-    // Navigation Tabs & Views
-    levelTabs: document.querySelectorAll('.level-tab-btn'),
-    views: document.querySelectorAll('.hierarchy-view-section'),
+    // Navigation & Views
+    navButtons: document.querySelectorAll('.nav-item-btn[data-level]'),
+    views: document.querySelectorAll('.stage-view-pane'),
 
     // Level 05: Hourly Micro
+    stageHeaderAvatar: document.getElementById('stageHeaderAvatar'),
     hourlyViewDateHeading: document.getElementById('hourlyViewDateHeading'),
+    hourlyStatusSub: document.getElementById('hourlyStatusSub'),
     dayPrimaryObjective: document.getElementById('dayPrimaryObjective'),
     hourlyTimelineContainer: document.getElementById('hourlyTimelineContainer'),
+    dailyBlockRatio: document.getElementById('dailyBlockRatio'),
     filterPills: document.querySelectorAll('.filter-pill'),
     btnQuickFillTemplate: document.getElementById('btnQuickFillTemplate'),
     btnMarkAllDayDone: document.getElementById('btnMarkAllDayDone'),
@@ -173,7 +177,7 @@
     toastContainer: document.getElementById('toastContainer')
   };
 
-  let authMode = 'login'; // 'login' or 'register'
+  let authMode = 'login';
 
   // ==========================================================================
   // INITIALIZATION
@@ -185,12 +189,12 @@
     updateDateDisplay();
     renderAllViews();
     updateAllMetrics();
+    renderSubpanel();
 
-    // If authenticated, perform cloud sync
     if (state.token) {
       loadGoalsFromBackend();
     } else {
-      updateSyncStatusUI('offline', 'Offline Mode (Local Storage)');
+      updateSyncStatusUI('offline', 'Offline (Local)');
     }
   }
 
@@ -206,7 +210,7 @@
   function toggleTheme() {
     const nextTheme = state.theme === 'dark' ? 'light' : 'dark';
     applyTheme(nextTheme);
-    showToast(`Switched to ${nextTheme.toUpperCase()} theme`, 'info');
+    showToast(`Switched to ${nextTheme.toUpperCase()} mode`, 'info');
   }
 
   // ==========================================================================
@@ -239,9 +243,15 @@
     dom.displayDayName.textContent = state.currentDate === todayISO ? 'Today' : dayName;
     dom.displayFullDate.textContent = fullDate;
     dom.nativeDatePicker.value = state.currentDate;
-    dom.hourlyViewDateHeading = document.getElementById('hourlyViewDateHeading');
+
     if (dom.hourlyViewDateHeading) {
-      dom.hourlyViewDateHeading.textContent = `${dayName}, ${fullDate}`;
+      dom.hourlyViewDateHeading.textContent = state.currentDate === todayISO ? `Today, ${fullDate}` : `${dayName}, ${fullDate}`;
+    }
+
+    // Avatar initials for stage header
+    const initials = state.currentDate === todayISO ? 'TD' : dayName.substring(0, 2).toUpperCase();
+    if (dom.stageHeaderAvatar) {
+      dom.stageHeaderAvatar.textContent = initials;
     }
   }
 
@@ -252,10 +262,10 @@
     updateDateDisplay();
     renderHourlySchedule();
     renderSevenDaysGrid();
+    renderSubpanel();
     updateAllMetrics();
   }
 
-  // Calculate Sunday-Saturday boundaries for a given date
   function getWeekDateRange(dateStr) {
     const current = parseISODate(dateStr);
     const dayOfWeek = current.getDay(); // 0 is Sun, 6 is Sat
@@ -280,7 +290,7 @@
       try {
         state.year_data = JSON.parse(stored);
       } catch (err) {
-        console.error('Failed to parse local stored goals:', err);
+        console.error('Failed to parse local stored data:', err);
         state.year_data = createDefaultYearData();
       }
     } else {
@@ -292,22 +302,22 @@
   function createDefaultYearData() {
     return {
       yearly_goals: [
-        { id: 'g1', title: 'Achieve $250k ARR on SaaS Ecosystem', pillar: 'Career & Wealth', targetMetric: '$250,000 Revenue', status: 'In Progress' },
-        { id: 'g2', title: 'Run a Sub-4 Hour Marathon', pillar: 'Health & Endurance', targetMetric: '42.2 km @ 5:35/km', status: 'In Progress' },
-        { id: 'g3', title: 'Read 24 Non-Fiction Masterpieces', pillar: 'Mindset & Mastery', targetMetric: '24 Books', status: 'In Progress' },
-        { id: 'g4', title: 'Build Cloud-Native AI Developer Tools', pillar: 'Engineering', targetMetric: '3 Production Apps', status: 'Achieved' }
+        { id: 'g1', title: 'Scale Enterprise SaaS Revenue to $250k ARR', pillar: 'Career & Growth', targetMetric: '$250,000 ARR', status: 'In Progress' },
+        { id: 'g2', title: 'Complete Sub-4 Hour Marathon Championship', pillar: 'Health & Endurance', targetMetric: '42.2 km @ 5:35/km', status: 'In Progress' },
+        { id: 'g3', title: 'Read 24 Non-Fiction Core Architecture Books', pillar: 'Mastery', targetMetric: '24 Books', status: 'In Progress' },
+        { id: 'g4', title: 'Launch Production Cloud Developer Suite', pillar: 'Engineering', targetMetric: '3 Production Apps', status: 'Achieved' }
       ],
       four_months: {
         h1: {
-          m1: { target: 'Establish deep work morning cadence and architecture foundation', milestones: ['Design core system DB', 'Write serverless auth endpoints', 'Ship MVP v1.0'] },
+          m1: { target: 'Establish deep work morning routine and architecture baseline', milestones: ['Design core system DB', 'Write serverless auth endpoints', 'Ship MVP v1.0'] },
           m2: { target: 'Scale feature set and automate deployment pipelines', milestones: ['Implement weekly sprint reviews', 'Add analytics dashboard'] },
           m3: { target: 'Optimization and user retention testing', milestones: ['Beta feedback loop', 'Performance audit'] },
-          m4: { target: 'Horizon 1 retrospective & major milestone milestone launch', milestones: ['Public release launch', 'Review metrics'] }
+          m4: { target: 'Horizon 1 retrospective & major milestone launch', milestones: ['Public release launch', 'Review metrics'] }
         },
         h2: {
-          m1: { target: 'Expansion of userbase & enterprise workflows', milestones: [] },
+          m1: { target: 'Expansion of userbase & enterprise workflows', milestones: ['Enterprise pilot rollout'] },
           m2: { target: 'Multi-device offline caching enhancements', milestones: [] },
-          m3: { target: 'Q3 Product Iteration', milestones: [] },
+          m3: { target: 'Q3 Product Iteration & Performance', milestones: [] },
           m4: { target: 'Mid-year financial and health re-calibration', milestones: [] }
         },
         h3: {
@@ -361,13 +371,14 @@
   function queueAutoSave() {
     saveDataLocally();
     updateAllMetrics();
+    renderSubpanel();
 
     if (state.token) {
-      updateSyncStatusUI('saving', 'Saving changes...');
+      updateSyncStatusUI('saving', 'Saving...');
       clearTimeout(debounceSaveTimeout);
       debounceSaveTimeout = setTimeout(() => {
         saveGoalsToBackend(state.year_data);
-      }, 700);
+      }, 600);
     } else {
       updateSyncStatusUI('offline', 'Saved Locally');
     }
@@ -379,7 +390,7 @@
   async function loadGoalsFromBackend() {
     if (!state.token) return;
 
-    updateSyncStatusUI('saving', 'Syncing cloud...');
+    updateSyncStatusUI('saving', 'Syncing...');
     try {
       const response = await fetch('/api/goals/sync', {
         method: 'GET',
@@ -391,7 +402,7 @@
 
       if (response.status === 401) {
         handleSignOut(false);
-        showToast('Session expired. Please sign in again.', 'error');
+        showToast('Session expired. Please sign in again.', 'alert');
         return;
       }
 
@@ -401,14 +412,13 @@
         saveDataLocally();
         renderAllViews();
         updateAllMetrics();
-        updateSyncStatusUI('synced', 'Synced with Cloud');
+        renderSubpanel();
+        updateSyncStatusUI('synced', 'Synced');
       } else {
-        // Cloud is empty, push local state to initialize cloud
         saveGoalsToBackend(state.year_data);
       }
     } catch (err) {
-      console.warn('Backend sync unreachable, using local storage fallback:', err.message);
-      updateSyncStatusUI('offline', 'Offline Mode (Local Storage)');
+      updateSyncStatusUI('offline', 'Offline Mode');
     }
   }
 
@@ -432,22 +442,26 @@
 
       const result = await response.json();
       if (result.success) {
-        updateSyncStatusUI('synced', 'Cloud Synced');
+        updateSyncStatusUI('synced', 'Synced');
       } else {
         updateSyncStatusUI('offline', 'Sync Delayed');
       }
     } catch (err) {
-      console.warn('Failed to sync to cloud:', err.message);
-      updateSyncStatusUI('offline', 'Sync Paused (Offline)');
+      updateSyncStatusUI('offline', 'Offline');
     }
   }
 
   function updateSyncStatusUI(status, label) {
-    dom.syncDot.className = 'sync-dot';
+    dom.syncDot.className = 'sync-indicator-dot';
+    dom.sidebarSyncDot.className = 'nav-status-dot';
+
     if (status === 'saving') {
       dom.syncDot.classList.add('saving');
     } else if (status === 'offline') {
       dom.syncDot.classList.add('offline');
+      dom.sidebarSyncDot.style.backgroundColor = 'var(--text-dim)';
+    } else {
+      dom.sidebarSyncDot.style.backgroundColor = 'var(--status-online)';
     }
 
     dom.syncStatusText.textContent = label;
@@ -459,7 +473,158 @@
   }
 
   // ==========================================================================
-  // LEVEL 05: HOURLY MICRO-SCHEDULE (THE DAILY LOG)
+  // CONTEXTUAL SUB-PANEL RENDERING
+  // ==========================================================================
+  function renderSubpanel() {
+    dom.subpanelItemsContainer.innerHTML = '';
+    const q = (state.searchQuery || '').toLowerCase();
+
+    if (state.currentLevel === 'micro') {
+      // 7-Day Contextual list for Time Blocks
+      const weekDays = getWeekDateRange(state.currentDate);
+      const todayISO = getTodayISODate();
+
+      weekDays.forEach(dayStr => {
+        const dayDate = parseISODate(dayStr);
+        const dayName = dayDate.toLocaleDateString('en-US', { weekday: 'short' });
+        const dayFull = dayDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        const dayLog = state.year_data.daily_logs[dayStr] || { objective: '', hours: {} };
+
+        const hoursArr = Object.values(dayLog.hours);
+        const scheduled = hoursArr.filter(h => h.task && h.task.trim().length > 0).length;
+        const completed = hoursArr.filter(h => h.status === 'completed' && h.task && h.task.trim().length > 0).length;
+        const pending = scheduled - completed;
+
+        if (q && !dayName.toLowerCase().includes(q) && !dayLog.objective.toLowerCase().includes(q)) {
+          return;
+        }
+
+        const card = document.createElement('div');
+        card.className = `subpanel-item-card ${dayStr === state.currentDate ? 'active' : ''}`;
+        
+        const avatarInitial = dayStr === todayISO ? 'TD' : dayName.substring(0, 2).toUpperCase();
+
+        card.innerHTML = `
+          <div class="subpanel-item-avatar">${avatarInitial}</div>
+          <div class="subpanel-item-content">
+            <div class="subpanel-item-row-top">
+              <span class="subpanel-item-title">${dayStr === todayISO ? 'Today' : dayName} &bull; ${dayFull}</span>
+              <span class="subpanel-item-time">${completed}/${scheduled}</span>
+            </div>
+            <div class="subpanel-item-row-sub">
+              <span class="subpanel-item-snippet">${escapeHtml(dayLog.objective || 'No primary objective set')}</span>
+              ${pending > 0 ? `<span class="subpanel-item-badge">${pending}</span>` : ''}
+            </div>
+          </div>
+        `;
+
+        card.addEventListener('click', () => {
+          state.currentDate = dayStr;
+          updateDateDisplay();
+          renderHourlySchedule();
+          renderSevenDaysGrid();
+          renderSubpanel();
+          updateAllMetrics();
+        });
+
+        dom.subpanelItemsContainer.appendChild(card);
+      });
+    } else if (state.currentLevel === 'weekly') {
+      // Weeks list
+      for (let w = 1; w <= 4; w++) {
+        const wKey = `${parseISODate(state.currentDate).getFullYear()}-M${String(parseISODate(state.currentDate).getMonth() + 1).padStart(2, '0')}-W${w}`;
+        const wPlan = state.year_data.weekly_plans[wKey] || { strategy: '', rocks: [] };
+        const totalRocks = (wPlan.rocks || []).length;
+        const doneRocks = (wPlan.rocks || []).filter(r => r.completed).length;
+
+        const card = document.createElement('div');
+        card.className = `subpanel-item-card ${state.selectedMonthWeek === w ? 'active' : ''}`;
+        card.innerHTML = `
+          <div class="subpanel-item-avatar">W${w}</div>
+          <div class="subpanel-item-content">
+            <div class="subpanel-item-row-top">
+              <span class="subpanel-item-title">Week ${w} Sprint</span>
+              <span class="subpanel-item-time">${doneRocks}/${totalRocks}</span>
+            </div>
+            <div class="subpanel-item-row-sub">
+              <span class="subpanel-item-snippet">${wPlan.strategy ? escapeHtml(wPlan.strategy.substring(0, 32)) + '...' : 'Pre-week intentions'}</span>
+            </div>
+          </div>
+        `;
+
+        card.addEventListener('click', () => {
+          state.selectedMonthWeek = w;
+          dom.monthWeekSelector.querySelectorAll('.sub-week-btn').forEach(btn => {
+            btn.classList.toggle('active', parseInt(btn.dataset.weeknum, 10) === w);
+          });
+          renderWeeklyStrategyView();
+          renderSubpanel();
+        });
+
+        dom.subpanelItemsContainer.appendChild(card);
+      }
+    } else if (state.currentLevel === 'monthly') {
+      // Horizons list
+      const horizons = [
+        { id: 'h1', title: 'Horizon 1 (M1 - M4)', sub: 'Foundation & Acceleration' },
+        { id: 'h2', title: 'Horizon 2 (M5 - M8)', sub: 'Peak Scale & Mid-Year' },
+        { id: 'h3', title: 'Horizon 3 (M9 - M12)', sub: 'Compounding & Victory' }
+      ];
+
+      horizons.forEach(h => {
+        const card = document.createElement('div');
+        card.className = `subpanel-item-card ${state.currentHorizon === h.id ? 'active' : ''}`;
+        card.innerHTML = `
+          <div class="subpanel-item-avatar">${h.id.toUpperCase()}</div>
+          <div class="subpanel-item-content">
+            <div class="subpanel-item-row-top">
+              <span class="subpanel-item-title">${h.title}</span>
+            </div>
+            <div class="subpanel-item-row-sub">
+              <span class="subpanel-item-snippet">${h.sub}</span>
+            </div>
+          </div>
+        `;
+
+        card.addEventListener('click', () => {
+          state.currentHorizon = h.id;
+          dom.horizonBtns.forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.horizon === h.id);
+          });
+          renderFourMonthsHorizon();
+          renderSubpanel();
+        });
+
+        dom.subpanelItemsContainer.appendChild(card);
+      });
+    } else if (state.currentLevel === 'yearly') {
+      // Annual Goals pillars
+      const goals = state.year_data.yearly_goals || [];
+      const pillars = ['All Goals', 'Career & Growth', 'Health & Endurance', 'Mastery', 'Engineering'];
+
+      pillars.forEach((p, idx) => {
+        const count = p === 'All Goals' ? goals.length : goals.filter(g => g.pillar === p).length;
+        const card = document.createElement('div');
+        card.className = `subpanel-item-card ${idx === 0 ? 'active' : ''}`;
+        card.innerHTML = `
+          <div class="subpanel-item-avatar">${p.substring(0, 2).toUpperCase()}</div>
+          <div class="subpanel-item-content">
+            <div class="subpanel-item-row-top">
+              <span class="subpanel-item-title">${p}</span>
+              <span class="subpanel-item-time">${count}</span>
+            </div>
+            <div class="subpanel-item-row-sub">
+              <span class="subpanel-item-snippet">${p === 'All Goals' ? 'Complete Vision' : 'Strategic Pillar'}</span>
+            </div>
+          </div>
+        `;
+        dom.subpanelItemsContainer.appendChild(card);
+      });
+    }
+  }
+
+  // ==========================================================================
+  // LEVEL 05: HOURLY MICRO-SCHEDULE (TIME BLOCKS)
   // ==========================================================================
   function renderHourlySchedule() {
     const dailyData = getDailyLog(state.currentDate);
@@ -469,13 +634,22 @@
     const now = new Date();
     const currentHour = now.getHours();
     const isToday = state.currentDate === getTodayISODate();
+    const searchFilter = (state.searchQuery || '').toLowerCase();
+
+    let scheduledCount = 0;
+    let completedCount = 0;
 
     TIME_SLOTS.forEach(slot => {
       const hourData = dailyData.hours[slot.key] || {
         task: '',
         category: 'Deep Work',
-        status: 'pending' // 'pending', 'completed', 'missed'
+        status: 'pending'
       };
+
+      if (hourData.task && hourData.task.trim().length > 0) {
+        scheduledCount++;
+        if (hourData.status === 'completed') completedCount++;
+      }
 
       // Filter handling
       if (state.hourlyFilter !== 'all') {
@@ -484,27 +658,35 @@
         if (state.hourlyFilter === 'missed' && hourData.status !== 'missed') return;
       }
 
-      const blockCard = document.createElement('div');
-      blockCard.className = `hour-block-card glass-card status-${hourData.status}`;
+      // Search Query handling
+      if (searchFilter) {
+        const matches = (hourData.task || '').toLowerCase().includes(searchFilter) ||
+                        slot.label.toLowerCase().includes(searchFilter) ||
+                        (hourData.category || '').toLowerCase().includes(searchFilter);
+        if (!matches) return;
+      }
+
+      const bubbleCard = document.createElement('div');
+      bubbleCard.className = `hour-card-bubble status-${hourData.status}`;
 
       const slotHourNum = parseInt(slot.key.split(':')[0], 10);
       if (isToday && slotHourNum === currentHour) {
-        blockCard.classList.add('is-current-hour');
+        bubbleCard.classList.add('is-current-hour');
       }
 
-      // Time badge
-      const timeBadge = document.createElement('span');
-      timeBadge.className = 'hour-badge-time';
-      timeBadge.textContent = slot.label.split(' - ')[0]; // E.g. 06:00 AM
+      // Time Badge
+      const timeBadge = document.createElement('div');
+      timeBadge.className = 'hour-time-badge';
+      timeBadge.textContent = slot.label.split(' - ')[0];
 
-      // Input group
-      const inputGroup = document.createElement('div');
-      inputGroup.className = 'hour-input-group';
+      // Input wrap
+      const inputWrap = document.createElement('div');
+      inputWrap.className = 'hour-main-input-wrap';
 
       const taskInput = document.createElement('input');
       taskInput.type = 'text';
       taskInput.className = `hour-task-input ${hourData.status === 'completed' ? 'completed-task' : ''}`;
-      taskInput.placeholder = 'Plan high-impact task for this block...';
+      taskInput.placeholder = 'Plan focus deliverable for this hour...';
       taskInput.value = hourData.task || '';
 
       taskInput.addEventListener('input', (e) => {
@@ -513,9 +695,9 @@
         queueAutoSave();
       });
 
-      // Meta row: category dropdown
-      const metaRow = document.createElement('div');
-      metaRow.className = 'hour-meta-row';
+      // Meta line: Category select
+      const metaLine = document.createElement('div');
+      metaLine.className = 'hour-meta-line';
 
       const catSelect = document.createElement('select');
       catSelect.className = 'category-select';
@@ -533,32 +715,28 @@
         queueAutoSave();
       });
 
-      metaRow.appendChild(catSelect);
-      inputGroup.appendChild(taskInput);
-      inputGroup.appendChild(metaRow);
+      metaLine.appendChild(catSelect);
+      inputWrap.appendChild(taskInput);
+      inputWrap.appendChild(metaLine);
 
-      // Status Controls (Pending, Complete, Missed)
-      const statusControls = document.createElement('div');
-      statusControls.className = 'hour-status-controls';
+      // Action Toggles
+      const actionToggles = document.createElement('div');
+      actionToggles.className = 'hour-action-toggles';
 
       const doneBtn = document.createElement('button');
       doneBtn.type = 'button';
-      doneBtn.className = `status-btn ${hourData.status === 'completed' ? 'active-done' : ''}`;
-      doneBtn.title = 'Mark Completed';
-      doneBtn.innerHTML = '✓';
+      doneBtn.className = `action-toggle-btn ${hourData.status === 'completed' ? 'active-done' : ''}`;
+      doneBtn.title = 'Mark Complete';
+      doneBtn.innerHTML = ICONS.check;
 
       const missedBtn = document.createElement('button');
       missedBtn.type = 'button';
-      missedBtn.className = `status-btn ${hourData.status === 'missed' ? 'active-missed' : ''}`;
-      missedBtn.title = 'Mark Missed/Incomplete';
-      missedBtn.innerHTML = '✕';
+      missedBtn.className = `action-toggle-btn ${hourData.status === 'missed' ? 'active-missed' : ''}`;
+      missedBtn.title = 'Mark Missed';
+      missedBtn.innerHTML = ICONS.cross;
 
       doneBtn.addEventListener('click', () => {
-        if (hourData.status === 'completed') {
-          hourData.status = 'pending';
-        } else {
-          hourData.status = 'completed';
-        }
+        hourData.status = hourData.status === 'completed' ? 'pending' : 'completed';
         dailyData.hours[slot.key] = hourData;
         queueAutoSave();
         renderHourlySchedule();
@@ -566,57 +744,58 @@
       });
 
       missedBtn.addEventListener('click', () => {
-        if (hourData.status === 'missed') {
-          hourData.status = 'pending';
-        } else {
-          hourData.status = 'missed';
-        }
+        hourData.status = hourData.status === 'missed' ? 'pending' : 'missed';
         dailyData.hours[slot.key] = hourData;
         queueAutoSave();
         renderHourlySchedule();
         renderSevenDaysGrid();
       });
 
-      statusControls.appendChild(doneBtn);
-      statusControls.appendChild(missedBtn);
+      actionToggles.appendChild(doneBtn);
+      actionToggles.appendChild(missedBtn);
 
-      blockCard.appendChild(timeBadge);
-      blockCard.appendChild(inputGroup);
-      blockCard.appendChild(statusControls);
+      bubbleCard.appendChild(timeBadge);
+      bubbleCard.appendChild(inputWrap);
+      bubbleCard.appendChild(actionToggles);
 
-      dom.hourlyTimelineContainer.appendChild(blockCard);
+      dom.hourlyTimelineContainer.appendChild(bubbleCard);
     });
+
+    // Update Stage status sub
+    if (dom.hourlyStatusSub) {
+      dom.hourlyStatusSub.textContent = `Active Timeline &bull; ${completedCount}/${scheduledCount} Done`;
+    }
   }
 
-  // Quick Action: Pre-populate standard routine
+  // Pre-populate standard routine (Zero Emojis)
   function quickFillDailyRoutine() {
     const dailyData = getDailyLog(state.currentDate);
     const routineTemplate = {
-      '06:00': { task: 'Morning hydration, mobility stretch, and meditation', category: 'Health & Fitness', status: 'pending' },
-      '07:00': { task: 'Breakfast, espresso & review pre-week strategic notes', category: 'Routine Admin', status: 'pending' },
+      '06:00': { task: 'Morning hydration, mobility stretch, and focus planning', category: 'Health & Fitness', status: 'pending' },
+      '07:00': { task: 'Breakfast, espresso & review strategic weekly sprint', category: 'Admin & Ops', status: 'pending' },
       '08:00': { task: 'Deep Work Block 1: Core system architecture & coding', category: 'Deep Work', status: 'pending' },
       '09:00': { task: 'Deep Work Block 1 (Cont): Critical technical delivery', category: 'Deep Work', status: 'pending' },
       '10:00': { task: 'Focused execution & code review / testing', category: 'Core Focus', status: 'pending' },
       '11:00': { task: 'Client standups & communications sync', category: 'Meetings', status: 'pending' },
-      '12:00': { task: 'Nutritious lunch & 20-min outdoor sunlight walk', category: 'Rest & Recharge', status: 'pending' },
+      '12:00': { task: 'Nutritious lunch & 20-min outdoor walk', category: 'Rest & Recharge', status: 'pending' },
       '13:00': { task: 'Deep Work Block 2: Feature development & API integration', category: 'Deep Work', status: 'pending' },
       '14:00': { task: 'Deep Work Block 2 (Cont): Debugging & validation', category: 'Deep Work', status: 'pending' },
-      '15:00': { task: 'Asynchronous emails, planning & documentation', category: 'Routine Admin', status: 'pending' },
+      '15:00': { task: 'Asynchronous emails, planning & documentation', category: 'Admin & Ops', status: 'pending' },
       '16:00': { task: 'Gym strength training / cardio session', category: 'Health & Fitness', status: 'pending' },
-      '17:00': { task: 'Post-workout recovery & daily wrap-up notes', category: 'Routine Admin', status: 'pending' },
-      '18:00': { task: 'Dinner & quality family/friend connection', category: 'Rest & Recharge', status: 'pending' },
+      '17:00': { task: 'Post-workout recovery & daily wrap-up notes', category: 'Admin & Ops', status: 'pending' },
+      '18:00': { task: 'Dinner & quality family connection', category: 'Rest & Recharge', status: 'pending' },
       '19:00': { task: 'Technical reading / continuous learning', category: 'Learning', status: 'pending' },
-      '20:00': { task: 'Creative side projects & hobby exploration', category: 'Core Focus', status: 'pending' },
-      '21:00': { task: 'Digital wind-down & next-day micro-schedule review', category: 'Routine Admin', status: 'pending' },
-      '22:00': { task: 'Fiction reading & sleep preparation protocol', category: 'Rest & Recharge', status: 'pending' },
-      '23:00': { task: 'Sleep & optimal physiological recovery', category: 'Rest & Recharge', status: 'pending' },
+      '20:00': { task: 'Creative side projects & exploration', category: 'Core Focus', status: 'pending' },
+      '21:00': { task: 'Digital wind-down & next-day review', category: 'Admin & Ops', status: 'pending' },
+      '22:00': { task: 'Reading & sleep preparation protocol', category: 'Rest & Recharge', status: 'pending' },
+      '23:00': { task: 'Sleep & recovery', category: 'Rest & Recharge', status: 'pending' },
     };
 
     dailyData.hours = { ...routineTemplate };
     queueAutoSave();
     renderHourlySchedule();
     renderSevenDaysGrid();
-    showToast('Standard high-performance routine loaded!', 'success');
+    showToast('Standard routine loaded successfully', 'success');
   }
 
   function markAllDayComplete() {
@@ -629,18 +808,18 @@
     queueAutoSave();
     renderHourlySchedule();
     renderSevenDaysGrid();
-    showToast('All planned hours marked complete!', 'success');
+    showToast('All scheduled blocks marked as complete', 'success');
   }
 
   function clearDayLog() {
-    if (confirm('Are you sure you want to clear all hourly blocks for this day?')) {
+    if (confirm('Clear all hourly blocks for this day?')) {
       const dailyData = getDailyLog(state.currentDate);
       dailyData.objective = '';
       dailyData.hours = {};
       queueAutoSave();
       renderHourlySchedule();
       renderSevenDaysGrid();
-      showToast('Daily log cleared.', 'info');
+      showToast('Daily log cleared', 'info');
     }
   }
 
@@ -676,9 +855,9 @@
 
       const pct = scheduled > 0 ? Math.round((completed / scheduled) * 100) : 0;
 
-      // Render 7-day card
+      // 7-day card
       const card = document.createElement('div');
-      card.className = `day-card glass-card ${dayStr === state.currentDate ? 'active-selected-day' : ''}`;
+      card.className = `day-card ${dayStr === state.currentDate ? 'active-selected-day' : ''}`;
       card.innerHTML = `
         <span class="day-card-name">${dayNameShort}</span>
         <span class="day-card-num">${dayNum}</span>
@@ -693,25 +872,26 @@
         updateDateDisplay();
         renderHourlySchedule();
         renderSevenDaysGrid();
+        renderSubpanel();
         updateAllMetrics();
       });
 
       dom.sevenDaysContainer.appendChild(card);
 
-      // Render Review Log Table Row
+      // Review Table Row
       const tr = document.createElement('tr');
       const isSelectedDay = dayStr === state.currentDate;
       tr.innerHTML = `
-        <td><strong>${dayDate.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}</strong> ${dayStr === todayISO ? '<span class="today-badge-btn" style="padding: 0.1rem 0.4rem; font-size: 0.65rem;">Today</span>' : ''}</td>
+        <td><strong>${dayDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</strong> ${dayStr === todayISO ? '<span class="badge-tag" style="padding: 0.1rem 0.35rem; font-size: 0.65rem;">Today</span>' : ''}</td>
         <td>${escapeHtml(dayLog.objective || '—')}</td>
-        <td>${scheduled} blocks</td>
-        <td style="color: var(--accent-emerald); font-weight: 700;">${completed}</td>
-        <td style="color: var(--accent-rose); font-weight: 700;">${missed}</td>
+        <td>${scheduled}</td>
+        <td style="font-weight: 600;">${completed}</td>
+        <td style="color: var(--text-muted);">${missed}</td>
         <td>
-          <span style="font-family: var(--font-mono); font-weight: 700; color: ${pct >= 75 ? 'var(--accent-emerald)' : pct >= 50 ? 'var(--accent-cyan)' : 'var(--text-muted)'};">${pct}%</span>
+          <span style="font-family: var(--font-mono); font-weight: 600;">${pct}%</span>
         </td>
         <td>
-          <button class="table-jump-btn" data-date="${dayStr}">${isSelectedDay ? 'Viewing' : 'Jump to Day'}</button>
+          <button class="table-jump-btn" data-date="${dayStr}">${isSelectedDay ? 'Viewing' : 'Open'}</button>
         </td>
       `;
 
@@ -719,9 +899,6 @@
         state.currentDate = dayStr;
         updateDateDisplay();
         switchToLevel('micro');
-        renderHourlySchedule();
-        renderSevenDaysGrid();
-        updateAllMetrics();
       });
 
       dom.weekReviewTableBody.appendChild(tr);
@@ -736,7 +913,7 @@
   // ==========================================================================
   function renderWeeklyStrategyView() {
     const weeklyPlan = getWeeklyPlan();
-    dom.weeklyStrategyTitle.textContent = `Week ${state.selectedMonthWeek}: Pre-Week Strategic Intentions`;
+    dom.weeklyStrategyTitle.textContent = `Week ${state.selectedMonthWeek} Strategic Intentions`;
     dom.weeklyStrategyText.value = weeklyPlan.strategy || '';
 
     // Render Rocks
@@ -757,8 +934,8 @@
 
       const delBtn = document.createElement('button');
       delBtn.className = 'rock-del-btn';
-      delBtn.innerHTML = '🗑️';
-      delBtn.title = 'Remove Task';
+      delBtn.innerHTML = ICONS.trash;
+      delBtn.title = 'Delete Deliverable';
 
       cb.addEventListener('change', () => {
         rock.completed = cb.checked;
@@ -802,13 +979,11 @@
     dom.fourMonthsContainer.innerHTML = '';
     const horizonData = state.year_data.four_months[state.currentHorizon] || {};
 
-    const monthNamesMap = {
-      h1: ['Month 1 (Jan / Horizon Start)', 'Month 2 (Feb / Acceleration)', 'Month 3 (Mar / Execution)', 'Month 4 (Apr / Culmination)'],
-      h2: ['Month 5 (May / Horizon 2)', 'Month 6 (Jun / Mid-Year)', 'Month 7 (Jul / Peak Scale)', 'Month 8 (Aug / Consolidation)'],
-      h3: ['Month 9 (Sep / Q3 Sprints)', 'Month 10 (Oct / Compounding)', 'Month 11 (Nov / Final Push)', 'Month 12 (Dec / Annual Victory)']
-    };
-
-    const monthTitles = monthNamesMap[state.currentHorizon] || ['Month 1', 'Month 2', 'Month 3', 'Month 4'];
+    const monthTitles = {
+      h1: ['Month 1 (Foundation)', 'Month 2 (Acceleration)', 'Month 3 (Execution)', 'Month 4 (Launch & Review)'],
+      h2: ['Month 5 (Expansion)', 'Month 6 (Mid-Year)', 'Month 7 (Scale)', 'Month 8 (Consolidation)'],
+      h3: ['Month 9 (Q3 Sprints)', 'Month 10 (Compounding)', 'Month 11 (Final Push)', 'Month 12 (Annual Victory)']
+    }[state.currentHorizon] || ['Month 1', 'Month 2', 'Month 3', 'Month 4'];
 
     for (let i = 1; i <= 4; i++) {
       const mKey = `m${i}`;
@@ -818,39 +993,37 @@
       const mData = horizonData[mKey];
 
       const card = document.createElement('div');
-      card.className = 'month-horizon-card glass-card';
+      card.className = 'month-horizon-card';
 
       card.innerHTML = `
         <div class="month-card-header">
           <span class="month-name-title">${monthTitles[i - 1]}</span>
           <span class="month-badge-tag">M0${i}</span>
         </div>
-        <textarea class="month-target-textarea" placeholder="Write monthly targets & strategic focus...">${escapeHtml(mData.target || '')}</textarea>
+        <textarea class="month-target-textarea" placeholder="Strategic targets & focus...">${escapeHtml(mData.target || '')}</textarea>
         <div class="month-milestones-wrapper">
-          <span class="month-milestone-title">Key Checkpoints & Deliverables</span>
+          <span class="month-milestone-title">Key Checkpoints</span>
           <div class="milestones-list-box" id="milestones_list_${mKey}"></div>
-          <button class="action-mini-btn add-m-checkpoint-btn" style="align-self: flex-start; margin-top: 0.35rem;">+ Add Checkpoint</button>
+          <button class="btn-secondary-sm add-m-checkpoint-btn" style="align-self: flex-start; margin-top: 0.35rem;">+ Add Checkpoint</button>
         </div>
       `;
 
-      // Textarea listener
       const ta = card.querySelector('.month-target-textarea');
       ta.addEventListener('input', (e) => {
         mData.target = e.target.value;
         queueAutoSave();
       });
 
-      // Render milestones
       const milestonesBox = card.querySelector(`#milestones_list_${mKey}`);
-      const renderMilestoneItems = () => {
+      const renderMilestones = () => {
         milestonesBox.innerHTML = '';
         (mData.milestones || []).forEach((msText, msIdx) => {
           const mItem = document.createElement('div');
           mItem.className = 'milestone-item';
           mItem.innerHTML = `
-            <span>📍</span>
-            <input type="text" class="milestone-input" value="${escapeHtml(msText)}" placeholder="Milestone description" />
-            <button class="rock-del-btn" style="font-size: 0.75rem;">✕</button>
+            <span class="milestone-dot"></span>
+            <input type="text" class="milestone-input" value="${escapeHtml(msText)}" placeholder="Checkpoint description" />
+            <button class="rock-del-btn" style="padding: 0 4px;">${ICONS.cross}</button>
           `;
 
           const msInput = mItem.querySelector('.milestone-input');
@@ -862,21 +1035,20 @@
           mItem.querySelector('.rock-del-btn').addEventListener('click', () => {
             mData.milestones.splice(msIdx, 1);
             queueAutoSave();
-            renderMilestoneItems();
+            renderMilestones();
           });
 
           milestonesBox.appendChild(mItem);
         });
       };
 
-      renderMilestoneItems();
+      renderMilestones();
 
-      // Add Checkpoint button
       card.querySelector('.add-m-checkpoint-btn').addEventListener('click', () => {
         if (!mData.milestones) mData.milestones = [];
         mData.milestones.push('Key delivery milestone');
         queueAutoSave();
-        renderMilestoneItems();
+        renderMilestones();
       });
 
       dom.fourMonthsContainer.appendChild(card);
@@ -894,29 +1066,28 @@
 
     goals.forEach((goal, idx) => {
       const card = document.createElement('div');
-      card.className = 'yearly-goal-card glass-card';
+      card.className = 'yearly-goal-card';
 
       card.innerHTML = `
         <div class="yearly-goal-top">
           <span class="pillar-badge">${escapeHtml(goal.pillar || 'Strategic Pillar')}</span>
-          <button class="goal-delete-btn" title="Delete Goal">🗑️</button>
+          <button class="goal-delete-btn" title="Delete Goal">${ICONS.trash}</button>
         </div>
-        <input type="text" class="yearly-goal-title-input" value="${escapeHtml(goal.title || '')}" placeholder="High-Level Yearly Goal Title" />
+        <input type="text" class="yearly-goal-title-input" value="${escapeHtml(goal.title || '')}" placeholder="Goal Title" />
         <div class="goal-metric-target-row">
           <span>Target Metric:</span>
-          <input type="text" class="goal-metric-input" value="${escapeHtml(goal.targetMetric || '')}" placeholder="e.g. 100k Users or Sub-4hr Marathon" />
+          <input type="text" class="goal-metric-input" value="${escapeHtml(goal.targetMetric || '')}" placeholder="e.g. $250k ARR or 24 Books" />
         </div>
         <div class="goal-card-footer">
-          <span style="font-size: 0.75rem; color: var(--text-muted);">Status:</span>
+          <span style="font-size: 0.74rem; color: var(--text-muted);">Status:</span>
           <select class="goal-status-select">
-            <option value="In Progress" ${goal.status === 'In Progress' ? 'selected' : ''}>⏳ In Progress</option>
-            <option value="Achieved" ${goal.status === 'Achieved' ? 'selected' : ''}>🎯 Achieved</option>
-            <option value="Deferred" ${goal.status === 'Deferred' ? 'selected' : ''}>💤 Deferred</option>
+            <option value="In Progress" ${goal.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+            <option value="Achieved" ${goal.status === 'Achieved' ? 'selected' : ''}>Achieved</option>
+            <option value="Deferred" ${goal.status === 'Deferred' ? 'selected' : ''}>Deferred</option>
           </select>
         </div>
       `;
 
-      // Input listeners
       card.querySelector('.yearly-goal-title-input').addEventListener('input', (e) => {
         goal.title = e.target.value;
         queueAutoSave();
@@ -950,7 +1121,7 @@
     }
     state.year_data.yearly_goals.push({
       id: 'yg_' + Date.now(),
-      title: 'New High-Level Annual Vision Goal',
+      title: 'New High-Level Annual Target',
       pillar: 'Strategic Growth',
       targetMetric: '100% Target Met',
       status: 'In Progress'
@@ -961,99 +1132,37 @@
   }
 
   // ==========================================================================
-  // REAL-TIME PROGRESS TRACKER & DASHBOARD METRICS
+  // DASHBOARD METRICS & REAL-TIME STATS
   // ==========================================================================
   function updateAllMetrics() {
-    // 1. Daily Focus Metric (Today's precision log)
+    // 1. Daily Focus Metric
     const todayLog = getDailyLog(state.currentDate);
     const todayHours = Object.values(todayLog.hours);
     const scheduledHours = todayHours.filter(h => h.task && h.task.trim().length > 0).length;
     const completedHours = todayHours.filter(h => h.status === 'completed' && h.task && h.task.trim().length > 0).length;
+    const pendingHours = scheduledHours - completedHours;
 
     const dailyPct = scheduledHours > 0 ? Math.round((completedHours / scheduledHours) * 100) : 0;
-    setRingPercentage(dom.dailyRingProgress, dom.dailyPercentageText, dailyPct);
+    if (dom.dailyMiniProgressFill) {
+      dom.dailyMiniProgressFill.style.width = `${dailyPct}%`;
+    }
     dom.dailyBlockRatio.textContent = `${completedHours} / ${scheduledHours} hrs`;
-
-    if (dailyPct >= 80) {
-      dom.dailyStatusPill.innerHTML = '<span style="color: var(--accent-emerald);">🔥 Peak Momentum</span>';
-    } else if (dailyPct >= 50) {
-      dom.dailyStatusPill.innerHTML = '<span style="color: var(--accent-cyan);">⚡ High Focus</span>';
-    } else if (scheduledHours > 0) {
-      dom.dailyStatusPill.innerHTML = '<span style="color: var(--accent-amber);">⚠️ Building Pace</span>';
-    } else {
-      dom.dailyStatusPill.innerHTML = '<span>Standby</span>';
+    if (dom.sidebarTodayPendingBadge) {
+      dom.sidebarTodayPendingBadge.textContent = String(pendingHours >= 0 ? pendingHours : 0);
     }
 
-    // 2. Weekly Pace Metric
-    const weekDays = getWeekDateRange(state.currentDate);
-    let weekScheduled = 0;
-    let weekCompleted = 0;
-
-    weekDays.forEach(dStr => {
-      const dLog = state.year_data.daily_logs[dStr];
-      if (dLog) {
-        const arr = Object.values(dLog.hours);
-        weekScheduled += arr.filter(h => h.task && h.task.trim().length > 0).length;
-        weekCompleted += arr.filter(h => h.status === 'completed' && h.task && h.task.trim().length > 0).length;
-      }
-    });
-
-    const weeklyPct = weekScheduled > 0 ? Math.round((weekCompleted / weekScheduled) * 100) : 0;
-    setRingPercentage(dom.weeklyRingProgress, dom.weeklyPercentageText, weeklyPct);
-    dom.weeklyBlockRatio.textContent = `${weekCompleted} / ${weekScheduled} done`;
-
-    if (weeklyPct >= 75) {
-      dom.weeklyStatusPill.innerHTML = '<span style="color: var(--accent-emerald);">🚀 Winning Week</span>';
-    } else if (weeklyPct >= 40) {
-      dom.weeklyStatusPill.innerHTML = '<span style="color: var(--accent-cyan);">⚡ On Track</span>';
-    } else {
-      dom.weeklyStatusPill.innerHTML = '<span>Needs Attention</span>';
-    }
-
-    // 3. 4-Month Horizon Progress
-    const hData = state.year_data.four_months[state.currentHorizon] || {};
-    let totalMilestones = 0;
-    Object.values(hData).forEach(m => {
-      totalMilestones += (m.milestones || []).length;
-    });
-    // Calculation fallback: weekly completion contributes to horizon sprint
-    const monthlyPct = totalMilestones > 0 ? Math.min(100, Math.round((weekCompleted / Math.max(1, weekScheduled || 10)) * 60 + 25)) : (weeklyPct > 0 ? weeklyPct : 35);
-    setRingPercentage(dom.monthlyRingProgress, dom.monthlyPercentageText, monthlyPct);
-    dom.monthTargetRatio.textContent = `Horizon ${state.currentHorizon.toUpperCase()}`;
-
-    // 4. Yearly Vision Progress
+    // 2. Yearly Master Progress
     const yGoals = state.year_data.yearly_goals || [];
     const totalGoals = yGoals.length;
     const achievedGoals = yGoals.filter(g => g.status === 'Achieved').length;
     const inProgressGoals = yGoals.filter(g => g.status === 'In Progress').length;
 
     const yearlyPct = totalGoals > 0 ? Math.round(((achievedGoals * 1.0 + inProgressGoals * 0.4) / totalGoals) * 100) : 0;
-    setRingPercentage(dom.yearlyRingProgress, dom.yearlyPercentageText, yearlyPct);
-    dom.yearlyGoalRatio.textContent = `${achievedGoals} / ${totalGoals} goals`;
 
-    // Master Bar update
     dom.yearlyOverallBarFill.style.width = `${yearlyPct}%`;
     dom.yearlyOverallBarText.textContent = `${yearlyPct}% Complete`;
     dom.yearlyGoalsCountLegend.textContent = `${achievedGoals} of ${totalGoals} Key Targets Achieved`;
-
-    if (yearlyPct >= 75) {
-      dom.yearlyVisionStatusText.textContent = 'Domination Phase';
-      dom.yearlyStatusPill.innerHTML = '<span style="color: var(--accent-emerald);">👑 North Star Met</span>';
-    } else if (yearlyPct >= 35) {
-      dom.yearlyVisionStatusText.textContent = 'Active Execution';
-      dom.yearlyStatusPill.innerHTML = '<span style="color: var(--accent-amber);">🎯 Progressing</span>';
-    } else {
-      dom.yearlyVisionStatusText.textContent = 'In Conception';
-      dom.yearlyStatusPill.innerHTML = '<span>Targeting</span>';
-    }
-  }
-
-  function setRingPercentage(svgCircle, labelElem, percentage) {
-    if (!svgCircle || !labelElem) return;
-    const clamped = Math.max(0, Math.min(100, percentage));
-    const offset = CIRCLE_CIRCUMFERENCE - (clamped / 100) * CIRCLE_CIRCUMFERENCE;
-    svgCircle.style.strokeDashoffset = offset;
-    labelElem.textContent = `${clamped}%`;
+    dom.yearlyVisionStatusText.textContent = yearlyPct >= 75 ? 'Target Victory' : yearlyPct >= 35 ? 'Active Execution' : 'Planning Phase';
   }
 
   // ==========================================================================
@@ -1061,21 +1170,21 @@
   // ==========================================================================
   function switchToLevel(levelKey) {
     state.currentLevel = levelKey;
-    dom.levelTabs.forEach(tab => {
-      tab.classList.toggle('active', tab.dataset.level === levelKey);
+    dom.navButtons.forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.level === levelKey);
     });
 
     dom.views.forEach(view => {
       view.classList.toggle('active-view', view.id === `view-${levelKey}`);
     });
 
-    // Refresh view specific components
     if (levelKey === 'micro') renderHourlySchedule();
     if (levelKey === 'daily') renderSevenDaysGrid();
     if (levelKey === 'weekly') renderWeeklyStrategyView();
     if (levelKey === 'monthly') renderFourMonthsHorizon();
     if (levelKey === 'yearly') renderYearlyGoals();
 
+    renderSubpanel();
     updateAllMetrics();
   }
 
@@ -1107,14 +1216,14 @@
     if (authMode === 'login') {
       dom.tabSwitchLogin.classList.add('active');
       dom.tabSwitchRegister.classList.remove('active');
-      dom.authModalHeading.textContent = 'Sign In to LUMEN';
-      dom.authModalSubtitle.textContent = 'Restore your cloud state and sync your productivity log across devices.';
+      dom.authModalHeading.textContent = 'Sign In';
+      dom.authModalSubtitle.textContent = 'Sign in to sync your productivity data across devices via PostgreSQL.';
       dom.authSubmitBtnText.textContent = 'Sign In';
     } else {
       dom.tabSwitchRegister.classList.add('active');
       dom.tabSwitchLogin.classList.remove('active');
-      dom.authModalHeading.textContent = 'Create an Account';
-      dom.authModalSubtitle.textContent = 'Instantly provision your serverless cloud database storage on PostgreSQL.';
+      dom.authModalHeading.textContent = 'Create Account';
+      dom.authModalSubtitle.textContent = 'Provision your cloud storage on PostgreSQL.';
       dom.authSubmitBtnText.textContent = 'Create Account';
     }
   }
@@ -1125,12 +1234,12 @@
     const password = dom.authPassword.value;
 
     if (!email || !password) {
-      showAuthAlert('Please fill in both email and password.', 'error');
+      showAuthAlert('Please fill in both email and password.');
       return;
     }
 
     if (password.length < 6) {
-      showAuthAlert('Password must be at least 6 characters.', 'error');
+      showAuthAlert('Password must be at least 6 characters.');
       return;
     }
 
@@ -1147,12 +1256,10 @@
       });
 
       const data = await response.json();
-
       if (!response.ok) {
-        throw new Error(data.error || 'Authentication request failed.');
+        throw new Error(data.error || 'Authentication failed.');
       }
 
-      // Success
       state.token = data.token;
       state.user = data.user;
       localStorage.setItem(AUTH_TOKEN_KEY, data.token);
@@ -1160,20 +1267,17 @@
 
       updateUserSessionUI();
       closeAuthModal();
-      showToast(`Welcome back, ${data.user.email}!`, 'success');
-
-      // Load or merge cloud goals
+      showToast(`Welcome, ${data.user.email}!`, 'success');
       await loadGoalsFromBackend();
     } catch (err) {
-      showAuthAlert(err.message, 'error');
+      showAuthAlert(err.message);
     } finally {
       setAuthLoading(false);
     }
   }
 
-  function showAuthAlert(message, type = 'error') {
+  function showAuthAlert(message) {
     dom.authAlertBox.textContent = message;
-    dom.authAlertBox.className = `auth-alert ${type}`;
     dom.authAlertBox.classList.remove('hidden');
   }
 
@@ -1185,15 +1289,20 @@
 
   function updateUserSessionUI() {
     if (state.token && state.user) {
+      const emailInitial = (state.user.email || 'US').substring(0, 2).toUpperCase();
       dom.userEmailDisplay.textContent = state.user.email.split('@')[0];
-      dom.userAvatarText.textContent = '✨';
+      dom.userAvatarText.textContent = emailInitial;
+      dom.topAvatarInitials.textContent = emailInitial;
+      dom.userStatusSub.textContent = 'Cloud Active';
       dom.logoutBtn.classList.remove('hidden');
-      updateSyncStatusUI('synced', 'Cloud Synced');
+      updateSyncStatusUI('synced', 'Synced');
     } else {
-      dom.userEmailDisplay.textContent = 'Sign In';
-      dom.userAvatarText.textContent = '👤';
+      dom.userEmailDisplay.textContent = 'Guest User';
+      dom.userAvatarText.textContent = 'PR';
+      dom.topAvatarInitials.textContent = 'PR';
+      dom.userStatusSub.textContent = 'Local Mode';
       dom.logoutBtn.classList.add('hidden');
-      updateSyncStatusUI('offline', 'Offline Mode (Local Storage)');
+      updateSyncStatusUI('offline', 'Offline (Local)');
     }
   }
 
@@ -1203,21 +1312,21 @@
     localStorage.removeItem(AUTH_TOKEN_KEY);
     localStorage.removeItem(AUTH_USER_KEY);
     updateUserSessionUI();
-    if (notify) showToast('Signed out successfully.', 'info');
+    if (notify) showToast('Signed out', 'info');
   }
 
   // ==========================================================================
-  // BACKUP & EXPORT/IMPORT
+  // BACKUP EXPORT & IMPORT
   // ==========================================================================
   function exportBackupJSON() {
     const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(state.year_data, null, 2));
-    const downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute('href', dataStr);
-    downloadAnchor.setAttribute('download', `lumen_productivity_backup_${getTodayISODate()}.json`);
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
-    showToast('Productivity backup exported!', 'success');
+    const a = document.createElement('a');
+    a.setAttribute('href', dataStr);
+    a.setAttribute('download', `productive_backup_${getTodayISODate()}.json`);
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    showToast('Backup exported successfully', 'success');
   }
 
   function importBackupJSON(e) {
@@ -1233,10 +1342,11 @@
           queueAutoSave();
           renderAllViews();
           updateAllMetrics();
-          showToast('Productivity backup restored successfully!', 'success');
+          renderSubpanel();
+          showToast('Data restored successfully', 'success');
         }
       } catch (err) {
-        showToast('Invalid JSON backup file.', 'error');
+        showToast('Invalid backup file', 'alert');
       }
     };
     reader.readAsText(file);
@@ -1244,21 +1354,21 @@
   }
 
   // ==========================================================================
-  // TOAST NOTIFICATIONS & UTILITIES
+  // TOAST NOTIFICATIONS (Zero Emojis)
   // ==========================================================================
   function showToast(message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `toast ${type}`;
-    const icon = type === 'success' ? '✅' : type === 'error' ? '⚠️' : '⚡';
-    toast.innerHTML = `<span>${icon}</span><span>${escapeHtml(message)}</span>`;
+    const iconSvg = type === 'success' ? ICONS.success : type === 'alert' ? ICONS.alert : ICONS.info;
+    toast.innerHTML = `<span class="toast-icon">${iconSvg}</span><span>${escapeHtml(message)}</span>`;
     dom.toastContainer.appendChild(toast);
 
     setTimeout(() => {
       toast.style.opacity = '0';
-      toast.style.transform = 'translateY(10px)';
-      toast.style.transition = 'all 0.3s ease';
-      setTimeout(() => toast.remove(), 300);
-    }, 3200);
+      toast.style.transform = 'translateY(8px)';
+      toast.style.transition = 'all 0.2s ease';
+      setTimeout(() => toast.remove(), 200);
+    }, 2800);
   }
 
   function escapeHtml(str) {
@@ -1275,15 +1385,61 @@
   // EVENT LISTENERS BINDING
   // ==========================================================================
   function bindEventListeners() {
+    // Sidebar toggle
+    dom.sidebarToggleBtn.addEventListener('click', () => {
+      dom.sidebarPrimary.classList.toggle('collapsed');
+    });
+
     // Theme toggle
     dom.themeToggleBtn.addEventListener('click', toggleTheme);
+
+    // Global Search Bar & Keyboard Shortcut '/'
+    dom.globalSearchInput.addEventListener('input', (e) => {
+      state.searchQuery = e.target.value;
+      if (dom.subpanelSearchInput) dom.subpanelSearchInput.value = state.searchQuery;
+      renderHourlySchedule();
+      renderSubpanel();
+    });
+
+    dom.subpanelSearchInput.addEventListener('input', (e) => {
+      state.searchQuery = e.target.value;
+      if (dom.globalSearchInput) dom.globalSearchInput.value = state.searchQuery;
+      renderHourlySchedule();
+      renderSubpanel();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+        e.preventDefault();
+        dom.globalSearchInput.focus();
+      }
+    });
+
+    // Quick + New button
+    dom.btnQuickNewTask.addEventListener('click', () => {
+      if (state.currentLevel === 'micro') {
+        // focus the first empty task input or day objective
+        const emptyInput = dom.hourlyTimelineContainer.querySelector('.hour-task-input[value=""]');
+        if (emptyInput) {
+          emptyInput.focus();
+        } else {
+          dom.dayPrimaryObjective.focus();
+        }
+      } else if (state.currentLevel === 'weekly') {
+        addWeeklyRock();
+      } else if (state.currentLevel === 'yearly') {
+        addNewYearlyGoal();
+      } else {
+        switchToLevel('micro');
+      }
+    });
 
     // Year selector
     dom.yearSelector.addEventListener('change', (e) => {
       state.selectedYear = e.target.value;
       renderYearlyGoals();
       updateAllMetrics();
-      showToast(`Switched horizon to ${state.selectedYear}`, 'info');
+      showToast(`Selected horizon ${state.selectedYear}`, 'info');
     });
 
     // Date navigation
@@ -1294,6 +1450,7 @@
       updateDateDisplay();
       renderHourlySchedule();
       renderSevenDaysGrid();
+      renderSubpanel();
       updateAllMetrics();
     });
 
@@ -1303,18 +1460,30 @@
         updateDateDisplay();
         renderHourlySchedule();
         renderSevenDaysGrid();
+        renderSubpanel();
         updateAllMetrics();
       }
     });
 
-    // Hierarchy Tabs
-    dom.levelTabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        switchToLevel(tab.dataset.level);
+    // Navigation Tabs
+    dom.navButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        switchToLevel(btn.dataset.level);
       });
     });
 
-    // Level 05 Actions
+    // Sidebar Cloud Sync & Backup triggers
+    dom.btnSidebarSync.addEventListener('click', () => {
+      if (state.token) {
+        loadGoalsFromBackend();
+      } else {
+        openAuthModal('login');
+      }
+    });
+
+    dom.btnSidebarBackup.addEventListener('click', exportBackupJSON);
+
+    // Hourly Actions
     dom.dayPrimaryObjective.addEventListener('input', (e) => {
       const dLog = getDailyLog(state.currentDate);
       dLog.objective = e.target.value;
@@ -1334,13 +1503,14 @@
     dom.btnMarkAllDayDone.addEventListener('click', markAllDayComplete);
     dom.btnClearDayLog.addEventListener('click', clearDayLog);
 
-    // Level 03: Weekly Strategy
+    // Weekly Actions
     dom.monthWeekSelector.querySelectorAll('.sub-week-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         dom.monthWeekSelector.querySelectorAll('.sub-week-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         state.selectedMonthWeek = parseInt(btn.dataset.weeknum, 10);
         renderWeeklyStrategyView();
+        renderSubpanel();
       });
     });
 
@@ -1352,25 +1522,25 @@
 
     dom.btnAddWeeklyRock.addEventListener('click', addWeeklyRock);
 
-    // Level 02: 4-Month Horizon toggles
+    // 4-Month Horizons
     dom.horizonBtns.forEach(btn => {
       btn.addEventListener('click', () => {
         dom.horizonBtns.forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         state.currentHorizon = btn.dataset.horizon;
         renderFourMonthsHorizon();
+        renderSubpanel();
         updateAllMetrics();
       });
     });
 
-    // Level 01: Yearly Vision Actions
+    // Yearly Goals
     dom.btnAddNewYearlyGoal.addEventListener('click', addNewYearlyGoal);
 
     // Auth Modal
     dom.authTriggerBtn.addEventListener('click', () => {
       if (state.token) {
-        // Toggle or show info
-        showToast(`Connected as ${state.user.email}`, 'info');
+        showToast(`Signed in as ${state.user.email}`, 'info');
       } else {
         openAuthModal('login');
       }
@@ -1390,11 +1560,10 @@
     dom.btnContinueGuest.addEventListener('click', closeAuthModal);
 
     dom.togglePasswordBtn.addEventListener('click', () => {
-      const type = dom.authPassword.getAttribute('type') === 'password' ? 'text' : 'password';
-      dom.authPassword.setAttribute('type', type);
+      const isPwd = dom.authPassword.getAttribute('type') === 'password';
+      dom.authPassword.setAttribute('type', isPwd ? 'text' : 'password');
     });
 
-    // Force Sync on clicking badge
     dom.syncStatusBadge.addEventListener('click', () => {
       if (state.token) {
         loadGoalsFromBackend();
@@ -1403,13 +1572,13 @@
       }
     });
 
-    // Backup Export / Import
+    // Data Export & Import
     dom.btnExportData.addEventListener('click', exportBackupJSON);
     dom.btnImportData.addEventListener('click', () => dom.importFileInput.click());
     dom.importFileInput.addEventListener('change', importBackupJSON);
   }
 
-  // --- Start the App on DOM Load ---
+  // --- Initialize App on DOM Load ---
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initApp);
   } else {

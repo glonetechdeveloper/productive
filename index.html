@@ -3,501 +3,527 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="LUMEN Productivity OS - Production-ready top-down goal hierarchy, hourly micro-scheduling, and real-time progress analytics." />
-  <meta name="keywords" content="productivity, time blocking, goal hierarchy, daily planner, habits, focus tracker" />
-  <title>LUMEN | Productivity OS & Goal Hierarchy</title>
+  <meta name="description" content="Productive - Minimalist Goal Hierarchy, Time Blocking & Productivity Workspace" />
+  <title>Productive &bull; Workspace</title>
 
-  <!-- Google Fonts: Outfit & Plus Jakarta Sans -->
+  <!-- Google Fonts: Inter & Plus Jakarta Sans & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 
   <!-- Main Stylesheet (Vanilla CSS) -->
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <!-- Ambient Glass Glow Background Effects -->
-  <div class="ambient-glow glow-1"></div>
-  <div class="ambient-glow glow-2"></div>
-  <div class="ambient-glow glow-3"></div>
-
-  <!-- App Wrapper -->
-  <div class="app-layout">
+  <!-- App Container -->
+  <div class="app-container">
     
-    <!-- Top Navigation & Control Bar -->
-    <header class="app-header">
-      <div class="header-left">
-        <div class="brand-badge">
-          <span class="brand-icon">⚡</span>
-          <div class="brand-titles">
-            <h1 class="brand-name">LUMEN <span class="brand-tag">OS</span></h1>
-            <span class="brand-subtitle">Hierarchical Productivity Matrix</span>
+    <!-- LEFT PRIMARY SIDEBAR -->
+    <aside class="sidebar-primary" id="sidebarPrimary">
+      <!-- Workspace Brand / Header -->
+      <div class="sidebar-brand-header">
+        <div class="brand-identity">
+          <div class="brand-logo-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <div class="brand-text-wrap">
+            <span class="brand-title">Productive</span>
+            <span class="brand-sub">Workspace</span>
           </div>
         </div>
-
-        <!-- Global Year / Cycle Selector -->
-        <div class="cycle-picker-pill">
-          <label for="yearSelector" class="sr-only">Select Year</label>
-          <span class="cycle-icon">🎯</span>
-          <select id="yearSelector" class="header-select">
-            <option value="2026" selected>2026 Horizon</option>
-            <option value="2027">2027 Horizon</option>
-            <option value="2025">2025 Archive</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Quick Interactive Date Switcher -->
-      <div class="header-center">
-        <div class="date-navigator-bar">
-          <button id="btnPrevDay" class="nav-arrow-btn" title="Previous Day">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-          </button>
-
-          <div class="current-date-trigger" id="datePickerWrapper">
-            <span class="date-icon">📅</span>
-            <input type="date" id="nativeDatePicker" class="hidden-date-input" />
-            <div class="date-labels">
-              <span id="displayDayName" class="day-name">Today</span>
-              <span id="displayFullDate" class="full-date">Sep 18, 2026</span>
-            </div>
-          </div>
-
-          <button id="btnNextDay" class="nav-arrow-btn" title="Next Day">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-          </button>
-
-          <button id="btnJumpToday" class="today-badge-btn">Today</button>
-        </div>
-      </div>
-
-      <!-- Right Controls: Sync Indicator, Theme Toggle, User Profile / Auth -->
-      <div class="header-right">
-        <!-- Backend Cloud Sync Indicator -->
-        <div class="sync-status-badge" id="syncStatusBadge" title="Click to force sync">
-          <span class="sync-dot" id="syncDot"></span>
-          <span class="sync-text" id="syncStatusText">Cloud Ready</span>
-        </div>
-
-        <!-- Theme Toggle (Dark / Light) -->
-        <button id="themeToggleBtn" class="theme-toggle-btn" aria-label="Toggle Dark / Light Theme" title="Toggle theme">
-          <span class="theme-icon sun-icon">☀️</span>
-          <span class="theme-icon moon-icon">🌙</span>
+        <button class="sidebar-toggle-btn" id="sidebarToggleBtn" aria-label="Toggle sidebar" title="Collapse sidebar">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
         </button>
-
-        <!-- User Profile / Auth Button -->
-        <div class="user-session-container">
-          <button id="authTriggerBtn" class="auth-action-btn">
-            <span class="user-avatar-circle" id="userAvatarText">👤</span>
-            <span class="user-label" id="userEmailDisplay">Sign In</span>
-          </button>
-          <button id="logoutBtn" class="logout-mini-btn hidden" title="Sign Out">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-          </button>
-        </div>
       </div>
-    </header>
 
-    <!-- REAL-TIME METRICS & PRODUCTIVITY DASHBOARD -->
-    <section class="dashboard-hero">
-      <div class="metrics-grid">
+      <!-- Navigation Menu -->
+      <nav class="sidebar-nav" aria-label="Primary Navigation">
+        <div class="nav-section-title">Navigation</div>
         
-        <!-- Metric 1: Daily Productivity -->
-        <div class="metric-card glass-card ring-card">
-          <div class="metric-header">
-            <div class="metric-title-group">
-              <span class="metric-badge-icon pulse-cyan">⚡</span>
-              <span class="metric-title">Daily Focus</span>
-            </div>
-            <span class="metric-subtitle" id="dailyBlockRatio">0 / 0 hrs</span>
-          </div>
-          <div class="progress-ring-container">
-            <svg class="progress-ring" width="110" height="110" viewBox="0 0 110 110">
-              <circle class="ring-bg" cx="55" cy="55" r="46" />
-              <circle class="ring-progress cyan-glow" id="dailyRingProgress" cx="55" cy="55" r="46" stroke-dasharray="289" stroke-dashoffset="289" />
-            </svg>
-            <div class="ring-label-overlay">
-              <span class="ring-percentage" id="dailyPercentageText">0%</span>
-              <span class="ring-caption">Today</span>
-            </div>
-          </div>
-          <div class="metric-status-pill" id="dailyStatusPill">
-            <span>Standby</span>
-          </div>
-        </div>
-
-        <!-- Metric 2: Weekly Productivity -->
-        <div class="metric-card glass-card ring-card">
-          <div class="metric-header">
-            <div class="metric-title-group">
-              <span class="metric-badge-icon pulse-emerald">📊</span>
-              <span class="metric-title">Weekly Pace</span>
-            </div>
-            <span class="metric-subtitle" id="weeklyBlockRatio">0 / 0 completed</span>
-          </div>
-          <div class="progress-ring-container">
-            <svg class="progress-ring" width="110" height="110" viewBox="0 0 110 110">
-              <circle class="ring-bg" cx="55" cy="55" r="46" />
-              <circle class="ring-progress emerald-glow" id="weeklyRingProgress" cx="55" cy="55" r="46" stroke-dasharray="289" stroke-dashoffset="289" />
-            </svg>
-            <div class="ring-label-overlay">
-              <span class="ring-percentage" id="weeklyPercentageText">0%</span>
-              <span class="ring-caption">Week</span>
-            </div>
-          </div>
-          <div class="metric-status-pill" id="weeklyStatusPill">
-            <span>On Track</span>
-          </div>
-        </div>
-
-        <!-- Metric 3: Monthly Progress -->
-        <div class="metric-card glass-card ring-card">
-          <div class="metric-header">
-            <div class="metric-title-group">
-              <span class="metric-badge-icon pulse-purple">🔮</span>
-              <span class="metric-title">4-Month Sprint</span>
-            </div>
-            <span class="metric-subtitle" id="monthTargetRatio">Horizon 1</span>
-          </div>
-          <div class="progress-ring-container">
-            <svg class="progress-ring" width="110" height="110" viewBox="0 0 110 110">
-              <circle class="ring-bg" cx="55" cy="55" r="46" />
-              <circle class="ring-progress purple-glow" id="monthlyRingProgress" cx="55" cy="55" r="46" stroke-dasharray="289" stroke-dashoffset="289" />
-            </svg>
-            <div class="ring-label-overlay">
-              <span class="ring-percentage" id="monthlyPercentageText">0%</span>
-              <span class="ring-caption">Cycle</span>
-            </div>
-          </div>
-          <div class="metric-status-pill" id="monthlyStatusPill">
-            <span>Building</span>
-          </div>
-        </div>
-
-        <!-- Metric 4: Yearly Vision -->
-        <div class="metric-card glass-card ring-card">
-          <div class="metric-header">
-            <div class="metric-title-group">
-              <span class="metric-badge-icon pulse-amber">👑</span>
-              <span class="metric-title">Yearly Vision</span>
-            </div>
-            <span class="metric-subtitle" id="yearlyGoalRatio">0 / 0 goals</span>
-          </div>
-          <div class="progress-ring-container">
-            <svg class="progress-ring" width="110" height="110" viewBox="0 0 110 110">
-              <circle class="ring-bg" cx="55" cy="55" r="46" />
-              <circle class="ring-progress amber-glow" id="yearlyRingProgress" cx="55" cy="55" r="46" stroke-dasharray="289" stroke-dashoffset="289" />
-            </svg>
-            <div class="ring-label-overlay">
-              <span class="ring-percentage" id="yearlyPercentageText">0%</span>
-              <span class="ring-caption">Annual</span>
-            </div>
-          </div>
-          <div class="metric-status-pill" id="yearlyStatusPill">
-            <span>Targeting</span>
-          </div>
-        </div>
-
-      </div>
-    </section>
-
-    <!-- MAIN HIERARCHICAL CONTENT WORKSPACE -->
-    <main class="main-content-area">
-      
-      <!-- HIERARCHY NAVIGATION TABS -->
-      <nav class="hierarchy-nav glass-card" aria-label="Planning Levels Navigation">
-        <button class="level-tab-btn active" data-level="micro" id="tabHourly">
-          <span class="tab-num">05</span>
-          <span class="tab-label">Hourly Micro-Schedule</span>
-          <span class="tab-indicator"></span>
+        <button class="nav-item-btn active" data-level="micro" id="tabHourly">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+          <span class="nav-label">Time Blocks</span>
+          <span class="nav-badge" id="sidebarTodayPendingBadge">0</span>
         </button>
-        <button class="level-tab-btn" data-level="daily" id="tabDaily">
-          <span class="tab-num">04</span>
-          <span class="tab-label">Daily Week Matrix</span>
-          <span class="tab-indicator"></span>
+
+        <button class="nav-item-btn" data-level="daily" id="tabDaily">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+          <span class="nav-label">7-Day Matrix</span>
         </button>
-        <button class="level-tab-btn" data-level="weekly" id="tabWeekly">
-          <span class="tab-num">03</span>
-          <span class="tab-label">Weekly Strategy</span>
-          <span class="tab-indicator"></span>
+
+        <button class="nav-item-btn" data-level="weekly" id="tabWeekly">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+          </svg>
+          <span class="nav-label">Weekly Strategy</span>
         </button>
-        <button class="level-tab-btn" data-level="monthly" id="tabMonthly">
-          <span class="tab-num">02</span>
-          <span class="tab-label">4-Month Horizon</span>
-          <span class="tab-indicator"></span>
+
+        <button class="nav-item-btn" data-level="monthly" id="tabMonthly">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+            <line x1="8" y1="2" x2="8" y2="18"></line>
+            <line x1="16" y1="6" x2="16" y2="22"></line>
+          </svg>
+          <span class="nav-label">4-Month Horizon</span>
         </button>
-        <button class="level-tab-btn" data-level="yearly" id="tabYearly">
-          <span class="tab-num">01</span>
-          <span class="tab-label">Yearly Vision & Goals</span>
-          <span class="tab-indicator"></span>
+
+        <button class="nav-item-btn" data-level="yearly" id="tabYearly">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <circle cx="12" cy="12" r="6"></circle>
+            <circle cx="12" cy="12" r="2"></circle>
+          </svg>
+          <span class="nav-label">Annual Goals</span>
+        </button>
+
+        <div class="nav-section-title">System</div>
+
+        <button class="nav-item-btn" id="btnSidebarSync">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+          </svg>
+          <span class="nav-label">Cloud Sync</span>
+          <span class="nav-status-dot" id="sidebarSyncDot"></span>
+        </button>
+
+        <button class="nav-item-btn" id="btnSidebarBackup">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          <span class="nav-label">Data Backup</span>
         </button>
       </nav>
 
-      <!-- VIEW CONTAINER -->
-      <div class="views-viewport">
-        
-        <!-- ============================================================== -->
-        <!-- LEVEL 5: HOURLY MICRO-SCHEDULE (THE DAILY LOG) -->
-        <!-- ============================================================== -->
-        <section class="hierarchy-view-section active-view" id="view-micro">
-          <div class="section-banner glass-card">
-            <div class="banner-title-area">
-              <div class="banner-badge">LEVEL 05 &bull; MICRO-SCHEDULE</div>
-              <h2 class="banner-heading" id="hourlyViewDateHeading">Today's Precision Time-Blocking</h2>
-              <p class="banner-desc">Map out every hour from 06:00 AM to 11:00 PM. Toggle completed blocks to ignite your daily focus score.</p>
-            </div>
-            
-            <div class="banner-actions">
-              <!-- Quick Filter -->
-              <div class="filter-pills-group">
-                <button class="filter-pill active" data-filter="all">All (18)</button>
-                <button class="filter-pill" data-filter="completed">Done</button>
-                <button class="filter-pill" data-filter="pending">Pending</button>
-                <button class="filter-pill" data-filter="missed">Missed</button>
-              </div>
-
-              <!-- Quick Action Tools -->
-              <div class="action-buttons-group">
-                <button id="btnQuickFillTemplate" class="secondary-action-btn" title="Pre-populate healthy standard routine">
-                  ✨ Standard Routine
-                </button>
-                <button id="btnMarkAllDayDone" class="secondary-action-btn" title="Mark all non-empty hours as complete">
-                  ✅ Mark All Complete
-                </button>
-                <button id="btnClearDayLog" class="danger-outline-btn" title="Clear this day's hourly entries">
-                  🗑️ Clear Day
-                </button>
-              </div>
-            </div>
+      <!-- Sidebar Footer User Profile -->
+      <div class="sidebar-footer">
+        <div class="user-profile-pill" id="sidebarProfilePill">
+          <div class="user-avatar-badge" id="userAvatarText">PR</div>
+          <div class="user-meta-info">
+            <span class="user-display-name" id="userEmailDisplay">Guest User</span>
+            <span class="user-status-text" id="userStatusSub">Local Mode</span>
           </div>
-
-          <!-- Day Focus Bar -->
-          <div class="day-focus-card glass-card">
-            <div class="focus-input-wrapper">
-              <span class="focus-icon">🎯</span>
-              <label for="dayPrimaryObjective" class="sr-only">Primary Daily Objective</label>
-              <input type="text" id="dayPrimaryObjective" class="primary-focus-input" placeholder="What is the ONE non-negotiable objective for today?" />
-            </div>
-          </div>
-
-          <!-- Hourly Blocks Timeline Grid -->
-          <div class="hourly-timeline-grid" id="hourlyTimelineContainer">
-            <!-- Dynamically populated 18 hourly blocks: 06:00 AM to 11:00 PM -->
-          </div>
-        </section>
-
-        <!-- ============================================================== -->
-        <!-- LEVEL 4: DAILY BREAKDOWN (SUN - SAT) -->
-        <!-- ============================================================== -->
-        <section class="hierarchy-view-section" id="view-daily">
-          <div class="section-banner glass-card">
-            <div class="banner-title-area">
-              <div class="banner-badge">LEVEL 04 &bull; 7-DAY WEEK VIEW</div>
-              <h2 class="banner-heading">Weekly Cadence & Day Distribution</h2>
-              <p class="banner-desc">Review your Sunday to Saturday completion metrics, momentum balance, and jump directly to any day.</p>
-            </div>
-            <div class="banner-actions">
-              <span class="week-identifier-pill" id="currentWeekIdentifier">Week 38 &bull; Q3</span>
-            </div>
-          </div>
-
-          <!-- 7-Day Interactive Card Grid -->
-          <div class="seven-days-grid" id="sevenDaysContainer">
-            <!-- Populated with Sun through Sat cards -->
-          </div>
-
-          <!-- Review Log & Historical Reflection -->
-          <div class="history-review-box glass-card">
-            <div class="history-header">
-              <div class="history-title-group">
-                <span class="history-icon">📜</span>
-                <div>
-                  <h3 class="history-title">Daily Execution Review Log</h3>
-                  <p class="history-desc">Summary of scheduled commitments vs execution rates for the current active week.</p>
-                </div>
-              </div>
-              <span class="history-score-badge" id="weekAverageScoreBadge">Week Avg: 0%</span>
-            </div>
-            <div class="history-table-wrapper">
-              <table class="review-table">
-                <thead>
-                  <tr>
-                    <th>Day & Date</th>
-                    <th>Primary Objective</th>
-                    <th>Scheduled Blocks</th>
-                    <th>Completed</th>
-                    <th>Missed</th>
-                    <th>Focus Rating</th>
-                    <th>Action</th>
-                  </tr>
-                </thead>
-                <tbody id="weekReviewTableBody">
-                  <!-- Table rows populated dynamically -->
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </section>
-
-        <!-- ============================================================== -->
-        <!-- LEVEL 3: WEEKLY PLANNING & PRE-WEEK STRATEGY -->
-        <!-- ============================================================== -->
-        <section class="hierarchy-view-section" id="view-weekly">
-          <div class="section-banner glass-card">
-            <div class="banner-title-area">
-              <div class="banner-badge">LEVEL 03 &bull; WEEKLY SPRINT PLANNING</div>
-              <h2 class="banner-heading">Pre-Week Strategy & Milestones</h2>
-              <p class="banner-desc">Set intentional strategic focus and high-impact weekly rocks before the week commences.</p>
-            </div>
-            
-            <!-- Week selector tabs within month -->
-            <div class="sub-week-pills" id="monthWeekSelector">
-              <button class="sub-week-btn active" data-weeknum="1">Week 1</button>
-              <button class="sub-week-btn" data-weeknum="2">Week 2</button>
-              <button class="sub-week-btn" data-weeknum="3">Week 3</button>
-              <button class="sub-week-btn" data-weeknum="4">Week 4</button>
-            </div>
-          </div>
-
-          <div class="weekly-layout-grid">
-            
-            <!-- Pre-Week Strategy Notepad -->
-            <div class="glass-card strategy-card">
-              <div class="card-header-flex">
-                <div class="card-title-group">
-                  <span class="badge-icon-sq">🧠</span>
-                  <div>
-                    <h3 class="card-title" id="weeklyStrategyTitle">Week 1: Pre-Week Strategic Intentions</h3>
-                    <p class="card-subtitle">Key constraints, energy management, risks, and proactive battle plan.</p>
-                  </div>
-                </div>
-                <span class="auto-save-pill">⚡ Auto-Saved</span>
-              </div>
-              
-              <div class="notepad-area">
-                <textarea id="weeklyStrategyText" class="strategy-textarea" placeholder="Write your Pre-Week Strategy notes here...&#10;&#10;1. Key Objective:&#10;2. Anticipated Bottlenecks:&#10;3. Non-Negotiable Habits:&#10;4. Energy Allocation Strategy:"></textarea>
-              </div>
-            </div>
-
-            <!-- Weekly High-Impact Rocks & Milestones -->
-            <div class="glass-card milestones-card">
-              <div class="card-header-flex">
-                <div class="card-title-group">
-                  <span class="badge-icon-sq">💎</span>
-                  <div>
-                    <h3 class="card-title">Weekly Big Rocks</h3>
-                    <p class="card-subtitle">Top 5 deliverables required to win this specific week.</p>
-                  </div>
-                </div>
-                <button id="btnAddWeeklyRock" class="action-mini-btn" title="Add Rock">+ Add Task</button>
-              </div>
-
-              <div class="rocks-list-container" id="weeklyRocksList">
-                <!-- Populated dynamically -->
-              </div>
-            </div>
-
-          </div>
-        </section>
-
-        <!-- ============================================================== -->
-        <!-- LEVEL 2: 4-MONTH / MONTHLY HORIZON GOALS -->
-        <!-- ============================================================== -->
-        <section class="hierarchy-view-section" id="view-monthly">
-          <div class="section-banner glass-card">
-            <div class="banner-title-area">
-              <div class="banner-badge">LEVEL 02 &bull; 4-MONTH HORIZON BREAKDOWN</div>
-              <h2 class="banner-heading">Medium-Term Horizon & Strategic Targets</h2>
-              <p class="banner-desc">Bridge the gap between annual vision and weekly sprints with four focused monthly horizons.</p>
-            </div>
-            
-            <div class="banner-actions">
-              <div class="horizon-toggle-group">
-                <button class="horizon-btn active" data-horizon="h1">Horizon 1 (M1 - M4)</button>
-                <button class="horizon-btn" data-horizon="h2">Horizon 2 (M5 - M8)</button>
-                <button class="horizon-btn" data-horizon="h3">Horizon 3 (M9 - M12)</button>
-              </div>
-            </div>
-          </div>
-
-          <!-- 4 Months Cards Grid -->
-          <div class="four-months-grid" id="fourMonthsContainer">
-            <!-- Populated dynamically with Month 1, Month 2, Month 3, Month 4 cards -->
-          </div>
-        </section>
-
-        <!-- ============================================================== -->
-        <!-- LEVEL 1: YEARLY GOAL LEVEL & PROGRESS -->
-        <!-- ============================================================== -->
-        <section class="hierarchy-view-section" id="view-yearly">
-          <div class="section-banner glass-card">
-            <div class="banner-title-area">
-              <div class="banner-badge">LEVEL 01 &bull; YEARLY VISION & PILLARS</div>
-              <h2 class="banner-heading" id="yearlyMainTitle">2026 Master Vision & Annual Goals</h2>
-              <p class="banner-desc">The guiding north star. Define core life and professional pillars, milestones, and track cumulative progress.</p>
-            </div>
-            <button id="btnAddNewYearlyGoal" class="primary-accent-btn">
-              <span>+ Add High-Level Goal</span>
-            </button>
-          </div>
-
-          <!-- Annual Master Progress Bar -->
-          <div class="annual-progress-banner glass-card">
-            <div class="progress-bar-header">
-              <div class="progress-bar-title-group">
-                <span class="star-icon">🌟</span>
-                <span class="annual-title">Overall Annual Goal Completion</span>
-              </div>
-              <span class="annual-percent-text" id="yearlyOverallBarText">0% Complete</span>
-            </div>
-            <div class="master-progress-track">
-              <div class="master-progress-fill" id="yearlyOverallBarFill" style="width: 0%"></div>
-            </div>
-            <div class="master-progress-legend">
-              <span id="yearlyGoalsCountLegend">0 of 0 Key Targets Achieved</span>
-              <span>Vision Status: <strong id="yearlyVisionStatusText">In Conception</strong></span>
-            </div>
-          </div>
-
-          <!-- Annual Goals Cards Grid -->
-          <div class="yearly-goals-grid" id="yearlyGoalsContainer">
-            <!-- Populated dynamically with high level goal cards -->
-          </div>
-        </section>
-
+          <button class="logout-icon-btn hidden" id="logoutBtn" title="Sign Out">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+              <polyline points="16 17 21 12 16 7"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+          </button>
+        </div>
       </div>
-    </main>
+    </aside>
 
-    <!-- FOOTER -->
-    <footer class="app-footer">
-      <div class="footer-content">
-        <div class="footer-left">
-          <span>⚡ <strong>LUMEN Productivity OS</strong> &bull; Serverless Edition</span>
+    <!-- MAIN WORKSPACE LAYOUT -->
+    <div class="workspace-main">
+      
+      <!-- TOP GLOBAL APP HEADER -->
+      <header class="app-topbar">
+        <!-- Search Bar matching reference image -->
+        <div class="topbar-search-wrapper">
+          <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="11" cy="11" r="8"></circle>
+            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+          </svg>
+          <input type="text" id="globalSearchInput" class="topbar-search-input" placeholder="Search tasks, objectives, milestones..." />
+          <kbd class="search-kbd-shortcut">/</kbd>
         </div>
-        <div class="footer-center">
-          <span class="db-status-badge" id="dbStatusBadge">PostgreSQL Sync: Connected</span>
+
+        <!-- Top Right Actions -->
+        <div class="topbar-actions">
+          <!-- Year Selector Dropdown -->
+          <div class="select-wrapper">
+            <select id="yearSelector" class="topbar-select" aria-label="Select Year">
+              <option value="2026" selected>2026</option>
+              <option value="2027">2027</option>
+              <option value="2025">2025</option>
+            </select>
+          </div>
+
+          <!-- Quick + New Button -->
+          <button class="btn-primary-pill" id="btnQuickNewTask" title="Add new item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            <span>New</span>
+          </button>
+
+          <!-- Theme Toggle Button -->
+          <button class="icon-circle-btn" id="themeToggleBtn" aria-label="Toggle theme" title="Toggle dark/light mode">
+            <!-- Sun Icon for Light Mode -->
+            <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <!-- Moon Icon for Dark Mode -->
+            <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </button>
+
+          <!-- Auth / Profile Trigger -->
+          <button class="user-avatar-btn" id="authTriggerBtn" title="Account & Sync">
+            <span class="avatar-initials" id="topAvatarInitials">PR</span>
+          </button>
         </div>
-        <div class="footer-right">
-          <button id="btnExportData" class="footer-link-btn" title="Export complete data backup to JSON">Export Backup</button>
-          <button id="btnImportData" class="footer-link-btn" title="Restore from JSON backup">Import Data</button>
+      </header>
+
+      <!-- TWO-COLUMN WORKSPACE BODY -->
+      <div class="workspace-body">
+        
+        <!-- LEFT SUB-PANEL (CONTEXTUAL LIST / DATE SWITCHER) -->
+        <aside class="subpanel-list" id="subpanelList">
+          <!-- Subpanel Header & Search -->
+          <div class="subpanel-header">
+            <div class="subpanel-search-box">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+              <input type="text" id="subpanelSearchInput" class="subpanel-search-input" placeholder="Search entries..." />
+            </div>
+          </div>
+
+          <!-- Subpanel Context Content: Dynamic based on active navigation tab -->
+          <div class="subpanel-items-container" id="subpanelItemsContainer">
+            <!-- Populated dynamically: 7-day list, weeks list, horizons list, etc. -->
+          </div>
+
+          <!-- Subpanel Quick Stats Summary -->
+          <div class="subpanel-footer-stats">
+            <div class="stat-mini-row">
+              <span class="stat-mini-label">Day Focus</span>
+              <span class="stat-mini-val" id="dailyBlockRatio">0 / 0 hrs</span>
+            </div>
+            <div class="stat-progress-bar">
+              <div class="stat-progress-fill" id="dailyMiniProgressFill" style="width: 0%"></div>
+            </div>
+          </div>
+        </aside>
+
+        <!-- RIGHT MAIN DETAIL STAGE -->
+        <main class="main-stage-viewport" id="mainStageViewport">
+          
+          <!-- ========================================================== -->
+          <!-- VIEW 1: TIME BLOCKS (HOURLY MICRO-SCHEDULE) -->
+          <!-- ========================================================== -->
+          <section class="stage-view-pane active-view" id="view-micro">
+            
+            <!-- Stage View Header Bar -->
+            <div class="stage-pane-header">
+              <div class="stage-title-wrap">
+                <div class="stage-avatar-pill">
+                  <span class="stage-avatar-txt" id="stageHeaderAvatar">TB</span>
+                </div>
+                <div>
+                  <h2 class="stage-heading" id="hourlyViewDateHeading">Today</h2>
+                  <div class="stage-status-row">
+                    <span class="status-indicator-dot online"></span>
+                    <span class="stage-sub-status" id="hourlyStatusSub">Active Timeline &bull; 0/18 Done</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Filter Pills & Quick Actions -->
+              <div class="stage-header-actions">
+                <div class="segmented-control">
+                  <button class="segment-btn filter-pill active" data-filter="all">All</button>
+                  <button class="segment-btn filter-pill" data-filter="completed">Done</button>
+                  <button class="segment-btn filter-pill" data-filter="pending">Pending</button>
+                  <button class="segment-btn filter-pill" data-filter="missed">Missed</button>
+                </div>
+
+                <div class="btn-group-actions">
+                  <button id="btnQuickFillTemplate" class="btn-secondary-sm" title="Apply standard routine">
+                    Routine
+                  </button>
+                  <button id="btnMarkAllDayDone" class="btn-secondary-sm" title="Mark all blocks complete">
+                    Mark All Done
+                  </button>
+                  <button id="btnClearDayLog" class="btn-secondary-sm btn-danger-hover" title="Clear day">
+                    Clear
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Date Navigation Header Strip -->
+            <div class="date-navigator-strip">
+              <div class="date-navigator-controls">
+                <button id="btnPrevDay" class="nav-icon-btn" title="Previous Day">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                  </svg>
+                </button>
+
+                <div class="date-picker-trigger" id="datePickerWrapper">
+                  <input type="date" id="nativeDatePicker" class="hidden-date-input" />
+                  <span id="displayDayName" class="display-day-name">Today</span>
+                  <span class="date-separator">&bull;</span>
+                  <span id="displayFullDate" class="display-full-date">Sep 23, 2026</span>
+                </div>
+
+                <button id="btnNextDay" class="nav-icon-btn" title="Next Day">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                  </svg>
+                </button>
+
+                <button id="btnJumpToday" class="btn-subtle-pill">Today</button>
+              </div>
+
+              <!-- Sync indicator -->
+              <div class="sync-badge-minimal" id="syncStatusBadge" title="Sync Status">
+                <span class="sync-indicator-dot" id="syncDot"></span>
+                <span id="syncStatusText">Ready</span>
+              </div>
+            </div>
+
+            <!-- Primary Daily Objective Input -->
+            <div class="objective-banner-card">
+              <div class="objective-label">Primary Objective</div>
+              <input type="text" id="dayPrimaryObjective" class="objective-input" placeholder="What is the single most important outcome for this day?" />
+            </div>
+
+            <!-- Hourly Task Cards List (styled like clean chat bubble cards) -->
+            <div class="hourly-cards-feed" id="hourlyTimelineContainer">
+              <!-- Dynamically populated hourly cards -->
+            </div>
+          </section>
+
+          <!-- ========================================================== -->
+          <!-- VIEW 2: 7-DAY WEEK MATRIX -->
+          <!-- ========================================================== -->
+          <section class="stage-view-pane" id="view-daily">
+            <div class="stage-pane-header">
+              <div class="stage-title-wrap">
+                <div class="stage-avatar-pill">
+                  <span class="stage-avatar-txt">7D</span>
+                </div>
+                <div>
+                  <h2 class="stage-heading">Weekly Cadence & Day Distribution</h2>
+                  <span class="stage-sub-status" id="currentWeekIdentifier">Active Week</span>
+                </div>
+              </div>
+              <div class="stage-header-actions">
+                <span class="badge-tag" id="weekAverageScoreBadge">Week Avg: 0%</span>
+              </div>
+            </div>
+
+            <!-- 7-Day Grid Cards -->
+            <div class="seven-days-grid" id="sevenDaysContainer">
+              <!-- Populated dynamically -->
+            </div>
+
+            <!-- Review Log Table -->
+            <div class="detail-card-panel">
+              <div class="panel-card-header">
+                <h3 class="panel-card-title">Daily Execution Review Log</h3>
+              </div>
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Day & Date</th>
+                      <th>Primary Objective</th>
+                      <th>Scheduled</th>
+                      <th>Done</th>
+                      <th>Missed</th>
+                      <th>Rating</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="weekReviewTableBody">
+                    <!-- Populated dynamically -->
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+
+          <!-- ========================================================== -->
+          <!-- VIEW 3: WEEKLY STRATEGY & BIG ROCKS -->
+          <!-- ========================================================== -->
+          <section class="stage-view-pane" id="view-weekly">
+            <div class="stage-pane-header">
+              <div class="stage-title-wrap">
+                <div class="stage-avatar-pill">
+                  <span class="stage-avatar-txt">WS</span>
+                </div>
+                <div>
+                  <h2 class="stage-heading" id="weeklyStrategyTitle">Pre-Week Strategic Intentions</h2>
+                  <span class="stage-sub-status">Strategy, constraints, and top priority deliverables</span>
+                </div>
+              </div>
+
+              <!-- Week selector pills -->
+              <div class="stage-header-actions">
+                <div class="segmented-control" id="monthWeekSelector">
+                  <button class="segment-btn sub-week-btn active" data-weeknum="1">Week 1</button>
+                  <button class="segment-btn sub-week-btn" data-weeknum="2">Week 2</button>
+                  <button class="segment-btn sub-week-btn" data-weeknum="3">Week 3</button>
+                  <button class="segment-btn sub-week-btn" data-weeknum="4">Week 4</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="strategy-split-layout">
+              <!-- Strategy Notepad -->
+              <div class="detail-card-panel">
+                <div class="panel-card-header">
+                  <h3 class="panel-card-title">Strategic Intentions & Constraints</h3>
+                  <span class="badge-tag">Auto-Saved</span>
+                </div>
+                <textarea id="weeklyStrategyText" class="strategy-clean-textarea" placeholder="Write your strategy notes here...&#10;&#10;1. Key Focus:&#10;2. Potential Bottlenecks:&#10;3. Non-negotiables:"></textarea>
+              </div>
+
+              <!-- Big Rocks Deliverables -->
+              <div class="detail-card-panel">
+                <div class="panel-card-header">
+                  <h3 class="panel-card-title">Weekly High-Impact Deliverables</h3>
+                  <button id="btnAddWeeklyRock" class="btn-secondary-sm">+ Add Deliverable</button>
+                </div>
+                <div class="rocks-clean-feed" id="weeklyRocksList">
+                  <!-- Populated dynamically -->
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ========================================================== -->
+          <!-- VIEW 4: 4-MONTH HORIZONS -->
+          <!-- ========================================================== -->
+          <section class="stage-view-pane" id="view-monthly">
+            <div class="stage-pane-header">
+              <div class="stage-title-wrap">
+                <div class="stage-avatar-pill">
+                  <span class="stage-avatar-txt">4M</span>
+                </div>
+                <div>
+                  <h2 class="stage-heading">4-Month Horizon Planning</h2>
+                  <span class="stage-sub-status">Bridge annual vision with operational sprint cycles</span>
+                </div>
+              </div>
+
+              <div class="stage-header-actions">
+                <div class="segmented-control">
+                  <button class="segment-btn horizon-btn active" data-horizon="h1">Horizon 1 (M1-M4)</button>
+                  <button class="segment-btn horizon-btn" data-horizon="h2">Horizon 2 (M5-M8)</button>
+                  <button class="segment-btn horizon-btn" data-horizon="h3">Horizon 3 (M9-M12)</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="four-months-grid" id="fourMonthsContainer">
+              <!-- Populated dynamically -->
+            </div>
+          </section>
+
+          <!-- ========================================================== -->
+          <!-- VIEW 5: ANNUAL VISION & GOALS -->
+          <!-- ========================================================== -->
+          <section class="stage-view-pane" id="view-yearly">
+            <div class="stage-pane-header">
+              <div class="stage-title-wrap">
+                <div class="stage-avatar-pill">
+                  <span class="stage-avatar-txt">AG</span>
+                </div>
+                <div>
+                  <h2 class="stage-heading" id="yearlyMainTitle">Master Vision & Annual Goals</h2>
+                  <span class="stage-sub-status" id="yearlyVisionStatusText">Active Strategic Horizons</span>
+                </div>
+              </div>
+
+              <div class="stage-header-actions">
+                <button id="btnAddNewYearlyGoal" class="btn-primary-pill">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  <span>Add Goal</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Master Annual Progress Strip -->
+            <div class="detail-card-panel">
+              <div class="panel-card-header">
+                <h3 class="panel-card-title">Overall Annual Goal Completion</h3>
+                <span class="badge-tag" id="yearlyOverallBarText">0% Complete</span>
+              </div>
+              <div class="master-progress-track">
+                <div class="master-progress-fill" id="yearlyOverallBarFill" style="width: 0%"></div>
+              </div>
+              <div class="progress-footer-text" id="yearlyGoalsCountLegend">
+                0 of 0 Key Targets Achieved
+              </div>
+            </div>
+
+            <!-- Goals Cards Feed -->
+            <div class="yearly-goals-grid" id="yearlyGoalsContainer">
+              <!-- Populated dynamically -->
+            </div>
+          </section>
+
+        </main>
+      </div>
+
+      <!-- FOOTER STRIP -->
+      <footer class="app-bottom-bar">
+        <div class="bottom-bar-left">
+          <span class="system-status-indicator" id="dbStatusBadge">Storage: Local Browser Mode</span>
+        </div>
+        <div class="bottom-bar-right">
+          <button id="btnExportData" class="footer-link">Export Backup</button>
+          <button id="btnImportData" class="footer-link">Import Backup</button>
           <input type="file" id="importFileInput" accept=".json" class="hidden-file-input" />
         </div>
-      </div>
-    </footer>
+      </footer>
 
+    </div>
   </div>
 
-  <!-- ============================================================== -->
   <!-- AUTHENTICATION & CLOUD SYNC MODAL -->
-  <!-- ============================================================== -->
   <div class="modal-backdrop hidden" id="authModalBackdrop">
-    <div class="modal-card glass-card">
-      <button class="modal-close-btn" id="closeAuthModalBtn" aria-label="Close modal">&times;</button>
+    <div class="modal-card">
+      <button class="modal-close-btn" id="closeAuthModalBtn" aria-label="Close modal">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
       
       <div class="modal-header">
-        <div class="modal-icon-badge">🔐</div>
-        <h2 class="modal-title" id="authModalHeading">Connect Your Account</h2>
-        <p class="modal-subtitle" id="authModalSubtitle">Sign in to automatically sync your productivity log across all devices via Vercel Serverless & PostgreSQL.</p>
+        <div class="modal-badge-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+        </div>
+        <h2 class="modal-title" id="authModalHeading">Sign In</h2>
+        <p class="modal-subtitle" id="authModalSubtitle">Sign in to sync your productivity data across devices via PostgreSQL.</p>
       </div>
 
       <!-- Tab Switcher: Login / Register -->
@@ -510,49 +536,45 @@
       <form id="authForm" class="auth-form" novalidate>
         <div class="form-group">
           <label for="authEmail" class="form-label">Email Address</label>
-          <div class="input-icon-wrapper">
-            <span class="input-icon">✉️</span>
-            <input type="email" id="authEmail" class="form-input" placeholder="you@example.com" required autocomplete="email" />
-          </div>
+          <input type="email" id="authEmail" class="form-input" placeholder="name@domain.com" required autocomplete="email" />
         </div>
 
         <div class="form-group">
           <label for="authPassword" class="form-label">Password</label>
-          <div class="input-icon-wrapper">
-            <span class="input-icon">🔒</span>
-            <input type="password" id="authPassword" class="form-input" placeholder="•••••••• (Min 6 characters)" required minlength="6" autocomplete="current-password" />
-            <button type="button" class="toggle-pwd-btn" id="togglePasswordBtn" title="Show/Hide password">👁️</button>
+          <div class="input-password-wrapper">
+            <input type="password" id="authPassword" class="form-input" placeholder="Password (Min 6 characters)" required minlength="6" autocomplete="current-password" />
+            <button type="button" class="toggle-pwd-btn" id="togglePasswordBtn" title="Toggle password visibility">
+              <svg class="pwd-eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+            </button>
           </div>
         </div>
 
-        <!-- Feedback / Error Alert -->
+        <!-- Error Alert -->
         <div class="auth-alert hidden" id="authAlertBox"></div>
 
-        <button type="submit" id="authSubmitBtn" class="auth-submit-btn">
+        <button type="submit" id="authSubmitBtn" class="btn-primary-block">
           <span class="btn-spinner hidden" id="authSpinner"></span>
           <span id="authSubmitBtnText">Sign In</span>
         </button>
       </form>
 
-      <!-- Guest / Offline Demo Option -->
       <div class="modal-divider">
         <span>OR</span>
       </div>
 
-      <button id="btnContinueGuest" class="guest-continue-btn">
-        <span>Continue with Local Storage (Offline Mode)</span>
+      <button id="btnContinueGuest" class="btn-secondary-block">
+        Continue with Local Storage
       </button>
-
-      <p class="modal-footer-note">
-        🔒 Stateless JWT Sessions &bull; Secure PostgreSQL Cloud Storage &bull; No third-party trackers.
-      </p>
     </div>
   </div>
 
-  <!-- TOAST NOTIFICATION POPUP -->
+  <!-- TOAST CONTAINER -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <!-- Main Application Script (Vanilla JS) -->
+  <!-- Main Application Script -->
   <script src="script.js"></script>
 </body>
 </html>
