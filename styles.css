@@ -2319,10 +2319,10 @@ a {
 }
 
 /* ==========================================================================
-   MOBILE HAMBURGER BUTTON & OVERLAY (Hidden on Desktop)
+   MOBILE HAMBURGER BUTTON, CLOSE BUTTON & OVERLAY
    ========================================================================== */
 .mobile-hamburger-btn {
-  display: none; /* Hidden on desktop */
+  display: none;
   align-items: center;
   justify-content: center;
   width: 36px;
@@ -2353,6 +2353,31 @@ a {
   display: block;
 }
 
+/* X close button inside sidebar - hidden on desktop */
+.sidebar-mobile-close-btn {
+  display: none;
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  background-color: var(--bg-surface);
+  color: var(--text-secondary);
+  z-index: 30;
+  transition: all var(--transition-fast);
+}
+
+.sidebar-mobile-close-btn:hover {
+  background-color: var(--bg-surface-hover);
+  color: var(--text-primary);
+  border-color: var(--border-medium);
+}
+
+/* Overlay backdrop */
 .mobile-sidebar-overlay {
   display: none;
   position: fixed;
@@ -2360,7 +2385,7 @@ a {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.45);
   z-index: 15;
   opacity: 0;
   transition: opacity 0.25s ease;
@@ -2388,46 +2413,59 @@ a {
   .guide-steps-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .sidebar-primary {
+    width: 200px;
+    min-width: 200px;
+  }
 }
 
 /* ==========================================================================
    RESPONSIVE: MOBILE (max-width: 768px)
    ========================================================================== */
 @media (max-width: 768px) {
-  /* Show hamburger button */
+  /* Show hamburger & overlay */
   .mobile-hamburger-btn {
     display: flex;
   }
 
-  /* Show mobile overlay */
   .mobile-sidebar-overlay {
     display: block;
   }
 
-  /* Sidebar becomes a slide-out drawer over content */
+  /* Show X close button inside sidebar */
+  .sidebar-mobile-close-btn {
+    display: flex;
+  }
+
+  /* Sidebar: fixed drawer, max 280px - never full screen */
   .sidebar-primary {
     position: fixed;
     top: 0;
     left: 0;
     height: 100vh;
+    height: 100dvh;
     width: 280px;
     min-width: 280px;
+    max-width: 280px;
     transform: translateX(-100%);
     z-index: 25;
     box-shadow: none;
+    padding-top: 2.8rem;
     transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   .sidebar-primary.mobile-open {
     transform: translateX(0);
-    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.25);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.2);
   }
 
   /* Override desktop collapsed state on mobile */
   .sidebar-primary.collapsed {
     width: 280px;
     min-width: 280px;
-    padding: 1.1rem 0.9rem;
+    max-width: 280px;
+    padding: 2.8rem 0.9rem 1.1rem;
   }
 
   .sidebar-primary.collapsed .brand-text-wrap,
@@ -2457,7 +2495,7 @@ a {
     padding: 0.45rem 0.5rem;
   }
 
-  /* Hide the desktop sidebar toggle on mobile (hamburger replaces it) */
+  /* Hide the desktop chevron toggle on mobile */
   .sidebar-toggle-btn {
     display: none;
   }
@@ -2467,18 +2505,18 @@ a {
     width: 100%;
   }
 
-  /* Topbar adjustments */
+  /* Topbar */
   .app-topbar {
     padding: 0 0.75rem;
-    gap: 0.65rem;
-    height: 54px;
-    min-height: 54px;
+    gap: 0.6rem;
+    height: 52px;
+    min-height: 52px;
   }
 
   .topbar-search-wrapper {
     max-width: none;
     flex: 1;
-    padding: 0.4rem 0.7rem;
+    padding: 0.38rem 0.65rem;
   }
 
   .search-kbd-shortcut {
@@ -2486,7 +2524,7 @@ a {
   }
 
   .topbar-actions {
-    gap: 0.4rem;
+    gap: 0.35rem;
   }
 
   .btn-primary-pill span {
@@ -2494,7 +2532,7 @@ a {
   }
 
   .btn-primary-pill {
-    padding: 0.48rem 0.6rem;
+    padding: 0.45rem 0.55rem;
     gap: 0;
   }
 
@@ -2502,7 +2540,7 @@ a {
     display: none;
   }
 
-  /* Workspace body stacks vertically: hide subpanel by default */
+  /* Workspace body: hide subpanel, full-width stage */
   .workspace-body {
     flex-direction: column;
   }
@@ -2511,67 +2549,94 @@ a {
     display: none;
   }
 
-  /* Main stage takes full width */
   .stage-main {
     width: 100%;
+    min-width: 0;
   }
 
   .stage-pane-header {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.65rem;
-    padding: 0.85rem;
+    gap: 0.5rem;
+    padding: 0.75rem;
   }
 
   .stage-header-actions {
     width: 100%;
     flex-wrap: wrap;
-    gap: 0.4rem;
-  }
-
-  .stage-content-body {
-    padding: 0.75rem;
-  }
-
-  /* Time Block Grid */
-  .hourly-block-card {
-    flex-direction: column;
-    align-items: flex-start;
     gap: 0.35rem;
   }
 
-  .block-time-label {
-    width: auto;
+  .stage-content-body {
+    padding: 0.65rem;
   }
 
-  /* Day selector pills */
+  /* Time Blocks */
+  .hourly-block-card {
+    padding: 0.55rem 0.65rem;
+  }
+
+  .block-time-label {
+    min-width: 52px;
+    font-size: 0.72rem;
+  }
+
+  /* Day navigation */
   .day-scroll-container {
-    gap: 0.3rem;
+    gap: 0.25rem;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .day-pill-btn {
-    padding: 0.35rem 0.55rem;
-    font-size: 0.72rem;
+    padding: 0.3rem 0.5rem;
+    font-size: 0.7rem;
+    flex-shrink: 0;
+  }
+
+  /* Objective banner */
+  .objective-banner {
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 0.65rem;
   }
 
   /* Footer */
   .app-bottom-bar {
     flex-direction: column;
-    gap: 0.35rem;
-    padding: 0.5rem 0.75rem;
+    gap: 0.3rem;
+    padding: 0.45rem 0.65rem;
+    font-size: 0.72rem;
   }
 
-  /* Guide page adjustments */
+  /* Guide */
   .guide-hero-card {
-    padding: 1rem;
+    padding: 0.85rem;
+  }
+
+  .guide-hierarchy-diagram {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 
   .guide-hierarchy-diagram svg {
-    min-width: 600px;
+    min-width: 580px;
   }
 
   .guide-feature-box {
-    padding: 1rem;
+    padding: 0.85rem;
+  }
+
+  .guide-steps-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .guide-split-info {
+    grid-template-columns: 1fr;
+  }
+
+  .guide-cards-row {
+    grid-template-columns: 1fr;
   }
 
   /* Horizon cards */
@@ -2586,22 +2651,33 @@ a {
 
   /* Modals */
   .modal-card {
-    width: 95%;
-    max-width: 95%;
+    width: 92%;
+    max-width: 400px;
     max-height: 85vh;
-    margin: 1rem;
+    margin: auto;
   }
 
   .modal-tabs {
     overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
     gap: 0;
     padding: 0;
   }
 
   .modal-tab-btn {
     white-space: nowrap;
-    font-size: 0.78rem;
-    padding: 0.55rem 0.7rem;
+    font-size: 0.76rem;
+    padding: 0.5rem 0.65rem;
+  }
+
+  /* 7-day matrix grid */
+  .seven-day-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Yearly goals */
+  .yearly-pillar-grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -2609,27 +2685,37 @@ a {
    RESPONSIVE: SMALL MOBILE (max-width: 480px)
    ========================================================================== */
 @media (max-width: 480px) {
+  /* Sidebar stays at 260px - NOT full screen */
   .sidebar-primary {
-    width: 100%;
-    min-width: 100%;
+    width: 260px;
+    min-width: 260px;
+    max-width: 260px;
   }
 
   .sidebar-primary.collapsed {
-    width: 100%;
-    min-width: 100%;
+    width: 260px;
+    min-width: 260px;
+    max-width: 260px;
   }
 
   .app-topbar {
-    padding: 0 0.5rem;
-    gap: 0.5rem;
+    padding: 0 0.45rem;
+    gap: 0.4rem;
+    height: 48px;
+    min-height: 48px;
+  }
+
+  .mobile-hamburger-btn {
+    width: 32px;
+    height: 32px;
   }
 
   .topbar-search-wrapper {
-    padding: 0.35rem 0.6rem;
+    padding: 0.3rem 0.55rem;
   }
 
   .topbar-search-input {
-    font-size: 0.78rem;
+    font-size: 0.76rem;
   }
 
   .icon-circle-btn {
@@ -2643,28 +2729,33 @@ a {
   }
 
   .stage-heading {
-    font-size: 1rem;
+    font-size: 0.95rem;
+  }
+
+  .stage-sub-status {
+    font-size: 0.7rem;
   }
 
   .guide-steps-grid {
     grid-template-columns: 1fr;
   }
 
-  .guide-split-info {
-    grid-template-columns: 1fr;
+  .stage-content-body {
+    padding: 0.5rem;
   }
 
-  .guide-cards-row {
-    grid-template-columns: 1fr;
+  .hourly-block-card {
+    padding: 0.45rem 0.5rem;
+    gap: 0.3rem;
   }
 
-  /* Daily objective */
-  .objective-banner {
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .objective-input {
+  /* Compact nav items in sidebar */
+  .nav-item-btn {
+    padding: 0.45rem 0.6rem;
     font-size: 0.82rem;
+  }
+
+  .brand-title {
+    font-size: 0.88rem;
   }
 }

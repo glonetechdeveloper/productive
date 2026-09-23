@@ -86,6 +86,7 @@
     sidebarToggleIcon: document.getElementById('sidebarToggleIcon'),
     mobileHamburgerBtn: document.getElementById('mobileHamburgerBtn'),
     mobileSidebarOverlay: document.getElementById('mobileSidebarOverlay'),
+    sidebarMobileCloseBtn: document.getElementById('sidebarMobileCloseBtn'),
     themeToggleBtn: document.getElementById('themeToggleBtn'),
     globalSearchInput: document.getElementById('globalSearchInput'),
     subpanelSearchInput: document.getElementById('subpanelSearchInput'),
@@ -1584,6 +1585,7 @@
     // Mobile hamburger toggle
     dom.mobileHamburgerBtn.addEventListener('click', toggleMobileSidebar);
     dom.mobileSidebarOverlay.addEventListener('click', closeMobileSidebar);
+    dom.sidebarMobileCloseBtn.addEventListener('click', closeMobileSidebar);
 
     // Chevron Sidebar toggle: < to collapse, > to expand (desktop only)
     dom.sidebarToggleBtn.addEventListener('click', () => {
