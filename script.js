@@ -76,12 +76,14 @@
   };
 
   let debounceSaveTimeout = null;
+  let newItemType = 'block';
 
   // --- DOM Elements Cache ---
   const dom = {
     html: document.documentElement,
     sidebarPrimary: document.getElementById('sidebarPrimary'),
     sidebarToggleBtn: document.getElementById('sidebarToggleBtn'),
+    sidebarToggleIcon: document.getElementById('sidebarToggleIcon'),
     themeToggleBtn: document.getElementById('themeToggleBtn'),
     globalSearchInput: document.getElementById('globalSearchInput'),
     subpanelSearchInput: document.getElementById('subpanelSearchInput'),
@@ -153,6 +155,23 @@
     yearlyGoalsContainer: document.getElementById('yearlyGoalsContainer'),
     btnAddNewYearlyGoal: document.getElementById('btnAddNewYearlyGoal'),
 
+    // New Item Modal
+    newItemModalBackdrop: document.getElementById('newItemModalBackdrop'),
+    closeNewItemModalBtn: document.getElementById('closeNewItemModalBtn'),
+    newItemTabs: document.getElementById('newItemTabs'),
+    newItemForm: document.getElementById('newItemForm'),
+    newBlockTime: document.getElementById('newBlockTime'),
+    newBlockTask: document.getElementById('newBlockTask'),
+    newBlockCategory: document.getElementById('newBlockCategory'),
+    newRockWeek: document.getElementById('newRockWeek'),
+    newRockTitle: document.getElementById('newRockTitle'),
+    newMilestoneHorizon: document.getElementById('newMilestoneHorizon'),
+    newMilestoneMonth: document.getElementById('newMilestoneMonth'),
+    newMilestoneTitle: document.getElementById('newMilestoneTitle'),
+    newGoalTitle: document.getElementById('newGoalTitle'),
+    newGoalPillar: document.getElementById('newGoalPillar'),
+    newGoalMetric: document.getElementById('newGoalMetric'),
+
     // Auth Modal
     authModalBackdrop: document.getElementById('authModalBackdrop'),
     closeAuthModalBtn: document.getElementById('closeAuthModalBtn'),
@@ -185,6 +204,7 @@
   function initApp() {
     applyTheme(state.theme);
     loadInitialData();
+    populateTimeSlotSelects();
     bindEventListeners();
     updateDateDisplay();
     renderAllViews();
@@ -196,6 +216,17 @@
     } else {
       updateSyncStatusUI('offline', 'Offline (Local)');
     }
+  }
+
+  function populateTimeSlotSelects() {
+    if (!dom.newBlockTime) return;
+    dom.newBlockTime.innerHTML = '';
+    TIME_SLOTS.forEach(slot => {
+      const opt = document.createElement('option');
+      opt.value = slot.key;
+      opt.textContent = slot.label;
+      dom.newBlockTime.appendChild(opt);
+    });
   }
 
   // ==========================================================================
@@ -248,7 +279,6 @@
       dom.hourlyViewDateHeading.textContent = state.currentDate === todayISO ? `Today, ${fullDate}` : `${dayName}, ${fullDate}`;
     }
 
-    // Avatar initials for stage header
     const initials = state.currentDate === todayISO ? 'TD' : dayName.substring(0, 2).toUpperCase();
     if (dom.stageHeaderAvatar) {
       dom.stageHeaderAvatar.textContent = initials;
@@ -268,7 +298,7 @@
 
   function getWeekDateRange(dateStr) {
     const current = parseISODate(dateStr);
-    const dayOfWeek = current.getDay(); // 0 is Sun, 6 is Sat
+    const dayOfWeek = current.getDay();
     const startSunday = new Date(current);
     startSunday.setDate(current.getDate() - dayOfWeek);
 
@@ -480,7 +510,6 @@
     const q = (state.searchQuery || '').toLowerCase();
 
     if (state.currentLevel === 'micro') {
-      // 7-Day Contextual list for Time Blocks
       const weekDays = getWeekDateRange(state.currentDate);
       const todayISO = getTodayISODate();
 
@@ -530,7 +559,6 @@
         dom.subpanelItemsContainer.appendChild(card);
       });
     } else if (state.currentLevel === 'weekly') {
-      // Weeks list
       for (let w = 1; w <= 4; w++) {
         const wKey = `${parseISODate(state.currentDate).getFullYear()}-M${String(parseISODate(state.currentDate).getMonth() + 1).padStart(2, '0')}-W${w}`;
         const wPlan = state.year_data.weekly_plans[wKey] || { strategy: '', rocks: [] };
@@ -564,7 +592,6 @@
         dom.subpanelItemsContainer.appendChild(card);
       }
     } else if (state.currentLevel === 'monthly') {
-      // Horizons list
       const horizons = [
         { id: 'h1', title: 'Horizon 1 (M1 - M4)', sub: 'Foundation & Acceleration' },
         { id: 'h2', title: 'Horizon 2 (M5 - M8)', sub: 'Peak Scale & Mid-Year' },
@@ -598,7 +625,6 @@
         dom.subpanelItemsContainer.appendChild(card);
       });
     } else if (state.currentLevel === 'yearly') {
-      // Annual Goals pillars
       const goals = state.year_data.yearly_goals || [];
       const pillars = ['All Goals', 'Career & Growth', 'Health & Endurance', 'Mastery', 'Engineering'];
 
@@ -618,6 +644,41 @@
             </div>
           </div>
         `;
+        dom.subpanelItemsContainer.appendChild(card);
+      });
+    } else if (state.currentLevel === 'guide') {
+      // Subpanel chapters for "How Abeg"
+      const chapters = [
+        { id: 'guide-sec-timeblocks', num: '01', title: 'Time Blocks', sub: 'Hourly precision log' },
+        { id: 'guide-sec-matrix', num: '02', title: '7-Day Matrix', sub: 'Weekly cadence & reviews' },
+        { id: 'guide-sec-weekly', num: '03', title: 'Weekly Strategy', sub: 'Pre-week & Big Rocks' },
+        { id: 'guide-sec-horizons', num: '04', title: '4-Month Horizons', sub: 'Quarterly cycles' },
+        { id: 'guide-sec-yearly', num: '05', title: 'Annual Vision', sub: 'North-star goals & metrics' },
+        { id: 'guide-sec-system', num: '06', title: 'Cloud & Shortcuts', sub: 'Data safety & power tools' }
+      ];
+
+      chapters.forEach(ch => {
+        const card = document.createElement('div');
+        card.className = 'subpanel-item-card';
+        card.innerHTML = `
+          <div class="subpanel-item-avatar">${ch.num}</div>
+          <div class="subpanel-item-content">
+            <div class="subpanel-item-row-top">
+              <span class="subpanel-item-title">${ch.title}</span>
+            </div>
+            <div class="subpanel-item-row-sub">
+              <span class="subpanel-item-snippet">${ch.sub}</span>
+            </div>
+          </div>
+        `;
+
+        card.addEventListener('click', () => {
+          const el = document.getElementById(ch.id);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        });
+
         dom.subpanelItemsContainer.appendChild(card);
       });
     }
@@ -651,14 +712,12 @@
         if (hourData.status === 'completed') completedCount++;
       }
 
-      // Filter handling
       if (state.hourlyFilter !== 'all') {
         if (state.hourlyFilter === 'completed' && hourData.status !== 'completed') return;
         if (state.hourlyFilter === 'pending' && hourData.status !== 'pending') return;
         if (state.hourlyFilter === 'missed' && hourData.status !== 'missed') return;
       }
 
-      // Search Query handling
       if (searchFilter) {
         const matches = (hourData.task || '').toLowerCase().includes(searchFilter) ||
                         slot.label.toLowerCase().includes(searchFilter) ||
@@ -674,12 +733,10 @@
         bubbleCard.classList.add('is-current-hour');
       }
 
-      // Time Badge
       const timeBadge = document.createElement('div');
       timeBadge.className = 'hour-time-badge';
       timeBadge.textContent = slot.label.split(' - ')[0];
 
-      // Input wrap
       const inputWrap = document.createElement('div');
       inputWrap.className = 'hour-main-input-wrap';
 
@@ -695,7 +752,6 @@
         queueAutoSave();
       });
 
-      // Meta line: Category select
       const metaLine = document.createElement('div');
       metaLine.className = 'hour-meta-line';
 
@@ -719,7 +775,6 @@
       inputWrap.appendChild(taskInput);
       inputWrap.appendChild(metaLine);
 
-      // Action Toggles
       const actionToggles = document.createElement('div');
       actionToggles.className = 'hour-action-toggles';
 
@@ -761,13 +816,11 @@
       dom.hourlyTimelineContainer.appendChild(bubbleCard);
     });
 
-    // Update Stage status sub
     if (dom.hourlyStatusSub) {
       dom.hourlyStatusSub.textContent = `Active Timeline &bull; ${completedCount}/${scheduledCount} Done`;
     }
   }
 
-  // Pre-populate standard routine (Zero Emojis)
   function quickFillDailyRoutine() {
     const dailyData = getDailyLog(state.currentDate);
     const routineTemplate = {
@@ -855,7 +908,6 @@
 
       const pct = scheduled > 0 ? Math.round((completed / scheduled) * 100) : 0;
 
-      // 7-day card
       const card = document.createElement('div');
       card.className = `day-card ${dayStr === state.currentDate ? 'active-selected-day' : ''}`;
       card.innerHTML = `
@@ -878,7 +930,6 @@
 
       dom.sevenDaysContainer.appendChild(card);
 
-      // Review Table Row
       const tr = document.createElement('tr');
       const isSelectedDay = dayStr === state.currentDate;
       tr.innerHTML = `
@@ -916,7 +967,6 @@
     dom.weeklyStrategyTitle.textContent = `Week ${state.selectedMonthWeek} Strategic Intentions`;
     dom.weeklyStrategyText.value = weeklyPlan.strategy || '';
 
-    // Render Rocks
     dom.weeklyRocksList.innerHTML = '';
     weeklyPlan.rocks.forEach((rock, idx) => {
       const row = document.createElement('div');
@@ -961,11 +1011,11 @@
     });
   }
 
-  function addWeeklyRock() {
+  function addWeeklyRock(customTitle) {
     const weeklyPlan = getWeeklyPlan();
     weeklyPlan.rocks.push({
       id: 'r_' + Date.now(),
-      title: 'New high-impact weekly deliverable',
+      title: customTitle || 'New high-impact weekly deliverable',
       completed: false
     });
     queueAutoSave();
@@ -1115,15 +1165,15 @@
     });
   }
 
-  function addNewYearlyGoal() {
+  function addNewYearlyGoal(customTitle, customPillar, customMetric) {
     if (!state.year_data.yearly_goals) {
       state.year_data.yearly_goals = [];
     }
     state.year_data.yearly_goals.push({
       id: 'yg_' + Date.now(),
-      title: 'New High-Level Annual Target',
-      pillar: 'Strategic Growth',
-      targetMetric: '100% Target Met',
+      title: customTitle || 'New High-Level Annual Target',
+      pillar: customPillar || 'Strategic Growth',
+      targetMetric: customMetric || '100% Target Met',
       status: 'In Progress'
     });
     queueAutoSave();
@@ -1135,7 +1185,6 @@
   // DASHBOARD METRICS & REAL-TIME STATS
   // ==========================================================================
   function updateAllMetrics() {
-    // 1. Daily Focus Metric
     const todayLog = getDailyLog(state.currentDate);
     const todayHours = Object.values(todayLog.hours);
     const scheduledHours = todayHours.filter(h => h.task && h.task.trim().length > 0).length;
@@ -1151,7 +1200,6 @@
       dom.sidebarTodayPendingBadge.textContent = String(pendingHours >= 0 ? pendingHours : 0);
     }
 
-    // 2. Yearly Master Progress
     const yGoals = state.year_data.yearly_goals || [];
     const totalGoals = yGoals.length;
     const achievedGoals = yGoals.filter(g => g.status === 'Achieved').length;
@@ -1194,6 +1242,123 @@
     renderWeeklyStrategyView();
     renderFourMonthsHorizon();
     renderYearlyGoals();
+  }
+
+  // ==========================================================================
+  // QUICK "+ NEW ITEM" MODAL HANDLERS
+  // ==========================================================================
+  function openNewItemModal() {
+    dom.newItemModalBackdrop.classList.remove('hidden');
+    // Pre-select tab corresponding to active view if applicable
+    if (state.currentLevel === 'weekly') {
+      switchNewItemTab('rock');
+    } else if (state.currentLevel === 'monthly') {
+      switchNewItemTab('milestone');
+    } else if (state.currentLevel === 'yearly') {
+      switchNewItemTab('goal');
+    } else {
+      switchNewItemTab('block');
+    }
+  }
+
+  function closeNewItemModal() {
+    dom.newItemModalBackdrop.classList.add('hidden');
+  }
+
+  function switchNewItemTab(tabType) {
+    newItemType = tabType;
+    dom.newItemTabs.querySelectorAll('.modal-tab-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.type === tabType);
+    });
+
+    document.getElementById('formSecBlock').classList.toggle('hidden', tabType !== 'block');
+    document.getElementById('formSecRock').classList.toggle('hidden', tabType !== 'rock');
+    document.getElementById('formSecMilestone').classList.toggle('hidden', tabType !== 'milestone');
+    document.getElementById('formSecGoal').classList.toggle('hidden', tabType !== 'goal');
+  }
+
+  function handleNewItemSubmit(e) {
+    e.preventDefault();
+
+    if (newItemType === 'block') {
+      const timeKey = dom.newBlockTime.value;
+      const taskText = dom.newBlockTask.value.trim();
+      const category = dom.newBlockCategory.value;
+
+      if (!taskText) {
+        showToast('Please enter a task description', 'alert');
+        return;
+      }
+
+      const dailyData = getDailyLog(state.currentDate);
+      dailyData.hours[timeKey] = {
+        task: taskText,
+        category: category,
+        status: 'pending'
+      };
+
+      queueAutoSave();
+      renderHourlySchedule();
+      closeNewItemModal();
+      dom.newBlockTask.value = '';
+      switchToLevel('micro');
+      showToast(`Time block scheduled for ${timeKey}`, 'success');
+    } else if (newItemType === 'rock') {
+      const weekNum = parseInt(dom.newRockWeek.value, 10);
+      const title = dom.newRockTitle.value.trim();
+
+      if (!title) {
+        showToast('Please enter a deliverable title', 'alert');
+        return;
+      }
+
+      state.selectedMonthWeek = weekNum;
+      addWeeklyRock(title);
+      closeNewItemModal();
+      dom.newRockTitle.value = '';
+      switchToLevel('weekly');
+      showToast(`Deliverable added to Week ${weekNum}`, 'success');
+    } else if (newItemType === 'milestone') {
+      const horizonKey = dom.newMilestoneHorizon.value;
+      const monthKey = dom.newMilestoneMonth.value;
+      const title = dom.newMilestoneTitle.value.trim();
+
+      if (!title) {
+        showToast('Please enter a checkpoint title', 'alert');
+        return;
+      }
+
+      state.currentHorizon = horizonKey;
+      if (!state.year_data.four_months[horizonKey]) {
+        state.year_data.four_months[horizonKey] = {};
+      }
+      if (!state.year_data.four_months[horizonKey][monthKey]) {
+        state.year_data.four_months[horizonKey][monthKey] = { target: '', milestones: [] };
+      }
+      state.year_data.four_months[horizonKey][monthKey].milestones.push(title);
+
+      queueAutoSave();
+      renderFourMonthsHorizon();
+      closeNewItemModal();
+      dom.newMilestoneTitle.value = '';
+      switchToLevel('monthly');
+      showToast(`Checkpoint added to ${horizonKey.toUpperCase()}`, 'success');
+    } else if (newItemType === 'goal') {
+      const title = dom.newGoalTitle.value.trim();
+      const pillar = dom.newGoalPillar.value.trim() || 'Strategic Growth';
+      const metric = dom.newGoalMetric.value.trim() || 'Target Metric';
+
+      if (!title) {
+        showToast('Please enter a goal title', 'alert');
+        return;
+      }
+
+      addNewYearlyGoal(title, pillar, metric);
+      closeNewItemModal();
+      dom.newGoalTitle.value = '';
+      switchToLevel('yearly');
+      showToast('Annual goal created', 'success');
+    }
   }
 
   // ==========================================================================
@@ -1385,9 +1550,10 @@
   // EVENT LISTENERS BINDING
   // ==========================================================================
   function bindEventListeners() {
-    // Sidebar toggle
+    // Chevron Sidebar toggle: < to collapse, > to expand
     dom.sidebarToggleBtn.addEventListener('click', () => {
-      dom.sidebarPrimary.classList.toggle('collapsed');
+      const isCollapsed = dom.sidebarPrimary.classList.toggle('collapsed');
+      dom.sidebarToggleBtn.setAttribute('title', isCollapsed ? 'Expand sidebar' : 'Collapse sidebar');
     });
 
     // Theme toggle
@@ -1413,26 +1579,21 @@
         e.preventDefault();
         dom.globalSearchInput.focus();
       }
-    });
-
-    // Quick + New button
-    dom.btnQuickNewTask.addEventListener('click', () => {
-      if (state.currentLevel === 'micro') {
-        // focus the first empty task input or day objective
-        const emptyInput = dom.hourlyTimelineContainer.querySelector('.hour-task-input[value=""]');
-        if (emptyInput) {
-          emptyInput.focus();
-        } else {
-          dom.dayPrimaryObjective.focus();
-        }
-      } else if (state.currentLevel === 'weekly') {
-        addWeeklyRock();
-      } else if (state.currentLevel === 'yearly') {
-        addNewYearlyGoal();
-      } else {
-        switchToLevel('micro');
+      if (e.key === 'Escape') {
+        closeNewItemModal();
+        closeAuthModal();
       }
     });
+
+    // Quick + New button opens creation modal
+    dom.btnQuickNewTask.addEventListener('click', openNewItemModal);
+    dom.closeNewItemModalBtn.addEventListener('click', closeNewItemModal);
+    dom.newItemTabs.querySelectorAll('.modal-tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        switchNewItemTab(btn.dataset.type);
+      });
+    });
+    dom.newItemForm.addEventListener('submit', handleNewItemSubmit);
 
     // Year selector
     dom.yearSelector.addEventListener('change', (e) => {
@@ -1465,7 +1626,7 @@
       }
     });
 
-    // Navigation Tabs
+    // Navigation Tabs (including "How Abeg")
     dom.navButtons.forEach(btn => {
       btn.addEventListener('click', () => {
         switchToLevel(btn.dataset.level);
@@ -1520,7 +1681,7 @@
       queueAutoSave();
     });
 
-    dom.btnAddWeeklyRock.addEventListener('click', addWeeklyRock);
+    dom.btnAddWeeklyRock.addEventListener('click', () => addWeeklyRock());
 
     // 4-Month Horizons
     dom.horizonBtns.forEach(btn => {
@@ -1535,7 +1696,7 @@
     });
 
     // Yearly Goals
-    dom.btnAddNewYearlyGoal.addEventListener('click', addNewYearlyGoal);
+    dom.btnAddNewYearlyGoal.addEventListener('click', () => addNewYearlyGoal());
 
     // Auth Modal
     dom.authTriggerBtn.addEventListener('click', () => {

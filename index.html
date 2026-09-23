@@ -6,10 +6,10 @@
   <meta name="description" content="Productive - Minimalist Goal Hierarchy, Time Blocking & Productivity Workspace" />
   <title>Productive &bull; Workspace</title>
 
-  <!-- Google Fonts: Inter & Plus Jakarta Sans & JetBrains Mono -->
+  <!-- Google Fonts: Inter & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 
   <!-- Main Stylesheet (Vanilla CSS) -->
   <link rel="stylesheet" href="styles.css" />
@@ -33,10 +33,10 @@
             <span class="brand-sub">Workspace</span>
           </div>
         </div>
+        <!-- Chevron Toggle: Points Left '<' to collapse, flips to '>' when collapsed -->
         <button class="sidebar-toggle-btn" id="sidebarToggleBtn" aria-label="Toggle sidebar" title="Collapse sidebar">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="18" y1="6" x2="6" y2="18"></line>
-            <line x1="6" y1="6" x2="18" y2="18"></line>
+          <svg class="chevron-toggle-icon" id="sidebarToggleIcon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
           </svg>
         </button>
       </div>
@@ -87,6 +87,15 @@
             <circle cx="12" cy="12" r="2"></circle>
           </svg>
           <span class="nav-label">Annual Goals</span>
+        </button>
+
+        <button class="nav-item-btn" data-level="guide" id="tabGuide">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+          </svg>
+          <span class="nav-label">How Abeg</span>
         </button>
 
         <div class="nav-section-title">System</div>
@@ -155,7 +164,7 @@
           </div>
 
           <!-- Quick + New Button -->
-          <button class="btn-primary-pill" id="btnQuickNewTask" title="Add new item">
+          <button class="btn-primary-pill" id="btnQuickNewTask" title="Create new task, goal or deliverable">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <line x1="12" y1="5" x2="12" y2="19"></line>
               <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -165,7 +174,6 @@
 
           <!-- Theme Toggle Button -->
           <button class="icon-circle-btn" id="themeToggleBtn" aria-label="Toggle theme" title="Toggle dark/light mode">
-            <!-- Sun Icon for Light Mode -->
             <svg class="sun-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <circle cx="12" cy="12" r="5"></circle>
               <line x1="12" y1="1" x2="12" y2="3"></line>
@@ -177,7 +185,6 @@
               <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
               <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
             </svg>
-            <!-- Moon Icon for Dark Mode -->
             <svg class="moon-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
             </svg>
@@ -206,9 +213,9 @@
             </div>
           </div>
 
-          <!-- Subpanel Context Content: Dynamic based on active navigation tab -->
+          <!-- Subpanel Context Content -->
           <div class="subpanel-items-container" id="subpanelItemsContainer">
-            <!-- Populated dynamically: 7-day list, weeks list, horizons list, etc. -->
+            <!-- Populated dynamically -->
           </div>
 
           <!-- Subpanel Quick Stats Summary -->
@@ -307,7 +314,7 @@
               <input type="text" id="dayPrimaryObjective" class="objective-input" placeholder="What is the single most important outcome for this day?" />
             </div>
 
-            <!-- Hourly Task Cards List (styled like clean chat bubble cards) -->
+            <!-- Hourly Task Cards List -->
             <div class="hourly-cards-feed" id="hourlyTimelineContainer">
               <!-- Dynamically populated hourly cards -->
             </div>
@@ -487,6 +494,226 @@
             </div>
           </section>
 
+          <!-- ========================================================== -->
+          <!-- VIEW 6: "HOW ABEG" - DETAILED DOCUMENTATION & USER MANUAL -->
+          <!-- ========================================================== -->
+          <section class="stage-view-pane" id="view-guide">
+            <div class="stage-pane-header">
+              <div class="stage-title-wrap">
+                <div class="stage-avatar-pill">
+                  <span class="stage-avatar-txt">HA</span>
+                </div>
+                <div>
+                  <h2 class="stage-heading">How Abeg &bull; User Guide & Operational Manual</h2>
+                  <span class="stage-sub-status">Complete documentation, workflow diagrams, and architectural breakdown</span>
+                </div>
+              </div>
+              <div class="stage-header-actions">
+                <span class="badge-tag">Version 2.0</span>
+              </div>
+            </div>
+
+            <!-- Guide Hero Card -->
+            <div class="guide-hero-card">
+              <div class="guide-hero-content">
+                <h3 class="guide-hero-title">Mastering the Top-Down Productivity Hierarchy</h3>
+                <p class="guide-hero-desc">Productive is engineered on a fundamental principle: high output is not about doing more random tasks, but aligning every single 60-minute block of your day directly with your 1-year master vision.</p>
+              </div>
+              <div class="guide-hierarchy-diagram">
+                <!-- Clean Minimalist Architecture Diagram -->
+                <svg width="100%" height="90" viewBox="0 0 680 90" fill="none">
+                  <rect x="10" y="20" width="105" height="48" rx="8" class="diag-node" />
+                  <text x="62" y="44" class="diag-text-title" text-anchor="middle">LEVEL 01</text>
+                  <text x="62" y="58" class="diag-text-sub" text-anchor="middle">Annual Vision</text>
+                  
+                  <line x1="115" y1="44" x2="145" y2="44" class="diag-line" stroke-dasharray="3 3"/>
+                  <polyline points="140 40 145 44 140 48" class="diag-line"/>
+
+                  <rect x="145" y="20" width="115" height="48" rx="8" class="diag-node" />
+                  <text x="202" y="44" class="diag-text-title" text-anchor="middle">LEVEL 02</text>
+                  <text x="202" y="58" class="diag-text-sub" text-anchor="middle">4-Month Horizon</text>
+
+                  <line x1="260" y1="44" x2="290" y2="44" class="diag-line" stroke-dasharray="3 3"/>
+                  <polyline points="285 40 290 44 285 48" class="diag-line"/>
+
+                  <rect x="290" y="20" width="115" height="48" rx="8" class="diag-node" />
+                  <text x="347" y="44" class="diag-text-title" text-anchor="middle">LEVEL 03</text>
+                  <text x="347" y="58" class="diag-text-sub" text-anchor="middle">Weekly Strategy</text>
+
+                  <line x1="405" y1="44" x2="435" y2="44" class="diag-line" stroke-dasharray="3 3"/>
+                  <polyline points="430 40 435 44 430 48" class="diag-line"/>
+
+                  <rect x="435" y="20" width="110" height="48" rx="8" class="diag-node" />
+                  <text x="490" y="44" class="diag-text-title" text-anchor="middle">LEVEL 04</text>
+                  <text x="490" y="58" class="diag-text-sub" text-anchor="middle">7-Day Matrix</text>
+
+                  <line x1="545" y1="44" x2="575" y2="44" class="diag-line" stroke-dasharray="3 3"/>
+                  <polyline points="570 40 575 44 570 48" class="diag-line"/>
+
+                  <rect x="575" y="20" width="95" height="48" rx="8" class="diag-node diag-node-active" />
+                  <text x="622" y="44" class="diag-text-title diag-text-active" text-anchor="middle">LEVEL 05</text>
+                  <text x="622" y="58" class="diag-text-sub diag-text-active" text-anchor="middle">Time Blocks</text>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Chapters Grid -->
+            <div class="guide-sections-list">
+              
+              <!-- Chapter 1: Time Blocks -->
+              <div class="guide-feature-box" id="guide-sec-timeblocks">
+                <div class="guide-box-header">
+                  <div class="guide-num-badge">01</div>
+                  <div>
+                    <h4 class="guide-box-title">Hourly Time Blocks (Precision Micro-Scheduling)</h4>
+                    <span class="guide-box-subtitle">Daily execution from 06:00 AM to 11:00 PM</span>
+                  </div>
+                </div>
+                <div class="guide-box-body">
+                  <p>The <strong>Time Blocks</strong> view is your daily command center. Rather than maintaining an endless disorganized to-do list, your day is structured into 18 discrete 1-hour slots:</p>
+                  
+                  <div class="guide-steps-grid">
+                    <div class="guide-step-card">
+                      <span class="step-num">Step 1</span>
+                      <strong class="step-title">Set Primary Objective</strong>
+                      <p class="step-desc">Enter your single most critical non-negotiable daily outcome at the top banner.</p>
+                    </div>
+                    <div class="guide-step-card">
+                      <span class="step-num">Step 2</span>
+                      <strong class="step-title">Assign Hourly Tasks</strong>
+                      <p class="step-desc">Click any hourly block to type your focus deliverable. Tag the category (Deep Work, Meetings, Rest, etc.).</p>
+                    </div>
+                    <div class="guide-step-card">
+                      <span class="step-num">Step 3</span>
+                      <strong class="step-title">Toggle Execution State</strong>
+                      <p class="step-desc">Click the checkmark icon when completed, or cross icon if missed. Progress counters calculate instantly in real time.</p>
+                    </div>
+                    <div class="guide-step-card">
+                      <span class="step-num">Step 4</span>
+                      <strong class="step-title">Quick Actions</strong>
+                      <p class="step-desc">Use <strong>Routine</strong> to auto-load a high-performance blueprint, <strong>Mark All Done</strong>, or <strong>Clear</strong>.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Chapter 2: 7-Day Matrix -->
+              <div class="guide-feature-box" id="guide-sec-matrix">
+                <div class="guide-box-header">
+                  <div class="guide-num-badge">02</div>
+                  <div>
+                    <h4 class="guide-box-title">7-Day Matrix & Daily Execution Review Log</h4>
+                    <span class="guide-box-subtitle">Sunday through Saturday holistic cadence and historical audit</span>
+                  </div>
+                </div>
+                <div class="guide-box-body">
+                  <p>Review the flow of your entire week in one glance. The 7-Day Matrix summarizes completion percentages across every day of the active week, with a historical audit log table tracking completed hours, missed blocks, and focus ratings.</p>
+                  <ul class="guide-bullet-list">
+                    <li><strong>Direct Day Jumper:</strong> Click any day card or click <em>Open</em> on the table to immediately jump to that specific day's hourly time block view.</li>
+                    <li><strong>Weekly Momentum Score:</strong> Monitors whether your scheduled hours balance effectively with actual completed output.</li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- Chapter 3: Weekly Strategy -->
+              <div class="guide-feature-box" id="guide-sec-weekly">
+                <div class="guide-box-header">
+                  <div class="guide-num-badge">03</div>
+                  <div>
+                    <h4 class="guide-box-title">Weekly Strategy & High-Impact Big Rocks</h4>
+                    <span class="guide-box-subtitle">Pre-week strategic intentions and top 5 weekly deliverables</span>
+                  </div>
+                </div>
+                <div class="guide-box-body">
+                  <p>Before launching into the week, top operators establish high-leverage intentions. Switch between Weeks 1 through 4 using the segmented control.</p>
+                  <div class="guide-split-info">
+                    <div class="info-half">
+                      <strong>Strategic Intentions Notepad</strong>
+                      <p>Jot down your key focus, anticipated energy bottlenecks, risks, and non-negotiables. Auto-saves continuously to your database.</p>
+                    </div>
+                    <div class="info-half">
+                      <strong>Big Rocks Task Feed</strong>
+                      <p>Track your top priority weekly milestones. Check them off as they get shipped or delete finished deliverables with the trash icon.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Chapter 4: 4-Month Horizons -->
+              <div class="guide-feature-box" id="guide-sec-horizons">
+                <div class="guide-box-header">
+                  <div class="guide-num-badge">04</div>
+                  <div>
+                    <h4 class="guide-box-title">4-Month Horizon Planning</h4>
+                    <span class="guide-box-subtitle">Bridging annual dreams with quarterly operational sprints</span>
+                  </div>
+                </div>
+                <div class="guide-box-body">
+                  <p>One year is too long to stay focused on a single sprint; one week is too short for massive compound shifts. The year is divided into three 4-month horizons:</p>
+                  <div class="guide-cards-row">
+                    <div class="horizon-info-pill">
+                      <strong>Horizon 1 (M1 - M4)</strong>
+                      <span>Foundation, setup & initial launch</span>
+                    </div>
+                    <div class="horizon-info-pill">
+                      <strong>Horizon 2 (M5 - M8)</strong>
+                      <span>Scale, optimization & mid-year push</span>
+                    </div>
+                    <div class="horizon-info-pill">
+                      <strong>Horizon 3 (M9 - M12)</strong>
+                      <span>Compounding victory & annual retrospective</span>
+                    </div>
+                  </div>
+                  <p style="margin-top: 0.65rem;">Inside each month, define high-level strategic targets and add granular checkpoints with the <strong>+ Add Checkpoint</strong> button.</p>
+                </div>
+              </div>
+
+              <!-- Chapter 5: Annual Vision -->
+              <div class="guide-feature-box" id="guide-sec-yearly">
+                <div class="guide-box-header">
+                  <div class="guide-num-badge">05</div>
+                  <div>
+                    <h4 class="guide-box-title">Annual Vision & Master Goals</h4>
+                    <span class="guide-box-subtitle">Your north star pillars, quantitative metrics, and cumulative tracker</span>
+                  </div>
+                </div>
+                <div class="guide-box-body">
+                  <p>Define high-level life and business pillars (Career & Wealth, Health & Endurance, Mastery, Engineering). Set concrete quantitative metrics (e.g. <em>$250,000 ARR</em> or <em>Sub-4hr Marathon</em>) and update their status (In Progress, Achieved, Deferred). The master progress bar computes cumulative completion automatically.</p>
+                </div>
+              </div>
+
+              <!-- Chapter 6: Cloud Sync & Shortcuts -->
+              <div class="guide-feature-box" id="guide-sec-system">
+                <div class="guide-box-header">
+                  <div class="guide-num-badge">06</div>
+                  <div>
+                    <h4 class="guide-box-title">Cloud Sync, Data Safety & Keyboard Shortcuts</h4>
+                    <span class="guide-box-subtitle">Zero data loss with local storage and PostgreSQL serverless cloud</span>
+                  </div>
+                </div>
+                <div class="guide-box-body">
+                  <div class="guide-split-info">
+                    <div class="info-half">
+                      <strong>Cloud & Local Synchronization</strong>
+                      <p>Works 100% offline out-of-the-box using browser Local Storage. When connected via the Sign In modal, data synchronizes seamlessly to PostgreSQL serverless cloud with stateless JWT security.</p>
+                      <p style="margin-top: 0.4rem;">You can also export full JSON backups or restore backups at any time via the bottom footer.</p>
+                    </div>
+                    <div class="info-half">
+                      <strong>Keyboard Shortcuts & Controls</strong>
+                      <div class="kbd-table">
+                        <div class="kbd-row"><kbd>/</kbd> <span>Focus global search bar</span></div>
+                        <div class="kbd-row"><kbd>+ New</kbd> <span>Quick create modal</span></div>
+                        <div class="kbd-row"><kbd>&lt; / &gt;</kbd> <span>Minimize / Expand sidebar</span></div>
+                        <div class="kbd-row"><kbd>Theme Icon</kbd> <span>Toggle Dark / Light monochrome</span></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </section>
+
         </main>
       </div>
 
@@ -502,6 +729,131 @@
         </div>
       </footer>
 
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- QUICK "+ NEW ITEM" MODAL -->
+  <!-- ============================================================== -->
+  <div class="modal-backdrop hidden" id="newItemModalBackdrop">
+    <div class="modal-card">
+      <button class="modal-close-btn" id="closeNewItemModalBtn" aria-label="Close modal">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+
+      <div class="modal-header">
+        <div class="modal-badge-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+        </div>
+        <h2 class="modal-title">Create New Item</h2>
+        <p class="modal-subtitle">Quickly add a task, weekly deliverable, checkpoint, or annual goal.</p>
+      </div>
+
+      <!-- Tabs: Time Block | Weekly Rock | Horizon Checkpoint | Annual Goal -->
+      <div class="modal-tabs" id="newItemTabs">
+        <button class="modal-tab-btn active" data-type="block">Time Block</button>
+        <button class="modal-tab-btn" data-type="rock">Weekly Rock</button>
+        <button class="modal-tab-btn" data-type="milestone">Checkpoint</button>
+        <button class="modal-tab-btn" data-type="goal">Annual Goal</button>
+      </div>
+
+      <!-- Form for Creation -->
+      <form id="newItemForm" class="auth-form">
+        
+        <!-- Tab 1: Time Block Form Fields -->
+        <div class="new-item-section" id="formSecBlock">
+          <div class="form-group">
+            <label class="form-label" for="newBlockTime">Time Slot</label>
+            <select id="newBlockTime" class="form-input">
+              <!-- Populated with slots 06:00 to 23:00 -->
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="newBlockTask">Task Description</label>
+            <input type="text" id="newBlockTask" class="form-input" placeholder="e.g. Code authentication endpoint" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="newBlockCategory">Category</label>
+            <select id="newBlockCategory" class="form-input">
+              <option value="Deep Work" selected>Deep Work</option>
+              <option value="Core Focus">Core Focus</option>
+              <option value="Meetings">Meetings</option>
+              <option value="Health & Fitness">Health & Fitness</option>
+              <option value="Learning">Learning</option>
+              <option value="Admin & Ops">Admin & Ops</option>
+              <option value="Rest & Recharge">Rest & Recharge</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Tab 2: Weekly Rock Fields -->
+        <div class="new-item-section hidden" id="formSecRock">
+          <div class="form-group">
+            <label class="form-label" for="newRockWeek">Target Sprint Week</label>
+            <select id="newRockWeek" class="form-input">
+              <option value="1">Week 1</option>
+              <option value="2">Week 2</option>
+              <option value="3">Week 3</option>
+              <option value="4">Week 4</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="newRockTitle">Deliverable Title</label>
+            <input type="text" id="newRockTitle" class="form-input" placeholder="e.g. Ship release v1.0 to staging" />
+          </div>
+        </div>
+
+        <!-- Tab 3: Horizon Checkpoint Fields -->
+        <div class="new-item-section hidden" id="formSecMilestone">
+          <div class="form-group">
+            <label class="form-label" for="newMilestoneHorizon">Horizon</label>
+            <select id="newMilestoneHorizon" class="form-input">
+              <option value="h1">Horizon 1 (M1 - M4)</option>
+              <option value="h2">Horizon 2 (M5 - M8)</option>
+              <option value="h3">Horizon 3 (M9 - M12)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="newMilestoneMonth">Month</label>
+            <select id="newMilestoneMonth" class="form-input">
+              <option value="m1">Month 1</option>
+              <option value="m2">Month 2</option>
+              <option value="m3">Month 3</option>
+              <option value="m4">Month 4</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="newMilestoneTitle">Checkpoint Deliverable</label>
+            <input type="text" id="newMilestoneTitle" class="form-input" placeholder="e.g. Complete core database schema" />
+          </div>
+        </div>
+
+        <!-- Tab 4: Annual Goal Fields -->
+        <div class="new-item-section hidden" id="formSecGoal">
+          <div class="form-group">
+            <label class="form-label" for="newGoalTitle">Annual Goal Title</label>
+            <input type="text" id="newGoalTitle" class="form-input" placeholder="e.g. Reach $250k ARR on SaaS" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="newGoalPillar">Strategic Pillar</label>
+            <input type="text" id="newGoalPillar" class="form-input" placeholder="e.g. Career & Growth" value="Career & Growth" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="newGoalMetric">Target Metric</label>
+            <input type="text" id="newGoalMetric" class="form-input" placeholder="e.g. $250,000 Revenue" />
+          </div>
+        </div>
+
+        <button type="submit" id="btnSubmitNewItem" class="btn-primary-block" style="margin-top: 0.5rem;">
+          Create Item
+        </button>
+      </form>
     </div>
   </div>
 
