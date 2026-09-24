@@ -55,6 +55,114 @@
     alert: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`
   };
 
+  // --- Built-in Default Routine Blueprints ---
+  const BUILTIN_ROUTINES = [
+    {
+      id: 'builtin_std',
+      name: 'Standard High-Performance Day',
+      description: 'Balanced 18-hour blueprint with deep work, health, learning, and wind-down',
+      isBuiltin: true,
+      hours: {
+        '06:00': { task: 'Morning hydration, mobility stretch, and focus planning', category: 'Health & Fitness' },
+        '07:00': { task: 'Breakfast, espresso & review strategic weekly sprint', category: 'Admin & Ops' },
+        '08:00': { task: 'Deep Work Block 1: Core system architecture & coding', category: 'Deep Work' },
+        '09:00': { task: 'Deep Work Block 1 (Cont): Critical technical delivery', category: 'Deep Work' },
+        '10:00': { task: 'Focused execution & code review / testing', category: 'Core Focus' },
+        '11:00': { task: 'Client standups & communications sync', category: 'Meetings' },
+        '12:00': { task: 'Nutritious lunch & 20-min outdoor walk', category: 'Rest & Recharge' },
+        '13:00': { task: 'Deep Work Block 2: Feature development & API integration', category: 'Deep Work' },
+        '14:00': { task: 'Deep Work Block 2 (Cont): Debugging & validation', category: 'Deep Work' },
+        '15:00': { task: 'Asynchronous emails, planning & documentation', category: 'Admin & Ops' },
+        '16:00': { task: 'Gym strength training / cardio session', category: 'Health & Fitness' },
+        '17:00': { task: 'Post-workout recovery & daily wrap-up notes', category: 'Admin & Ops' },
+        '18:00': { task: 'Dinner & quality family connection', category: 'Rest & Recharge' },
+        '19:00': { task: 'Technical reading / continuous learning', category: 'Learning' },
+        '20:00': { task: 'Creative side projects & exploration', category: 'Core Focus' },
+        '21:00': { task: 'Digital wind-down & next-day review', category: 'Admin & Ops' },
+        '22:00': { task: 'Reading & sleep preparation protocol', category: 'Rest & Recharge' },
+        '23:00': { task: 'Sleep & recovery', category: 'Rest & Recharge' }
+      }
+    },
+    {
+      id: 'builtin_deepwork',
+      name: 'Deep Work & Engineering Sprint',
+      description: 'Heavy focus protocol for heads-down coding, problem solving, and zero distractions',
+      isBuiltin: true,
+      hours: {
+        '06:00': { task: 'Wake up, hydrate, meditation & cold shower', category: 'Health & Fitness' },
+        '07:00': { task: 'Light breakfast & daily technical roadmap review', category: 'Admin & Ops' },
+        '08:00': { task: 'Deep Sprint Block 1: Core algorithmic architecture', category: 'Deep Work' },
+        '09:00': { task: 'Deep Sprint Block 1: Feature implementation & refactoring', category: 'Deep Work' },
+        '10:00': { task: 'Deep Sprint Block 1: Backend service APIs & DB integration', category: 'Deep Work' },
+        '11:00': { task: 'Deep Sprint Block 1: Unit testing & automated CI checks', category: 'Deep Work' },
+        '12:00': { task: 'Healthy lunch, stretch & cognitive reset walk', category: 'Rest & Recharge' },
+        '13:00': { task: 'Deep Sprint Block 2: UI polish & interaction engineering', category: 'Deep Work' },
+        '14:00': { task: 'Deep Sprint Block 2: Performance optimization & benchmarks', category: 'Deep Work' },
+        '15:00': { task: 'Deep Sprint Block 2: PR reviews & staging deployment', category: 'Deep Work' },
+        '16:00': { task: 'High-intensity workout / endurance cardio', category: 'Health & Fitness' },
+        '17:00': { task: 'Shower, protein intake & async team messages', category: 'Admin & Ops' },
+        '18:00': { task: 'Dinner & downtime away from screens', category: 'Rest & Recharge' },
+        '19:00': { task: 'Engineering documentation & research paper reading', category: 'Learning' },
+        '20:00': { task: 'Exploratory side prototype / tinkering', category: 'Core Focus' },
+        '21:00': { task: 'Log day velocity, commit code & prepare next sprint', category: 'Admin & Ops' },
+        '22:00': { task: 'Screen-free wind down & fiction reading', category: 'Rest & Recharge' },
+        '23:00': { task: 'Deep sleep protocol', category: 'Rest & Recharge' }
+      }
+    },
+    {
+      id: 'builtin_executive',
+      name: 'Executive & Strategy Cadence',
+      description: 'Operational rhythm for leadership, team syncs, sprint planning, and client reviews',
+      isBuiltin: true,
+      hours: {
+        '06:00': { task: 'Morning breathwork, journaling & day priority setting', category: 'Health & Fitness' },
+        '07:00': { task: 'Executive briefing, industry news & email triage', category: 'Admin & Ops' },
+        '08:00': { task: 'Strategic planning & quarterly milestone review', category: 'Core Focus' },
+        '09:00': { task: 'Leadership standup & team alignment sync', category: 'Meetings' },
+        '10:00': { task: 'High-leverage business development & client calls', category: 'Meetings' },
+        '11:00': { task: 'Financial audit, metrics review & operational KPIs', category: 'Admin & Ops' },
+        '12:00': { task: 'Executive lunch meeting or mindful break', category: 'Rest & Recharge' },
+        '13:00': { task: 'Deep Focus: Product roadmap & feature scoping', category: 'Core Focus' },
+        '14:00': { task: 'Stakeholder presentations & design reviews', category: 'Meetings' },
+        '15:00': { task: 'Hiring, 1-on-1 mentorship & talent syncs', category: 'Meetings' },
+        '16:00': { task: 'Cardio workout / tennis / gym session', category: 'Health & Fitness' },
+        '17:00': { task: 'Wrap-up emails, delegate action items & inbox zero', category: 'Admin & Ops' },
+        '18:00': { task: 'Family dinner & relationship building', category: 'Rest & Recharge' },
+        '19:00': { task: 'Business biography / leadership reading', category: 'Learning' },
+        '20:00': { task: 'Creative journaling & long-range horizon ideation', category: 'Core Focus' },
+        '21:00': { task: 'Review tomorrow calendar & schedule lock', category: 'Admin & Ops' },
+        '22:00': { task: 'Herbal tea, meditation & wind down', category: 'Rest & Recharge' },
+        '23:00': { task: 'Full restorative sleep', category: 'Rest & Recharge' }
+      }
+    },
+    {
+      id: 'builtin_weekend',
+      name: 'Weekend Mastery & Recovery',
+      description: 'Restorative weekend rhythm balancing mastery, endurance, side projects, and recovery',
+      isBuiltin: true,
+      hours: {
+        '06:00': { task: 'Gentle morning wake-up & sunrise sunlight walk', category: 'Rest & Recharge' },
+        '07:00': { task: 'Nutritious breakfast, coffee & leisurely reflection', category: 'Rest & Recharge' },
+        '08:00': { task: 'Long endurance outdoor run / cycling session', category: 'Health & Fitness' },
+        '09:00': { task: 'Post-run stretching, foam roll & sauna / cold bath', category: 'Health & Fitness' },
+        '10:00': { task: 'Passion project & creative software hacking', category: 'Core Focus' },
+        '11:00': { task: 'Passion project: UI design & experimentation', category: 'Core Focus' },
+        '12:00': { task: 'Casual lunch & socializing with friends', category: 'Rest & Recharge' },
+        '13:00': { task: 'Deep reading: Philosophy, science & technology', category: 'Learning' },
+        '14:00': { task: 'Course work, skill building & video lectures', category: 'Learning' },
+        '15:00': { task: 'Outdoor park walk / nature immersion', category: 'Health & Fitness' },
+        '16:00': { task: 'Personal admin, house organization & life chores', category: 'Admin & Ops' },
+        '17:00': { task: 'Weekly retrospective & personal finance check', category: 'Admin & Ops' },
+        '18:00': { task: 'Social dinner & relaxed conversation', category: 'Rest & Recharge' },
+        '19:00': { task: 'Movie night / cultural entertainment', category: 'Rest & Recharge' },
+        '20:00': { task: 'Unwinding & creative hobby tinkering', category: 'Core Focus' },
+        '21:00': { task: 'Plan coming week Big Rocks & goals', category: 'Admin & Ops' },
+        '22:00': { task: 'Reading fiction & calm preparation for sleep', category: 'Rest & Recharge' },
+        '23:00': { task: 'Deep restful sleep', category: 'Rest & Recharge' }
+      }
+    }
+  ];
+
   // --- Application State ---
   const state = {
     theme: localStorage.getItem(THEME_KEY) || 'dark',
@@ -67,11 +175,13 @@
     currentHorizon: 'h1',
     selectedMonthWeek: 1,
     searchQuery: '',
+    activeEditingRoutineId: null,
     year_data: {
       yearly_goals: [],
       four_months: {},
       weekly_plans: {},
-      daily_logs: {}
+      daily_logs: {},
+      custom_routines: []
     }
   };
 
@@ -115,6 +225,7 @@
     logoutBtn: document.getElementById('logoutBtn'),
     dbStatusBadge: document.getElementById('dbStatusBadge'),
     sidebarTodayPendingBadge: document.getElementById('sidebarTodayPendingBadge'),
+    sidebarRoutinesBadge: document.getElementById('sidebarRoutinesBadge'),
 
     // Navigation & Views
     navButtons: document.querySelectorAll('.nav-item-btn[data-level]'),
@@ -128,9 +239,36 @@
     hourlyTimelineContainer: document.getElementById('hourlyTimelineContainer'),
     dailyBlockRatio: document.getElementById('dailyBlockRatio'),
     filterPills: document.querySelectorAll('.filter-pill'),
-    btnQuickFillTemplate: document.getElementById('btnQuickFillTemplate'),
+    routineDropdownWrapper: document.getElementById('routineDropdownWrapper'),
+    btnRoutineDropdown: document.getElementById('btnRoutineDropdown'),
+    routineDropdownMenu: document.getElementById('routineDropdownMenu'),
+    routineDropdownCount: document.getElementById('routineDropdownCount'),
+    routineCurrentDateLabel: document.getElementById('routineCurrentDateLabel'),
+    routineDropdownList: document.getElementById('routineDropdownList'),
+    btnDropdownCreateRoutine: document.getElementById('btnDropdownCreateRoutine'),
+    btnDropdownManageRoutines: document.getElementById('btnDropdownManageRoutines'),
     btnMarkAllDayDone: document.getElementById('btnMarkAllDayDone'),
     btnClearDayLog: document.getElementById('btnClearDayLog'),
+
+    // Routines Stage View
+    btnCreateNewRoutinePage: document.getElementById('btnCreateNewRoutinePage'),
+    btnReturnToTimeBlocks: document.getElementById('btnReturnToTimeBlocks'),
+    heroTotalRoutinesCount: document.getElementById('heroTotalRoutinesCount'),
+    routinesListContainer: document.getElementById('routinesListContainer'),
+    routinesCardsGrid: document.getElementById('routinesCardsGrid'),
+    routineEditorContainer: document.getElementById('routineEditorContainer'),
+    routineEditorTitle: document.getElementById('routineEditorTitle'),
+    btnRoutineEditorPreloadStd: document.getElementById('btnRoutineEditorPreloadStd'),
+    btnRoutineEditorClearAll: document.getElementById('btnRoutineEditorClearAll'),
+    routineNameInput: document.getElementById('routineNameInput'),
+    routineDescInput: document.getElementById('routineDescInput'),
+    routineBreakdownSummary: document.getElementById('routineBreakdownSummary'),
+    routineCategoryChips: document.getElementById('routineCategoryChips'),
+    routineHoursEditorFeed: document.getElementById('routineHoursEditorFeed'),
+    btnCancelRoutineEdit: document.getElementById('btnCancelRoutineEdit'),
+    btnDeleteCustomRoutine: document.getElementById('btnDeleteCustomRoutine'),
+    btnSaveRoutineOnly: document.getElementById('btnSaveRoutineOnly'),
+    btnSaveAndApplyRoutine: document.getElementById('btnSaveAndApplyRoutine'),
 
     // Level 04: Daily Sun-Sat
     sevenDaysContainer: document.getElementById('sevenDaysContainer'),
@@ -322,6 +460,9 @@
     if (stored) {
       try {
         state.year_data = JSON.parse(stored);
+        if (!state.year_data.custom_routines) {
+          state.year_data.custom_routines = [];
+        }
       } catch (err) {
         console.error('Failed to parse local stored data:', err);
         state.year_data = createDefaultYearData();
@@ -361,7 +502,8 @@
         }
       },
       weekly_plans: {},
-      daily_logs: {}
+      daily_logs: {},
+      custom_routines: []
     };
   }
 
@@ -649,15 +791,42 @@
         `;
         dom.subpanelItemsContainer.appendChild(card);
       });
+    } else if (state.currentLevel === 'routines') {
+      const allRoutines = getAllRoutines();
+      allRoutines.forEach(rt => {
+        if (q && !rt.name.toLowerCase().includes(q) && !(rt.description || '').toLowerCase().includes(q)) {
+          return;
+        }
+        const card = document.createElement('div');
+        card.className = `subpanel-item-card ${state.activeEditingRoutineId === rt.id ? 'active' : ''}`;
+        const initials = rt.name.substring(0, 2).toUpperCase();
+        card.innerHTML = `
+          <div class="subpanel-item-avatar">${initials}</div>
+          <div class="subpanel-item-content">
+            <div class="subpanel-item-row-top">
+              <span class="subpanel-item-title">${escapeHtml(rt.name)}</span>
+              <span class="subpanel-item-time">${rt.isBuiltin ? 'Preset' : 'Custom'}</span>
+            </div>
+            <div class="subpanel-item-row-sub">
+              <span class="subpanel-item-snippet">${escapeHtml(rt.description || '18-hour daily blueprint')}</span>
+            </div>
+          </div>
+        `;
+        card.addEventListener('click', () => {
+          openRoutineEditor(rt.id);
+        });
+        dom.subpanelItemsContainer.appendChild(card);
+      });
     } else if (state.currentLevel === 'guide') {
       // Subpanel chapters for "How Abeg"
       const chapters = [
         { id: 'guide-sec-timeblocks', num: '01', title: 'Time Blocks', sub: 'Hourly precision log' },
-        { id: 'guide-sec-matrix', num: '02', title: '7-Day Matrix', sub: 'Weekly cadence & reviews' },
-        { id: 'guide-sec-weekly', num: '03', title: 'Weekly Strategy', sub: 'Pre-week & Big Rocks' },
-        { id: 'guide-sec-horizons', num: '04', title: '4-Month Horizons', sub: 'Quarterly cycles' },
-        { id: 'guide-sec-yearly', num: '05', title: 'Annual Vision', sub: 'North-star goals & metrics' },
-        { id: 'guide-sec-system', num: '06', title: 'Cloud & Shortcuts', sub: 'Data safety & power tools' }
+        { id: 'guide-sec-routines', num: '02', title: 'Routine Blueprints', sub: '1-click 18h templates' },
+        { id: 'guide-sec-matrix', num: '03', title: '7-Day Matrix', sub: 'Weekly cadence & reviews' },
+        { id: 'guide-sec-weekly', num: '04', title: 'Weekly Strategy', sub: 'Pre-week & Big Rocks' },
+        { id: 'guide-sec-horizons', num: '05', title: '4-Month Horizons', sub: 'Quarterly cycles' },
+        { id: 'guide-sec-yearly', num: '06', title: 'Annual Vision', sub: 'North-star goals & metrics' },
+        { id: 'guide-sec-system', num: '07', title: 'Cloud & Shortcuts', sub: 'Data safety & power tools' }
       ];
 
       chapters.forEach(ch => {
@@ -824,34 +993,445 @@
     }
   }
 
-  function quickFillDailyRoutine() {
-    const dailyData = getDailyLog(state.currentDate);
-    const routineTemplate = {
-      '06:00': { task: 'Morning hydration, mobility stretch, and focus planning', category: 'Health & Fitness', status: 'pending' },
-      '07:00': { task: 'Breakfast, espresso & review strategic weekly sprint', category: 'Admin & Ops', status: 'pending' },
-      '08:00': { task: 'Deep Work Block 1: Core system architecture & coding', category: 'Deep Work', status: 'pending' },
-      '09:00': { task: 'Deep Work Block 1 (Cont): Critical technical delivery', category: 'Deep Work', status: 'pending' },
-      '10:00': { task: 'Focused execution & code review / testing', category: 'Core Focus', status: 'pending' },
-      '11:00': { task: 'Client standups & communications sync', category: 'Meetings', status: 'pending' },
-      '12:00': { task: 'Nutritious lunch & 20-min outdoor walk', category: 'Rest & Recharge', status: 'pending' },
-      '13:00': { task: 'Deep Work Block 2: Feature development & API integration', category: 'Deep Work', status: 'pending' },
-      '14:00': { task: 'Deep Work Block 2 (Cont): Debugging & validation', category: 'Deep Work', status: 'pending' },
-      '15:00': { task: 'Asynchronous emails, planning & documentation', category: 'Admin & Ops', status: 'pending' },
-      '16:00': { task: 'Gym strength training / cardio session', category: 'Health & Fitness', status: 'pending' },
-      '17:00': { task: 'Post-workout recovery & daily wrap-up notes', category: 'Admin & Ops', status: 'pending' },
-      '18:00': { task: 'Dinner & quality family connection', category: 'Rest & Recharge', status: 'pending' },
-      '19:00': { task: 'Technical reading / continuous learning', category: 'Learning', status: 'pending' },
-      '20:00': { task: 'Creative side projects & exploration', category: 'Core Focus', status: 'pending' },
-      '21:00': { task: 'Digital wind-down & next-day review', category: 'Admin & Ops', status: 'pending' },
-      '22:00': { task: 'Reading & sleep preparation protocol', category: 'Rest & Recharge', status: 'pending' },
-      '23:00': { task: 'Sleep & recovery', category: 'Rest & Recharge', status: 'pending' },
-    };
+  // ==========================================================================
+  // ROUTINE BLUEPRINTS & ARCHITECT ENGINE
+  // ==========================================================================
+  function getAllRoutines() {
+    const custom = (state.year_data && state.year_data.custom_routines) || [];
+    return [...BUILTIN_ROUTINES, ...custom];
+  }
 
-    dailyData.hours = { ...routineTemplate };
+  function getRoutineById(id) {
+    return getAllRoutines().find(r => r.id === id);
+  }
+
+  function calculateRoutineDistribution(hoursObj) {
+    const counts = {};
+    DEFAULT_CATEGORIES.forEach(cat => { counts[cat] = 0; });
+    let totalScheduled = 0;
+
+    Object.values(hoursObj || {}).forEach(slot => {
+      if (slot && slot.task && slot.task.trim().length > 0) {
+        totalScheduled++;
+        const cat = slot.category || 'Deep Work';
+        counts[cat] = (counts[cat] || 0) + 1;
+      }
+    });
+
+    return { totalScheduled, counts };
+  }
+
+  // --- Routine Dropdown in Time Blocks Header ---
+  function renderRoutineDropdown() {
+    if (!dom.routineDropdownList) return;
+    dom.routineDropdownList.innerHTML = '';
+
+    const allRoutines = getAllRoutines();
+    const d = parseISODate(state.currentDate);
+    const todayISO = getTodayISODate();
+    const dateLabel = state.currentDate === todayISO
+      ? 'Today'
+      : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+    if (dom.routineCurrentDateLabel) {
+      dom.routineCurrentDateLabel.textContent = dateLabel;
+    }
+    if (dom.routineDropdownCount) {
+      dom.routineDropdownCount.textContent = `${allRoutines.length} Blueprints`;
+    }
+
+    allRoutines.forEach(rt => {
+      const { totalScheduled, counts } = calculateRoutineDistribution(rt.hours);
+      const topCats = Object.entries(counts)
+        .filter(([_, cnt]) => cnt > 0)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 2)
+        .map(([c, cnt]) => `${cnt}h ${c}`)
+        .join(', ');
+
+      const item = document.createElement('div');
+      item.className = 'routine-dropdown-item';
+      item.innerHTML = `
+        <div class="routine-item-info">
+          <div class="routine-item-title-row">
+            <span class="routine-item-name">${escapeHtml(rt.name)}</span>
+            <span class="routine-preset-tag">${rt.isBuiltin ? 'Preset' : 'Custom'}</span>
+          </div>
+          <div class="routine-item-desc">${totalScheduled}/18h &bull; ${topCats || 'Full schedule'}</div>
+        </div>
+        <div class="routine-item-actions">
+          <button type="button" class="btn-routine-apply-sm" title="Apply to ${dateLabel}">Apply</button>
+          <button type="button" class="btn-routine-icon-sm" title="Edit blueprint">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path>
+            </svg>
+          </button>
+        </div>
+      `;
+
+      item.querySelector('.btn-routine-apply-sm').addEventListener('click', (e) => {
+        e.stopPropagation();
+        applyRoutineToDate(rt.id, state.currentDate);
+        closeRoutineDropdown();
+      });
+
+      item.querySelector('.btn-routine-icon-sm').addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeRoutineDropdown();
+        switchToLevel('routines');
+        openRoutineEditor(rt.id);
+      });
+
+      item.addEventListener('click', () => {
+        applyRoutineToDate(rt.id, state.currentDate);
+        closeRoutineDropdown();
+      });
+
+      dom.routineDropdownList.appendChild(item);
+    });
+  }
+
+  function toggleRoutineDropdown(forceOpen) {
+    if (!dom.routineDropdownMenu) return;
+    const isClosed = dom.routineDropdownMenu.classList.contains('hidden');
+    const shouldOpen = forceOpen !== undefined ? forceOpen : isClosed;
+
+    if (shouldOpen) {
+      renderRoutineDropdown();
+      dom.routineDropdownMenu.classList.remove('hidden');
+      if (dom.btnRoutineDropdown) {
+        dom.btnRoutineDropdown.classList.add('active');
+        dom.btnRoutineDropdown.setAttribute('aria-expanded', 'true');
+      }
+    } else {
+      dom.routineDropdownMenu.classList.add('hidden');
+      if (dom.btnRoutineDropdown) {
+        dom.btnRoutineDropdown.classList.remove('active');
+        dom.btnRoutineDropdown.setAttribute('aria-expanded', 'false');
+      }
+    }
+  }
+
+  function closeRoutineDropdown() {
+    toggleRoutineDropdown(false);
+  }
+
+  function applyRoutineToDate(routineId, dateStr) {
+    const routine = getRoutineById(routineId);
+    if (!routine) {
+      showToast('Routine not found', 'alert');
+      return;
+    }
+
+    const dailyData = getDailyLog(dateStr);
+    TIME_SLOTS.forEach(slot => {
+      const sourceSlot = routine.hours && routine.hours[slot.key];
+      if (sourceSlot && sourceSlot.task && sourceSlot.task.trim() !== '') {
+        dailyData.hours[slot.key] = {
+          task: sourceSlot.task,
+          category: sourceSlot.category || 'Deep Work',
+          status: 'pending'
+        };
+      } else {
+        delete dailyData.hours[slot.key];
+      }
+    });
+
     queueAutoSave();
     renderHourlySchedule();
     renderSevenDaysGrid();
-    showToast('Standard routine loaded successfully', 'success');
+    renderSubpanel();
+
+    const d = parseISODate(dateStr);
+    const dayLabel = dateStr === getTodayISODate() ? 'Today' : d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    showToast(`Loaded "${routine.name}" for ${dayLabel}`, 'success');
+  }
+
+  // --- Routines Stage View (Management & Builder Page) ---
+  function renderRoutinesStageView() {
+    const allRoutines = getAllRoutines();
+    if (dom.heroTotalRoutinesCount) {
+      dom.heroTotalRoutinesCount.textContent = String(allRoutines.length);
+    }
+    if (dom.sidebarRoutinesBadge) {
+      dom.sidebarRoutinesBadge.textContent = String(allRoutines.length);
+    }
+
+    if (!dom.routinesCardsGrid) return;
+    dom.routinesCardsGrid.innerHTML = '';
+
+    allRoutines.forEach(rt => {
+      const { totalScheduled, counts } = calculateRoutineDistribution(rt.hours);
+      const card = document.createElement('div');
+      card.className = 'routine-card';
+
+      const chipsHtml = Object.entries(counts)
+        .filter(([_, cnt]) => cnt > 0)
+        .map(([cat, cnt]) => `<span class="routine-card-chip">${cnt}h ${cat}</span>`)
+        .join('');
+
+      card.innerHTML = `
+        <div>
+          <div class="routine-card-header">
+            <div class="routine-card-title-group">
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <h4 class="routine-card-title">${escapeHtml(rt.name)}</h4>
+                <span class="routine-preset-tag">${rt.isBuiltin ? 'PRESET' : 'CUSTOM'}</span>
+              </div>
+              <p class="routine-card-desc">${escapeHtml(rt.description || '18-hour optimized schedule')}</p>
+            </div>
+          </div>
+          <div class="routine-card-stats" style="margin-top: 0.75rem;">
+            <span class="routine-card-chip" style="font-weight: 700; color: var(--text-primary);">${totalScheduled}/18 Hours Scheduled</span>
+            ${chipsHtml}
+          </div>
+        </div>
+
+        <div class="routine-card-actions">
+          <div style="display: flex; gap: 0.4rem;">
+            <button type="button" class="btn-routine-apply-card btn-primary-pill" style="padding: 0.35rem 0.8rem; font-size: 0.78rem;">
+              Apply to Today
+            </button>
+            <button type="button" class="btn-routine-edit-card btn-secondary-sm" style="padding: 0.35rem 0.75rem;">
+              ${rt.isBuiltin ? 'Customize Copy' : 'Edit'}
+            </button>
+          </div>
+          ${!rt.isBuiltin ? `
+            <button type="button" class="btn-routine-delete-card icon-circle-btn" title="Delete custom routine" style="width: 28px; height: 28px;">
+              ${ICONS.trash}
+            </button>
+          ` : ''}
+        </div>
+      `;
+
+      card.querySelector('.btn-routine-apply-card').addEventListener('click', () => {
+        applyRoutineToDate(rt.id, state.currentDate);
+        switchToLevel('micro');
+      });
+
+      card.querySelector('.btn-routine-edit-card').addEventListener('click', () => {
+        openRoutineEditor(rt.id);
+      });
+
+      const delBtn = card.querySelector('.btn-routine-delete-card');
+      if (delBtn) {
+        delBtn.addEventListener('click', () => {
+          deleteCustomRoutine(rt.id);
+        });
+      }
+
+      dom.routinesCardsGrid.appendChild(card);
+    });
+  }
+
+  function openRoutineEditor(routineId) {
+    state.activeEditingRoutineId = routineId || null;
+    if (dom.routinesListContainer) dom.routinesListContainer.classList.add('hidden');
+    if (dom.routineEditorContainer) dom.routineEditorContainer.classList.remove('hidden');
+
+    let initialName = '';
+    let initialDesc = '';
+    let hoursData = {};
+
+    if (routineId) {
+      const found = getRoutineById(routineId);
+      if (found) {
+        initialName = found.isBuiltin ? `${found.name} (Custom)` : found.name;
+        initialDesc = found.description || '';
+        hoursData = JSON.parse(JSON.stringify(found.hours || {}));
+        if (dom.routineEditorTitle) {
+          dom.routineEditorTitle.textContent = found.isBuiltin ? `Create Blueprint from "${found.name}"` : `Edit "${found.name}"`;
+        }
+        if (dom.btnDeleteCustomRoutine) {
+          dom.btnDeleteCustomRoutine.classList.toggle('hidden', !!found.isBuiltin);
+        }
+      }
+    } else {
+      if (dom.routineEditorTitle) {
+        dom.routineEditorTitle.textContent = 'Create New Routine Blueprint';
+      }
+      if (dom.btnDeleteCustomRoutine) {
+        dom.btnDeleteCustomRoutine.classList.add('hidden');
+      }
+    }
+
+    if (dom.routineNameInput) dom.routineNameInput.value = initialName;
+    if (dom.routineDescInput) dom.routineDescInput.value = initialDesc;
+
+    populateRoutineEditorHours(hoursData);
+    updateRoutineEditorLiveBreakdown();
+  }
+
+  function closeRoutineEditor() {
+    state.activeEditingRoutineId = null;
+    if (dom.routineEditorContainer) dom.routineEditorContainer.classList.add('hidden');
+    if (dom.routinesListContainer) dom.routinesListContainer.classList.remove('hidden');
+    renderRoutinesStageView();
+    renderSubpanel();
+  }
+
+  function populateRoutineEditorHours(hoursData) {
+    if (!dom.routineHoursEditorFeed) return;
+    dom.routineHoursEditorFeed.innerHTML = '';
+
+    TIME_SLOTS.forEach(slot => {
+      const current = (hoursData && hoursData[slot.key]) || { task: '', category: 'Deep Work' };
+      const row = document.createElement('div');
+      row.className = 'routine-hour-row-card';
+      row.dataset.slot = slot.key;
+
+      const catOptionsHtml = DEFAULT_CATEGORIES.map(cat => 
+        `<option value="${cat}" ${current.category === cat ? 'selected' : ''}>${cat}</option>`
+      ).join('');
+
+      row.innerHTML = `
+        <span class="routine-hour-badge">${slot.key}</span>
+        <input type="text" class="routine-hour-task-input" placeholder="Task or focus area for ${slot.label.split(' - ')[0]}..." value="${escapeHtml(current.task || '')}" />
+        <select class="routine-hour-category-select">
+          ${catOptionsHtml}
+        </select>
+        <button type="button" class="btn-routine-hour-clear" title="Clear slot">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      `;
+
+      const taskInput = row.querySelector('.routine-hour-task-input');
+      const catSelect = row.querySelector('.routine-hour-category-select');
+      const clearBtn = row.querySelector('.btn-routine-hour-clear');
+
+      taskInput.addEventListener('input', updateRoutineEditorLiveBreakdown);
+      catSelect.addEventListener('change', updateRoutineEditorLiveBreakdown);
+
+      clearBtn.addEventListener('click', () => {
+        taskInput.value = '';
+        updateRoutineEditorLiveBreakdown();
+      });
+
+      dom.routineHoursEditorFeed.appendChild(row);
+    });
+  }
+
+  function collectRoutineEditorHours() {
+    const hours = {};
+    if (!dom.routineHoursEditorFeed) return hours;
+
+    const rows = dom.routineHoursEditorFeed.querySelectorAll('.routine-hour-row-card');
+    rows.forEach(row => {
+      const slotKey = row.dataset.slot;
+      const taskVal = (row.querySelector('.routine-hour-task-input')?.value || '').trim();
+      const catVal = row.querySelector('.routine-hour-category-select')?.value || 'Deep Work';
+
+      if (taskVal.length > 0) {
+        hours[slotKey] = {
+          task: taskVal,
+          category: catVal
+        };
+      }
+    });
+
+    return hours;
+  }
+
+  function updateRoutineEditorLiveBreakdown() {
+    const hours = collectRoutineEditorHours();
+    const { totalScheduled, counts } = calculateRoutineDistribution(hours);
+
+    if (dom.routineBreakdownSummary) {
+      dom.routineBreakdownSummary.textContent = `${totalScheduled} / 18 hours scheduled`;
+    }
+
+    if (dom.routineCategoryChips) {
+      dom.routineCategoryChips.innerHTML = '';
+      Object.entries(counts).forEach(([cat, cnt]) => {
+        if (cnt > 0) {
+          const chip = document.createElement('span');
+          chip.className = 'routine-category-chip';
+          chip.innerHTML = `${cat}: <strong>${cnt}h</strong>`;
+          dom.routineCategoryChips.appendChild(chip);
+        }
+      });
+      if (totalScheduled === 0) {
+        dom.routineCategoryChips.innerHTML = '<span style="font-size: 0.74rem; color: var(--text-muted);">No tasks entered yet</span>';
+      }
+    }
+  }
+
+  function saveCurrentRoutineEditor(andApplyToToday) {
+    const name = (dom.routineNameInput?.value || '').trim();
+    if (!name) {
+      showToast('Please enter a routine name', 'alert');
+      dom.routineNameInput?.focus();
+      return;
+    }
+
+    const desc = (dom.routineDescInput?.value || '').trim();
+    const hours = collectRoutineEditorHours();
+
+    if (!state.year_data.custom_routines) {
+      state.year_data.custom_routines = [];
+    }
+
+    let savedId = state.activeEditingRoutineId;
+    const isExistingCustom = savedId && !savedId.startsWith('builtin_');
+
+    if (isExistingCustom) {
+      const idx = state.year_data.custom_routines.findIndex(r => r.id === savedId);
+      if (idx !== -1) {
+        state.year_data.custom_routines[idx] = {
+          id: savedId,
+          name,
+          description: desc,
+          isBuiltin: false,
+          hours
+        };
+      } else {
+        savedId = 'rt_' + Date.now();
+        state.year_data.custom_routines.push({
+          id: savedId,
+          name,
+          description: desc,
+          isBuiltin: false,
+          hours
+        });
+      }
+    } else {
+      savedId = 'rt_' + Date.now();
+      state.year_data.custom_routines.push({
+        id: savedId,
+        name,
+        description: desc,
+        isBuiltin: false,
+        hours
+      });
+    }
+
+    queueAutoSave();
+    showToast(`Routine "${name}" saved successfully`, 'success');
+
+    if (andApplyToToday) {
+      applyRoutineToDate(savedId, state.currentDate);
+      closeRoutineEditor();
+      switchToLevel('micro');
+    } else {
+      closeRoutineEditor();
+    }
+  }
+
+  function deleteCustomRoutine(routineId) {
+    if (!confirm('Are you sure you want to delete this custom routine?')) return;
+
+    if (!state.year_data.custom_routines) return;
+    const idx = state.year_data.custom_routines.findIndex(r => r.id === routineId);
+    if (idx !== -1) {
+      const name = state.year_data.custom_routines[idx].name;
+      state.year_data.custom_routines.splice(idx, 1);
+      queueAutoSave();
+      closeRoutineEditor();
+      showToast(`Deleted routine "${name}"`, 'info');
+    }
   }
 
   function markAllDayComplete() {
@@ -1202,6 +1782,9 @@
     if (dom.sidebarTodayPendingBadge) {
       dom.sidebarTodayPendingBadge.textContent = String(pendingHours >= 0 ? pendingHours : 0);
     }
+    if (dom.sidebarRoutinesBadge) {
+      dom.sidebarRoutinesBadge.textContent = String(getAllRoutines().length);
+    }
 
     const yGoals = state.year_data.yearly_goals || [];
     const totalGoals = yGoals.length;
@@ -1230,6 +1813,7 @@
     });
 
     if (levelKey === 'micro') renderHourlySchedule();
+    if (levelKey === 'routines') renderRoutinesStageView();
     if (levelKey === 'daily') renderSevenDaysGrid();
     if (levelKey === 'weekly') renderWeeklyStrategyView();
     if (levelKey === 'monthly') renderFourMonthsHorizon();
@@ -1241,6 +1825,7 @@
 
   function renderAllViews() {
     renderHourlySchedule();
+    renderRoutinesStageView();
     renderSevenDaysGrid();
     renderWeeklyStrategyView();
     renderFourMonthsHorizon();
@@ -1686,7 +2271,7 @@
 
     dom.btnSidebarBackup.addEventListener('click', exportBackupJSON);
 
-    // Hourly Actions
+    // Hourly Actions & Routine Dropdown
     dom.dayPrimaryObjective.addEventListener('input', (e) => {
       const dLog = getDailyLog(state.currentDate);
       dLog.objective = e.target.value;
@@ -1702,7 +2287,99 @@
       });
     });
 
-    dom.btnQuickFillTemplate.addEventListener('click', quickFillDailyRoutine);
+    if (dom.btnRoutineDropdown) {
+      dom.btnRoutineDropdown.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleRoutineDropdown();
+      });
+    }
+
+    if (dom.btnDropdownCreateRoutine) {
+      dom.btnDropdownCreateRoutine.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeRoutineDropdown();
+        switchToLevel('routines');
+        openRoutineEditor(null);
+      });
+    }
+
+    if (dom.btnDropdownManageRoutines) {
+      dom.btnDropdownManageRoutines.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeRoutineDropdown();
+        switchToLevel('routines');
+      });
+    }
+
+    // Routines Stage View & Editor Actions
+    if (dom.btnCreateNewRoutinePage) {
+      dom.btnCreateNewRoutinePage.addEventListener('click', () => {
+        openRoutineEditor(null);
+      });
+    }
+
+    if (dom.btnReturnToTimeBlocks) {
+      dom.btnReturnToTimeBlocks.addEventListener('click', () => {
+        switchToLevel('micro');
+      });
+    }
+
+    if (dom.btnRoutineEditorPreloadStd) {
+      dom.btnRoutineEditorPreloadStd.addEventListener('click', () => {
+        const std = getRoutineById('builtin_std');
+        if (std) {
+          populateRoutineEditorHours(std.hours);
+          updateRoutineEditorLiveBreakdown();
+          showToast('Loaded standard template slots into editor', 'info');
+        }
+      });
+    }
+
+    if (dom.btnRoutineEditorClearAll) {
+      dom.btnRoutineEditorClearAll.addEventListener('click', () => {
+        populateRoutineEditorHours({});
+        updateRoutineEditorLiveBreakdown();
+        showToast('All slots cleared', 'info');
+      });
+    }
+
+    if (dom.btnCancelRoutineEdit) {
+      dom.btnCancelRoutineEdit.addEventListener('click', closeRoutineEditor);
+    }
+
+    if (dom.btnDeleteCustomRoutine) {
+      dom.btnDeleteCustomRoutine.addEventListener('click', () => {
+        if (state.activeEditingRoutineId) {
+          deleteCustomRoutine(state.activeEditingRoutineId);
+        }
+      });
+    }
+
+    if (dom.btnSaveRoutineOnly) {
+      dom.btnSaveRoutineOnly.addEventListener('click', () => {
+        saveCurrentRoutineEditor(false);
+      });
+    }
+
+    if (dom.btnSaveAndApplyRoutine) {
+      dom.btnSaveAndApplyRoutine.addEventListener('click', () => {
+        saveCurrentRoutineEditor(true);
+      });
+    }
+
+    // Global outside click & escape key dismiss
+    document.addEventListener('click', (e) => {
+      if (dom.routineDropdownWrapper && !dom.routineDropdownWrapper.contains(e.target)) {
+        closeRoutineDropdown();
+      }
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeRoutineDropdown();
+      }
+    });
+
     dom.btnMarkAllDayDone.addEventListener('click', markAllDayComplete);
     dom.btnClearDayLog.addEventListener('click', clearDayLog);
 

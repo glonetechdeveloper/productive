@@ -61,6 +61,14 @@
           <span class="nav-badge" id="sidebarTodayPendingBadge">0</span>
         </button>
 
+        <button class="nav-item-btn" data-level="routines" id="tabRoutines">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/>
+          </svg>
+          <span class="nav-label">Routines</span>
+          <span class="nav-badge" id="sidebarRoutinesBadge">4</span>
+        </button>
+
         <button class="nav-item-btn" data-level="daily" id="tabDaily">
           <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
@@ -286,9 +294,43 @@
                 </div>
 
                 <div class="btn-group-actions">
-                  <button id="btnQuickFillTemplate" class="btn-secondary-sm" title="Apply standard routine">
-                    Routine
-                  </button>
+                  <div class="routine-dropdown-wrapper" id="routineDropdownWrapper">
+                    <button id="btnRoutineDropdown" class="btn-secondary-sm routine-trigger-btn" title="Select and apply daily routine blueprint" aria-expanded="false" aria-haspopup="true">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" class="btn-inline-icon">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                      </svg>
+                      <span>Routine</span>
+                      <svg class="dropdown-chevron-icon" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                      </svg>
+                    </button>
+                    <div class="routine-dropdown-menu hidden" id="routineDropdownMenu">
+                      <div class="routine-dropdown-header">
+                        <div>
+                          <div class="routine-dropdown-title">Daily Blueprints</div>
+                          <div class="routine-dropdown-subtitle">Apply 18h routine to <strong id="routineCurrentDateLabel">Today</strong></div>
+                        </div>
+                        <span class="routine-count-badge" id="routineDropdownCount">4 Blueprints</span>
+                      </div>
+                      <div class="routine-dropdown-list" id="routineDropdownList">
+                        <!-- Populated dynamically with standard and custom routines -->
+                      </div>
+                      <div class="routine-dropdown-footer">
+                        <button class="btn-routine-action btn-routine-add-new" id="btnDropdownCreateRoutine">
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                          </svg>
+                          <span>Add New Routine</span>
+                        </button>
+                        <button class="btn-routine-action btn-routine-manage" id="btnDropdownManageRoutines">
+                          <span>Manage All</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
                   <button id="btnMarkAllDayDone" class="btn-secondary-sm" title="Mark all blocks complete">
                     Mark All Done
                   </button>
@@ -518,7 +560,125 @@
           </section>
 
           <!-- ========================================================== -->
-          <!-- VIEW 6: "HOW ABEG" - DETAILED DOCUMENTATION & USER MANUAL -->
+          <!-- VIEW 6: ROUTINE ARCHITECT & BLUEPRINTS MANAGER -->
+          <!-- ========================================================== -->
+          <section class="stage-view-pane" id="view-routines">
+            <div class="stage-pane-header">
+              <div class="stage-title-wrap">
+                <div class="stage-avatar-pill">
+                  <span class="stage-avatar-txt">RT</span>
+                </div>
+                <div>
+                  <h2 class="stage-heading" id="routinesPageHeading">Daily Routine Blueprints</h2>
+                  <span class="stage-sub-status" id="routinesPageSubtitle">Pre-configure 18-hour daily architectures to load anytime</span>
+                </div>
+              </div>
+
+              <div class="stage-header-actions" id="routinesHeaderActions">
+                <button id="btnCreateNewRoutinePage" class="btn-primary-pill">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  <span>+ Add New Routine</span>
+                </button>
+                <button id="btnReturnToTimeBlocks" class="btn-secondary-sm" title="Return to Time Blocks">
+                  Time Blocks &rarr;
+                </button>
+              </div>
+            </div>
+
+            <!-- MODE 1: ROUTINES LIST & PREVIEWS -->
+            <div class="routines-list-container" id="routinesListContainer">
+              <div class="routines-hero-banner">
+                <div class="routines-hero-content">
+                  <h3 class="routines-hero-title">18-Hour Precision Blueprints</h3>
+                  <p class="routines-hero-desc">Standardize your days for peak execution. Create specialized templates for deep work sprints, operational days, weekend mastery, or custom schedules, and apply them to any day with a single click.</p>
+                </div>
+                <div class="routines-hero-stats">
+                  <div class="routine-hero-stat-box">
+                    <span class="routine-stat-num" id="heroTotalRoutinesCount">4</span>
+                    <span class="routine-stat-lbl">Blueprints Ready</span>
+                  </div>
+                  <div class="routine-hero-stat-box">
+                    <span class="routine-stat-num">18</span>
+                    <span class="routine-stat-lbl">Slots / Routine</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="routines-grid" id="routinesCardsGrid">
+                <!-- Populated dynamically with routine cards -->
+              </div>
+            </div>
+
+            <!-- MODE 2: ROUTINE EDITOR (BUILDER FOR 18 HOURS) -->
+            <div class="routine-editor-container hidden" id="routineEditorContainer">
+              <!-- Routine Meta Card -->
+              <div class="detail-card-panel">
+                <div class="panel-card-header">
+                  <div>
+                    <h3 class="panel-card-title" id="routineEditorTitle">Create Routine Blueprint</h3>
+                    <span class="stage-sub-status">Fill in tasks and categories for all 18 hourly slots (06:00 AM to 11:00 PM)</span>
+                  </div>
+                  <div class="routine-editor-quick-actions">
+                    <button type="button" id="btnRoutineEditorPreloadStd" class="btn-secondary-sm" title="Load standard preset items">Load Template</button>
+                    <button type="button" id="btnRoutineEditorClearAll" class="btn-secondary-sm btn-danger-hover" title="Clear all slots">Clear Slots</button>
+                  </div>
+                </div>
+
+                <div class="routine-meta-form">
+                  <div class="form-group">
+                    <label class="form-label" for="routineNameInput">Routine Name *</label>
+                    <input type="text" id="routineNameInput" class="form-input" placeholder="e.g. Deep Work Sprint Day, Launch Day Protocol, Weekend Mastery" required />
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label" for="routineDescInput">Description / Target Outcome</label>
+                    <input type="text" id="routineDescInput" class="form-input" placeholder="e.g. High-focus 8h deep work coding sprint with workout & recovery" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Live Category Distribution Strip -->
+              <div class="routine-breakdown-panel">
+                <div class="routine-breakdown-header">
+                  <span class="stat-mini-label">18-Hour Time Distribution:</span>
+                  <span class="stat-mini-val" id="routineBreakdownSummary">0 / 18 hours configured</span>
+                </div>
+                <div class="routine-category-chips" id="routineCategoryChips">
+                  <!-- Dynamically populated category hours breakdown -->
+                </div>
+              </div>
+
+              <!-- 18-Hour Timeline Editor Grid -->
+              <div class="routine-hours-editor-feed" id="routineHoursEditorFeed">
+                <!-- 18 hour slots rendered with task description and category select -->
+              </div>
+
+              <!-- Bottom Action Bar -->
+              <div class="routine-editor-bottom-bar">
+                <div class="left-actions">
+                  <button type="button" id="btnCancelRoutineEdit" class="btn-secondary-sm">
+                    &larr; Cancel &amp; Back
+                  </button>
+                  <button type="button" id="btnDeleteCustomRoutine" class="btn-secondary-sm btn-danger-hover hidden">
+                    Delete Routine
+                  </button>
+                </div>
+                <div class="right-actions">
+                  <button type="button" id="btnSaveRoutineOnly" class="btn-secondary-sm">
+                    Save Routine
+                  </button>
+                  <button type="button" id="btnSaveAndApplyRoutine" class="btn-primary-pill">
+                    Save &amp; Apply to Today
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ========================================================== -->
+          <!-- VIEW 7: "HOW ABEG" - DETAILED DOCUMENTATION & USER MANUAL -->
           <!-- ========================================================== -->
           <section class="stage-view-pane" id="view-guide">
             <div class="stage-pane-header">
@@ -527,12 +687,12 @@
                   <span class="stage-avatar-txt">HA</span>
                 </div>
                 <div>
-                  <h2 class="stage-heading">How Abeg &bull; User Guide & Operational Manual</h2>
-                  <span class="stage-sub-status">Complete documentation, workflow diagrams, and architectural breakdown</span>
+                  <h2 class="stage-heading">How Abeg &bull; User Guide &amp; Operating Manual</h2>
+                  <span class="stage-sub-status">Complete documentation, workflow systems, and feature blueprints</span>
                 </div>
               </div>
               <div class="stage-header-actions">
-                <span class="badge-tag">Version 2.0</span>
+                <span class="badge-tag">Version 2.5 (Pro)</span>
               </div>
             </div>
 
@@ -540,7 +700,7 @@
             <div class="guide-hero-card">
               <div class="guide-hero-content">
                 <h3 class="guide-hero-title">Mastering the Top-Down Productivity Hierarchy</h3>
-                <p class="guide-hero-desc">Productive is engineered on a fundamental principle: high output is not about doing more random tasks, but aligning every single 60-minute block of your day directly with your 1-year master vision.</p>
+                <p class="guide-hero-desc">Productive is engineered on a fundamental principle: peak output is not about doing more random tasks, but aligning every single 60-minute block of your day directly with your 1-year master vision.</p>
               </div>
               <div class="guide-hierarchy-diagram">
                 <!-- Clean Minimalist Architecture Diagram -->
@@ -589,43 +749,67 @@
                   <div class="guide-num-badge">01</div>
                   <div>
                     <h4 class="guide-box-title">Hourly Time Blocks (Precision Micro-Scheduling)</h4>
-                    <span class="guide-box-subtitle">Daily execution from 06:00 AM to 11:00 PM</span>
+                    <span class="guide-box-subtitle">Daily execution from 06:00 AM to 11:00 PM (18 discrete focus blocks)</span>
                   </div>
                 </div>
                 <div class="guide-box-body">
-                  <p>The <strong>Time Blocks</strong> view is your daily command center. Rather than maintaining an endless disorganized to-do list, your day is structured into 18 discrete 1-hour slots:</p>
+                  <p>The <strong>Time Blocks</strong> view is your daily command center. Rather than maintaining an endless disorganized to-do list, your active day is divided into 18 discrete 1-hour slots where every hour has a designated outcome and category:</p>
                   
                   <div class="guide-steps-grid">
                     <div class="guide-step-card">
                       <span class="step-num">Step 1</span>
                       <strong class="step-title">Set Primary Objective</strong>
-                      <p class="step-desc">Enter your single most critical non-negotiable daily outcome at the top banner.</p>
+                      <p class="step-desc">Enter your single most critical non-negotiable outcome in the top objective banner.</p>
                     </div>
                     <div class="guide-step-card">
                       <span class="step-num">Step 2</span>
-                      <strong class="step-title">Assign Hourly Tasks</strong>
-                      <p class="step-desc">Click any hourly block to type your focus deliverable. Tag the category (Deep Work, Meetings, Rest, etc.).</p>
+                      <strong class="step-title">Assign Hourly Tasks &amp; Tags</strong>
+                      <p class="step-desc">Click any slot to type your task and select category tags (Deep Work, Core Focus, Health, etc.).</p>
                     </div>
                     <div class="guide-step-card">
                       <span class="step-num">Step 3</span>
                       <strong class="step-title">Toggle Execution State</strong>
-                      <p class="step-desc">Click the checkmark icon when completed, or cross icon if missed. Progress counters calculate instantly in real time.</p>
+                      <p class="step-desc">Click the checkmark icon when completed, or cross icon if missed. Progress counters calculate in real-time.</p>
                     </div>
                     <div class="guide-step-card">
                       <span class="step-num">Step 4</span>
-                      <strong class="step-title">Quick Actions</strong>
-                      <p class="step-desc">Use <strong>Routine</strong> to auto-load a high-performance blueprint, <strong>Mark All Done</strong>, or <strong>Clear</strong>.</p>
+                      <strong class="step-title">Routine Dropdown Actions</strong>
+                      <p class="step-desc">Click <strong>Routine ▾</strong> to instantly 1-click apply named blueprints or launch the <strong>Routine Architect</strong>.</p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <!-- Chapter 2: 7-Day Matrix -->
-              <div class="guide-feature-box" id="guide-sec-matrix">
+              <!-- Chapter 2: Routines & Blueprints -->
+              <div class="guide-feature-box" id="guide-sec-routines">
                 <div class="guide-box-header">
                   <div class="guide-num-badge">02</div>
                   <div>
-                    <h4 class="guide-box-title">7-Day Matrix & Daily Execution Review Log</h4>
+                    <h4 class="guide-box-title">Daily Routine Blueprints &amp; Routine Architect</h4>
+                    <span class="guide-box-subtitle">Pre-configure, save, edit, and apply custom 18-hour daily schedules in seconds</span>
+                  </div>
+                </div>
+                <div class="guide-box-body">
+                  <p>Never re-type your schedule from scratch. The <strong>Routine Blueprints</strong> engine allows you to build pre-saved schedules for different operational cadences:</p>
+                  <div class="guide-split-info">
+                    <div class="info-half">
+                      <strong>1-Click Routine Dropdown</strong>
+                      <p>Click the <strong>Routine ▾</strong> button in the Time Blocks header to open the dropdown menu. Choose from built-in presets (Standard High-Performance, Deep Work Sprint, Ops &amp; Strategy, Weekend Mastery) or any custom routine you have created. It instantly populates all 18 hours of the currently selected day.</p>
+                    </div>
+                    <div class="info-half">
+                      <strong>Routine Architect &amp; Builder Page</strong>
+                      <p>Click <strong>+ Add New Routine</strong> to open the full Routine Architect page. Name your routine, write descriptions, and customize each of the 18 hourly slots with task names and category tags. Save your blueprint to use anytime on any day, or click <strong>Save &amp; Apply to Today</strong>.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Chapter 3: 7-Day Matrix -->
+              <div class="guide-feature-box" id="guide-sec-matrix">
+                <div class="guide-box-header">
+                  <div class="guide-num-badge">03</div>
+                  <div>
+                    <h4 class="guide-box-title">7-Day Matrix &amp; Daily Execution Review Log</h4>
                     <span class="guide-box-subtitle">Sunday through Saturday holistic cadence and historical audit</span>
                   </div>
                 </div>
@@ -638,12 +822,12 @@
                 </div>
               </div>
 
-              <!-- Chapter 3: Weekly Strategy -->
+              <!-- Chapter 4: Weekly Strategy -->
               <div class="guide-feature-box" id="guide-sec-weekly">
                 <div class="guide-box-header">
-                  <div class="guide-num-badge">03</div>
+                  <div class="guide-num-badge">04</div>
                   <div>
-                    <h4 class="guide-box-title">Weekly Strategy & High-Impact Big Rocks</h4>
+                    <h4 class="guide-box-title">Weekly Strategy &amp; High-Impact Big Rocks</h4>
                     <span class="guide-box-subtitle">Pre-week strategic intentions and top 5 weekly deliverables</span>
                   </div>
                 </div>
@@ -662,10 +846,10 @@
                 </div>
               </div>
 
-              <!-- Chapter 4: 4-Month Horizons -->
+              <!-- Chapter 5: 4-Month Horizons -->
               <div class="guide-feature-box" id="guide-sec-horizons">
                 <div class="guide-box-header">
-                  <div class="guide-num-badge">04</div>
+                  <div class="guide-num-badge">05</div>
                   <div>
                     <h4 class="guide-box-title">4-Month Horizon Planning</h4>
                     <span class="guide-box-subtitle">Bridging annual dreams with quarterly operational sprints</span>
@@ -676,53 +860,53 @@
                   <div class="guide-cards-row">
                     <div class="horizon-info-pill">
                       <strong>Horizon 1 (M1 - M4)</strong>
-                      <span>Foundation, setup & initial launch</span>
+                      <span>Foundation, setup &amp; initial launch</span>
                     </div>
                     <div class="horizon-info-pill">
                       <strong>Horizon 2 (M5 - M8)</strong>
-                      <span>Scale, optimization & mid-year push</span>
+                      <span>Scale, optimization &amp; mid-year push</span>
                     </div>
                     <div class="horizon-info-pill">
                       <strong>Horizon 3 (M9 - M12)</strong>
-                      <span>Compounding victory & annual retrospective</span>
+                      <span>Compounding victory &amp; annual retrospective</span>
                     </div>
                   </div>
                   <p style="margin-top: 0.65rem;">Inside each month, define high-level strategic targets and add granular checkpoints with the <strong>+ Add Checkpoint</strong> button.</p>
                 </div>
               </div>
 
-              <!-- Chapter 5: Annual Vision -->
+              <!-- Chapter 6: Annual Vision -->
               <div class="guide-feature-box" id="guide-sec-yearly">
                 <div class="guide-box-header">
-                  <div class="guide-num-badge">05</div>
+                  <div class="guide-num-badge">06</div>
                   <div>
-                    <h4 class="guide-box-title">Annual Vision & Master Goals</h4>
+                    <h4 class="guide-box-title">Annual Vision &amp; Master Goals</h4>
                     <span class="guide-box-subtitle">Your north star pillars, quantitative metrics, and cumulative tracker</span>
                   </div>
                 </div>
                 <div class="guide-box-body">
-                  <p>Define high-level life and business pillars (Career & Wealth, Health & Endurance, Mastery, Engineering). Set concrete quantitative metrics (e.g. <em>$250,000 ARR</em> or <em>Sub-4hr Marathon</em>) and update their status (In Progress, Achieved, Deferred). The master progress bar computes cumulative completion automatically.</p>
+                  <p>Define high-level life and business pillars (Career &amp; Wealth, Health &amp; Endurance, Mastery, Engineering). Set concrete quantitative metrics (e.g. <em>$250,000 ARR</em> or <em>Sub-4hr Marathon</em>) and update their status (In Progress, Achieved, Deferred). The master progress bar computes cumulative completion automatically.</p>
                 </div>
               </div>
 
-              <!-- Chapter 6: Cloud Sync & Shortcuts -->
+              <!-- Chapter 7: Cloud Sync & Shortcuts -->
               <div class="guide-feature-box" id="guide-sec-system">
                 <div class="guide-box-header">
-                  <div class="guide-num-badge">06</div>
+                  <div class="guide-num-badge">07</div>
                   <div>
-                    <h4 class="guide-box-title">Cloud Sync, Data Safety & Keyboard Shortcuts</h4>
+                    <h4 class="guide-box-title">Cloud Sync, Data Safety &amp; Keyboard Shortcuts</h4>
                     <span class="guide-box-subtitle">Zero data loss with local storage and PostgreSQL serverless cloud</span>
                   </div>
                 </div>
                 <div class="guide-box-body">
                   <div class="guide-split-info">
                     <div class="info-half">
-                      <strong>Cloud & Local Synchronization</strong>
+                      <strong>Cloud &amp; Local Synchronization</strong>
                       <p>Works 100% offline out-of-the-box using browser Local Storage. When connected via the Sign In modal, data synchronizes seamlessly to PostgreSQL serverless cloud with stateless JWT security.</p>
                       <p style="margin-top: 0.4rem;">You can also export full JSON backups or restore backups at any time via the bottom footer.</p>
                     </div>
                     <div class="info-half">
-                      <strong>Keyboard Shortcuts & Controls</strong>
+                      <strong>Keyboard Shortcuts &amp; Controls</strong>
                       <div class="kbd-table">
                         <div class="kbd-row"><kbd>/</kbd> <span>Focus global search bar</span></div>
                         <div class="kbd-row"><kbd>+ New</kbd> <span>Quick create modal</span></div>
