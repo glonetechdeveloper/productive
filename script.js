@@ -247,6 +247,7 @@
     routineDropdownList: document.getElementById('routineDropdownList'),
     btnDropdownCreateRoutine: document.getElementById('btnDropdownCreateRoutine'),
     btnDropdownManageRoutines: document.getElementById('btnDropdownManageRoutines'),
+    btnCloseRoutineDropdown: document.getElementById('btnCloseRoutineDropdown'),
     btnMarkAllDayDone: document.getElementById('btnMarkAllDayDone'),
     btnClearDayLog: document.getElementById('btnClearDayLog'),
 
@@ -2308,6 +2309,13 @@
         e.stopPropagation();
         closeRoutineDropdown();
         switchToLevel('routines');
+      });
+    }
+
+    if (dom.btnCloseRoutineDropdown) {
+      dom.btnCloseRoutineDropdown.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeRoutineDropdown();
       });
     }
 
