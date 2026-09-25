@@ -412,8 +412,6 @@
     btnApplyScheduleHours: document.getElementById('btnApplyScheduleHours')
   };
 
-  let authMode = 'login';
-
   // ==========================================================================
   // INITIALIZATION
   // ==========================================================================
@@ -431,6 +429,20 @@
     // Listen to user activity to refresh last active timestamp
     ['click', 'keydown', 'touchstart'].forEach(evt => {
       window.addEventListener(evt, () => recordUserActivity(), { passive: true });
+    });
+
+    // Automatic Cloud Sync when coming online
+    window.addEventListener('online', () => {
+      showToast('Network connected. Syncing to database...', 'info');
+      if (state.token) {
+        saveGoalsToBackend(state.year_data);
+      }
+    });
+
+    window.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && navigator.onLine && state.token) {
+        saveGoalsToBackend(state.year_data);
+      }
     });
 
     checkGatewaySessionState();
@@ -486,6 +498,11 @@
   function parseISODate(isoStr) {
     const [y, m, d] = isoStr.split('-').map(Number);
     return new Date(y, m - 1, d);
+  }
+
+  function isFutureDate(dateStr) {
+    const today = getTodayISODate();
+    return dateStr > today;
   }
 
   function updateDateDisplay() {
@@ -573,13 +590,13 @@
       ],
       four_months: {
         h1: {
-          m1: { target: 'Establish deep work morning routine and architecture baseline', milestones: ['Design core system DB', 'Write serverless auth endpoints', 'Ship MVP v1.0'] },
-          m2: { target: 'Scale feature set and automate deployment pipelines', milestones: ['Implement weekly sprint reviews', 'Add analytics dashboard'] },
-          m3: { target: 'Optimization and user retention testing', milestones: ['Beta feedback loop', 'Performance audit'] },
-          m4: { target: 'Horizon 1 retrospective & major milestone launch', milestones: ['Public release launch', 'Review metrics'] }
+          m1: { target: 'Establish deep work morning routine and architecture baseline', milestones: [{ text: 'Design core system DB', completed: true }, { text: 'Write serverless auth endpoints', completed: true }, { text: 'Ship MVP v1.0', completed: false }] },
+          m2: { target: 'Scale feature set and automate deployment pipelines', milestones: [{ text: 'Implement weekly sprint reviews', completed: false }, { text: 'Add analytics dashboard', completed: false }] },
+          m3: { target: 'Optimization and user retention testing', milestones: [{ text: 'Beta feedback loop', completed: false }, { text: 'Performance audit', completed: false }] },
+          m4: { target: 'Horizon 1 retrospective & major milestone launch', milestones: [{ text: 'Public release launch', completed: false }, { text: 'Review metrics', completed: false }] }
         },
         h2: {
-          m1: { target: 'Expansion of userbase & enterprise workflows', milestones: ['Enterprise pilot rollout'] },
+          m1: { target: 'Expansion of userbase & enterprise workflows', milestones: [{ text: 'Enterprise pilot rollout', completed: false }] },
           m2: { target: 'Multi-device offline caching enhancements', milestones: [] },
           m3: { target: 'Q3 Product Iteration & Performance', milestones: [] },
           m4: { target: 'Mid-year financial and health re-calibration', milestones: [] }
@@ -638,7 +655,7 @@
     updateAllMetrics();
     renderSubpanel();
 
-    if (state.token) {
+    if (state.token && navigator.onLine) {
       updateSyncStatusUI('saving', 'Saving...');
       clearTimeout(debounceSaveTimeout);
       debounceSaveTimeout = setTimeout(() => {
@@ -653,7 +670,7 @@
   // BACKEND SERVERLESS SYNC API
   // ==========================================================================
   async function loadGoalsFromBackend() {
-    if (!state.token) return;
+    if (!state.token || !navigator.onLine) return;
 
     updateSyncStatusUI('saving', 'Syncing...');
     try {
@@ -688,7 +705,7 @@
   }
 
   async function saveGoalsToBackend(dataPayload) {
-    if (!state.token) return;
+    if (!state.token || !navigator.onLine) return;
 
     try {
       const response = await fetch('/api/goals/sync', {
@@ -744,7 +761,7 @@
     dom.subpanelItemsContainer.innerHTML = '';
     const q = (state.searchQuery || '').toLowerCase();
 
-    if (state.currentLevel === 'micro') {
+    if (state.currentLevel === 'micro' || state.currentLevel === 'daily') {
       const weekDays = getWeekDateRange(state.currentDate);
       const todayISO = getTodayISODate();
 
@@ -754,19 +771,46 @@
         const dayFull = dayDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         const dayLog = state.year_data.daily_logs[dayStr] || { objective: '', hours: {} };
 
-        const hoursArr = Object.values(dayLog.hours);
-        const scheduled = hoursArr.filter(h => h.task && h.task.trim().length > 0).length;
-        const completed = hoursArr.filter(h => h.status === 'completed' && h.task && h.task.trim().length > 0).length;
+        const hoursEntries = Object.entries(dayLog.hours || {}).filter(([_, h]) => h.task && h.task.trim().length > 0);
+        const scheduled = hoursEntries.length;
+        const completed = hoursEntries.filter(([_, h]) => h.status === 'completed').length;
         const pending = scheduled - completed;
 
-        if (q && !dayName.toLowerCase().includes(q) && !dayLog.objective.toLowerCase().includes(q)) {
-          return;
+        // Search match against day name, date, objective, or any hourly task in that day
+        if (q) {
+          const nameMatches = dayName.toLowerCase().includes(q) || dayFull.toLowerCase().includes(q);
+          const objMatches = (dayLog.objective || '').toLowerCase().includes(q);
+          const taskMatches = hoursEntries.some(([slot, h]) => (h.task || '').toLowerCase().includes(q) || slot.includes(q) || (h.category || '').toLowerCase().includes(q));
+          if (!nameMatches && !objMatches && !taskMatches) {
+            return;
+          }
         }
 
         const card = document.createElement('div');
         card.className = `subpanel-item-card ${dayStr === state.currentDate ? 'active' : ''}`;
         
         const avatarInitial = dayStr === todayISO ? 'TD' : dayName.substring(0, 2).toUpperCase();
+
+        // Build preview timestamps snippet (up to 3 items)
+        let previewHtml = '';
+        if (hoursEntries.length > 0) {
+          const sampleSlots = hoursEntries.slice(0, 3);
+          const previewItems = sampleSlots.map(([slot, h]) => {
+            const hNum = parseInt(slot.split(':')[0], 10);
+            const ampm = hNum >= 12 ? 'PM' : 'AM';
+            const h12 = (hNum % 12 === 0 ? 12 : hNum % 12);
+            const badge = `${String(h12).padStart(2, '0')}${ampm}`;
+            return `<div class="subpanel-preview-slot"><span class="subpanel-preview-time">${badge}</span><span class="subpanel-preview-task ${h.status === 'completed' ? 'completed-task' : ''}">${escapeHtml(h.task)}</span></div>`;
+          }).join('');
+
+          const moreCount = hoursEntries.length - sampleSlots.length;
+          previewHtml = `
+            <div class="subpanel-day-preview-list">
+              ${previewItems}
+              ${moreCount > 0 ? `<span style="font-size: 0.65rem; color: var(--text-muted); padding-left: 2px;">+${moreCount} more scheduled</span>` : ''}
+            </div>
+          `;
+        }
 
         card.innerHTML = `
           <div class="subpanel-item-avatar">${avatarInitial}</div>
@@ -779,6 +823,7 @@
               <span class="subpanel-item-snippet">${escapeHtml(dayLog.objective || 'No primary objective set')}</span>
               ${pending > 0 ? `<span class="subpanel-item-badge">${pending}</span>` : ''}
             </div>
+            ${previewHtml}
           </div>
         `;
 
@@ -799,6 +844,13 @@
         const wPlan = state.year_data.weekly_plans[wKey] || { strategy: '', rocks: [] };
         const totalRocks = (wPlan.rocks || []).length;
         const doneRocks = (wPlan.rocks || []).filter(r => r.completed).length;
+
+        if (q) {
+          const matchStrat = (wPlan.strategy || '').toLowerCase().includes(q);
+          const matchRocks = (wPlan.rocks || []).some(r => (r.title || '').toLowerCase().includes(q));
+          const matchWeek = `week ${w}`.includes(q);
+          if (!matchStrat && !matchRocks && !matchWeek) return;
+        }
 
         const card = document.createElement('div');
         card.className = `subpanel-item-card ${state.selectedMonthWeek === w ? 'active' : ''}`;
@@ -834,6 +886,10 @@
       ];
 
       horizons.forEach(h => {
+        if (q && !h.title.toLowerCase().includes(q) && !h.sub.toLowerCase().includes(q)) {
+          return;
+        }
+
         const card = document.createElement('div');
         card.className = `subpanel-item-card ${state.currentHorizon === h.id ? 'active' : ''}`;
         card.innerHTML = `
@@ -865,6 +921,10 @@
 
       pillars.forEach((p, idx) => {
         const count = p === 'All Goals' ? goals.length : goals.filter(g => g.pillar === p).length;
+        if (q && !p.toLowerCase().includes(q)) {
+          return;
+        }
+
         const card = document.createElement('div');
         card.className = `subpanel-item-card ${idx === 0 ? 'active' : ''}`;
         card.innerHTML = `
@@ -903,7 +963,22 @@
           </div>
         `;
         card.addEventListener('click', () => {
-          openRoutineEditor(rt.id);
+          // If editor is open, open in editor; else scroll to card in grid
+          const editorOpen = dom.routineEditorContainer && !dom.routineEditorContainer.classList.contains('hidden');
+          if (editorOpen) {
+            openRoutineEditor(rt.id);
+          } else {
+            const cardEl = document.getElementById(`routine-card-${rt.id}`);
+            if (cardEl) {
+              cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              cardEl.classList.remove('routine-card-highlight');
+              void cardEl.offsetWidth;
+              cardEl.classList.add('routine-card-highlight');
+              setTimeout(() => cardEl.classList.remove('routine-card-highlight'), 900);
+            } else {
+              openRoutineEditor(rt.id);
+            }
+          }
         });
         dom.subpanelItemsContainer.appendChild(card);
       });
@@ -920,6 +995,8 @@
       ];
 
       chapters.forEach(ch => {
+        if (q && !ch.title.toLowerCase().includes(q) && !ch.sub.toLowerCase().includes(q)) return;
+
         const card = document.createElement('div');
         card.className = 'subpanel-item-card';
         card.innerHTML = `
@@ -957,6 +1034,7 @@
     const now = new Date();
     const currentHour = now.getHours();
     const isToday = state.currentDate === getTodayISODate();
+    const isFuture = isFutureDate(state.currentDate);
     const searchFilter = (state.searchQuery || '').toLowerCase();
 
     let scheduledCount = 0;
@@ -1043,16 +1121,28 @@
       const doneBtn = document.createElement('button');
       doneBtn.type = 'button';
       doneBtn.className = `action-toggle-btn ${hourData.status === 'completed' ? 'active-done' : ''}`;
-      doneBtn.title = 'Mark Complete';
+      doneBtn.title = isFuture ? 'Cannot complete a future day task' : 'Mark Complete';
       doneBtn.innerHTML = ICONS.check;
+      if (isFuture) {
+        doneBtn.style.opacity = '0.35';
+        doneBtn.style.cursor = 'not-allowed';
+      }
 
       const missedBtn = document.createElement('button');
       missedBtn.type = 'button';
       missedBtn.className = `action-toggle-btn ${hourData.status === 'missed' ? 'active-missed' : ''}`;
-      missedBtn.title = 'Mark Missed';
+      missedBtn.title = isFuture ? 'Cannot mark future day task as missed' : 'Mark Missed';
       missedBtn.innerHTML = ICONS.cross;
+      if (isFuture) {
+        missedBtn.style.opacity = '0.35';
+        missedBtn.style.cursor = 'not-allowed';
+      }
 
       doneBtn.addEventListener('click', () => {
+        if (isFuture) {
+          showToast("Future days cannot be marked as completed yet", 'alert');
+          return;
+        }
         hourData.status = hourData.status === 'completed' ? 'pending' : 'completed';
         dailyData.hours[slot.key] = hourData;
         queueAutoSave();
@@ -1061,6 +1151,10 @@
       });
 
       missedBtn.addEventListener('click', () => {
+        if (isFuture) {
+          showToast("Future days cannot be marked as missed yet", 'alert');
+          return;
+        }
         hourData.status = hourData.status === 'missed' ? 'pending' : 'missed';
         dailyData.hours[slot.key] = hourData;
         queueAutoSave();
@@ -1255,6 +1349,7 @@
       const { totalScheduled, counts } = calculateRoutineDistribution(rt.hours);
       const card = document.createElement('div');
       card.className = 'routine-card';
+      card.id = `routine-card-${rt.id}`;
 
       const chipsHtml = Object.entries(counts)
         .filter(([_, cnt]) => cnt > 0)
@@ -1287,11 +1382,9 @@
               ${rt.isBuiltin ? 'Customize Copy' : 'Edit'}
             </button>
           </div>
-          ${!rt.isBuiltin ? `
-            <button type="button" class="btn-routine-delete-card icon-circle-btn" title="Delete custom routine" style="width: 28px; height: 28px;">
-              ${ICONS.trash}
-            </button>
-          ` : ''}
+          <button type="button" class="btn-routine-delete-card icon-circle-btn" title="Delete routine" style="width: 28px; height: 28px;">
+            ${ICONS.trash}
+          </button>
         </div>
       `;
 
@@ -1307,7 +1400,7 @@
       const delBtn = card.querySelector('.btn-routine-delete-card');
       if (delBtn) {
         delBtn.addEventListener('click', () => {
-          deleteCustomRoutine(rt.id);
+          deleteRoutine(rt.id);
         });
       }
 
@@ -1334,7 +1427,7 @@
           dom.routineEditorTitle.textContent = found.isBuiltin ? `Create Blueprint from "${found.name}"` : `Edit "${found.name}"`;
         }
         if (dom.btnDeleteCustomRoutine) {
-          dom.btnDeleteCustomRoutine.classList.toggle('hidden', !!found.isBuiltin);
+          dom.btnDeleteCustomRoutine.classList.remove('hidden');
         }
       }
     } else {
@@ -1351,6 +1444,16 @@
 
     populateRoutineEditorHours(hoursData);
     updateRoutineEditorLiveBreakdown();
+
+    // Smooth scroll down to the editor inputs so user sees it right away
+    setTimeout(() => {
+      if (dom.routineEditorContainer) {
+        dom.routineEditorContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      if (dom.routineNameInput) {
+        dom.routineNameInput.focus();
+      }
+    }, 100);
   }
 
   function closeRoutineEditor() {
@@ -1512,21 +1615,38 @@
     }
   }
 
-  function deleteCustomRoutine(routineId) {
-    if (!confirm('Are you sure you want to delete this custom routine?')) return;
+  function deleteRoutine(routineId) {
+    const found = getRoutineById(routineId);
+    const routineName = found ? found.name : 'this routine';
+    if (!confirm(`Are you sure you want to delete "${routineName}"?`)) return;
 
-    if (!state.year_data.custom_routines) return;
-    const idx = state.year_data.custom_routines.findIndex(r => r.id === routineId);
-    if (idx !== -1) {
-      const name = state.year_data.custom_routines[idx].name;
-      state.year_data.custom_routines.splice(idx, 1);
-      queueAutoSave();
-      closeRoutineEditor();
-      showToast(`Deleted routine "${name}"`, 'info');
+    if (found && found.isBuiltin) {
+      // Remove builtin from runtime list
+      const idx = BUILTIN_ROUTINES.findIndex(r => r.id === routineId);
+      if (idx !== -1) {
+        BUILTIN_ROUTINES.splice(idx, 1);
+      }
+    } else if (state.year_data.custom_routines) {
+      const idx = state.year_data.custom_routines.findIndex(r => r.id === routineId);
+      if (idx !== -1) {
+        state.year_data.custom_routines.splice(idx, 1);
+      }
     }
+
+    queueAutoSave();
+    renderRoutinesStageView();
+    renderSubpanel();
+    if (dom.routineEditorContainer && !dom.routineEditorContainer.classList.contains('hidden')) {
+      closeRoutineEditor();
+    }
+    showToast(`Deleted routine "${routineName}"`, 'info');
   }
 
   function markAllDayComplete() {
+    if (isFutureDate(state.currentDate)) {
+      showToast("Cannot mark all done on a future date", 'alert');
+      return;
+    }
     const dailyData = getDailyLog(state.currentDate);
     Object.keys(dailyData.hours).forEach(slotKey => {
       if (dailyData.hours[slotKey].task && dailyData.hours[slotKey].task.trim() !== '') {
@@ -1540,15 +1660,13 @@
   }
 
   function clearDayLog() {
-    if (confirm('Clear all hourly blocks for this day?')) {
-      const dailyData = getDailyLog(state.currentDate);
-      dailyData.objective = '';
-      dailyData.hours = {};
-      queueAutoSave();
-      renderHourlySchedule();
-      renderSevenDaysGrid();
-      showToast('Daily log cleared', 'info');
-    }
+    const dailyData = getDailyLog(state.currentDate);
+    dailyData.objective = '';
+    dailyData.hours = {};
+    queueAutoSave();
+    renderHourlySchedule();
+    renderSevenDaysGrid();
+    showToast('Daily log cleared', 'info');
   }
 
   // ==========================================================================
@@ -1558,6 +1676,7 @@
     dom.sevenDaysContainer.innerHTML = '';
     const weekDays = getWeekDateRange(state.currentDate);
     const todayISO = getTodayISODate();
+    const searchFilter = (state.searchQuery || '').toLowerCase();
 
     const d = parseISODate(state.currentDate);
     dom.currentWeekIdentifier.textContent = `Active Week &bull; ${d.toLocaleDateString('en-US', { month: 'short' })} ${d.getFullYear()}`;
@@ -1583,8 +1702,20 @@
 
       const pct = scheduled > 0 ? Math.round((completed / scheduled) * 100) : 0;
 
+      // Filter check for search query in 7-Day Matrix view
+      let matchesSearch = true;
+      if (searchFilter) {
+        const matchesDay = dayNameShort.toLowerCase().includes(searchFilter) || String(dayNum).includes(searchFilter);
+        const matchesObj = (dayLog.objective || '').toLowerCase().includes(searchFilter);
+        const matchesTasks = hoursArray.some(h => (h.task || '').toLowerCase().includes(searchFilter) || (h.category || '').toLowerCase().includes(searchFilter));
+        matchesSearch = matchesDay || matchesObj || matchesTasks;
+      }
+
       const card = document.createElement('div');
       card.className = `day-card ${dayStr === state.currentDate ? 'active-selected-day' : ''}`;
+      if (!matchesSearch) {
+        card.style.opacity = '0.25';
+      }
       card.innerHTML = `
         <span class="day-card-name">${dayNameShort}</span>
         <span class="day-card-num">${dayNum}</span>
@@ -1605,29 +1736,31 @@
 
       dom.sevenDaysContainer.appendChild(card);
 
-      const tr = document.createElement('tr');
-      const isSelectedDay = dayStr === state.currentDate;
-      tr.innerHTML = `
-        <td><strong>${dayDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</strong> ${dayStr === todayISO ? '<span class="badge-tag" style="padding: 0.1rem 0.35rem; font-size: 0.65rem;">Today</span>' : ''}</td>
-        <td>${escapeHtml(dayLog.objective || '—')}</td>
-        <td>${scheduled}</td>
-        <td style="font-weight: 600;">${completed}</td>
-        <td style="color: var(--text-muted);">${missed}</td>
-        <td>
-          <span style="font-family: var(--font-mono); font-weight: 600;">${pct}%</span>
-        </td>
-        <td>
-          <button class="table-jump-btn" data-date="${dayStr}">${isSelectedDay ? 'Viewing' : 'Open'}</button>
-        </td>
-      `;
+      if (matchesSearch) {
+        const tr = document.createElement('tr');
+        const isSelectedDay = dayStr === state.currentDate;
+        tr.innerHTML = `
+          <td><strong>${dayDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</strong> ${dayStr === todayISO ? '<span class="badge-tag" style="padding: 0.1rem 0.35rem; font-size: 0.65rem;">Today</span>' : ''}</td>
+          <td>${escapeHtml(dayLog.objective || '—')}</td>
+          <td>${scheduled}</td>
+          <td style="font-weight: 600;">${completed}</td>
+          <td style="color: var(--text-muted);">${missed}</td>
+          <td>
+            <span style="font-family: var(--font-mono); font-weight: 600;">${pct}%</span>
+          </td>
+          <td>
+            <button class="table-jump-btn" data-date="${dayStr}">${isSelectedDay ? 'Viewing' : 'Open'}</button>
+          </td>
+        `;
 
-      tr.querySelector('.table-jump-btn').addEventListener('click', () => {
-        state.currentDate = dayStr;
-        updateDateDisplay();
-        switchToLevel('micro');
-      });
+        tr.querySelector('.table-jump-btn').addEventListener('click', () => {
+          state.currentDate = dayStr;
+          updateDateDisplay();
+          switchToLevel('micro');
+        });
 
-      dom.weekReviewTableBody.appendChild(tr);
+        dom.weekReviewTableBody.appendChild(tr);
+      }
     });
 
     const weekAvg = totalWeekScheduled > 0 ? Math.round((totalWeekCompleted / totalWeekScheduled) * 100) : 0;
@@ -1643,7 +1776,13 @@
     dom.weeklyStrategyText.value = weeklyPlan.strategy || '';
 
     dom.weeklyRocksList.innerHTML = '';
+    const q = (state.searchQuery || '').toLowerCase();
+
     weeklyPlan.rocks.forEach((rock, idx) => {
+      if (q && !(rock.title || '').toLowerCase().includes(q)) {
+        return;
+      }
+
       const row = document.createElement('div');
       row.className = 'rock-item-row';
 
@@ -1703,6 +1842,7 @@
   function renderFourMonthsHorizon() {
     dom.fourMonthsContainer.innerHTML = '';
     const horizonData = state.year_data.four_months[state.currentHorizon] || {};
+    const q = (state.searchQuery || '').toLowerCase();
 
     const monthTitles = {
       h1: ['Month 1 (Foundation)', 'Month 2 (Acceleration)', 'Month 3 (Execution)', 'Month 4 (Launch & Review)'],
@@ -1716,6 +1856,16 @@
         horizonData[mKey] = { target: '', milestones: [] };
       }
       const mData = horizonData[mKey];
+
+      // Normalize milestones to objects with { text, completed }
+      if (mData.milestones && mData.milestones.length > 0) {
+        mData.milestones = mData.milestones.map(ms => {
+          if (typeof ms === 'string') {
+            return { text: ms, completed: false };
+          }
+          return ms;
+        });
+      }
 
       const card = document.createElement('div');
       card.className = 'month-horizon-card';
@@ -1742,18 +1892,41 @@
       const milestonesBox = card.querySelector(`#milestones_list_${mKey}`);
       const renderMilestones = () => {
         milestonesBox.innerHTML = '';
-        (mData.milestones || []).forEach((msText, msIdx) => {
+        (mData.milestones || []).forEach((msObj, msIdx) => {
+          const msText = typeof msObj === 'string' ? msObj : msObj.text;
+          const isDone = typeof msObj === 'object' ? !!msObj.completed : false;
+
+          if (q && !msText.toLowerCase().includes(q)) {
+            return;
+          }
+
           const mItem = document.createElement('div');
           mItem.className = 'milestone-item';
           mItem.innerHTML = `
-            <span class="milestone-dot"></span>
-            <input type="text" class="milestone-input" value="${escapeHtml(msText)}" placeholder="Checkpoint description" />
-            <button class="rock-del-btn" style="padding: 0 4px;">${ICONS.cross}</button>
+            <input type="checkbox" class="milestone-checkbox" ${isDone ? 'checked' : ''} title="Mark checkpoint complete" />
+            <input type="text" class="milestone-input ${isDone ? 'done' : ''}" value="${escapeHtml(msText || '')}" placeholder="Checkpoint description" />
+            <button class="rock-del-btn" style="padding: 0 4px;" title="Delete checkpoint">${ICONS.cross}</button>
           `;
 
+          const msCheckbox = mItem.querySelector('.milestone-checkbox');
           const msInput = mItem.querySelector('.milestone-input');
+
+          msCheckbox.addEventListener('change', () => {
+            if (typeof mData.milestones[msIdx] === 'string') {
+              mData.milestones[msIdx] = { text: mData.milestones[msIdx], completed: msCheckbox.checked };
+            } else {
+              mData.milestones[msIdx].completed = msCheckbox.checked;
+            }
+            msInput.classList.toggle('done', msCheckbox.checked);
+            queueAutoSave();
+          });
+
           msInput.addEventListener('input', (e) => {
-            mData.milestones[msIdx] = e.target.value;
+            if (typeof mData.milestones[msIdx] === 'string') {
+              mData.milestones[msIdx] = { text: e.target.value, completed: isDone };
+            } else {
+              mData.milestones[msIdx].text = e.target.value;
+            }
             queueAutoSave();
           });
 
@@ -1771,7 +1944,7 @@
 
       card.querySelector('.add-m-checkpoint-btn').addEventListener('click', () => {
         if (!mData.milestones) mData.milestones = [];
-        mData.milestones.push('Key delivery milestone');
+        mData.milestones.push({ text: 'Key delivery checkpoint', completed: false });
         queueAutoSave();
         renderMilestones();
       });
@@ -1786,12 +1959,21 @@
   function renderYearlyGoals() {
     dom.yearlyMainTitle.textContent = `${state.selectedYear} Master Vision & Annual Goals`;
     dom.yearlyGoalsContainer.innerHTML = '';
+    const q = (state.searchQuery || '').toLowerCase();
 
     const goals = state.year_data.yearly_goals || [];
 
     goals.forEach((goal, idx) => {
+      if (q) {
+        const matchTitle = (goal.title || '').toLowerCase().includes(q);
+        const matchPillar = (goal.pillar || '').toLowerCase().includes(q);
+        const matchMetric = (goal.targetMetric || '').toLowerCase().includes(q);
+        if (!matchTitle && !matchPillar && !matchMetric) return;
+      }
+
       const card = document.createElement('div');
       card.className = 'yearly-goal-card';
+      card.id = `goal-card-${goal.id}`;
 
       card.innerHTML = `
         <div class="yearly-goal-top">
@@ -1844,8 +2026,9 @@
     if (!state.year_data.yearly_goals) {
       state.year_data.yearly_goals = [];
     }
+    const newId = 'yg_' + Date.now();
     state.year_data.yearly_goals.push({
-      id: 'yg_' + Date.now(),
+      id: newId,
       title: customTitle || 'New High-Level Annual Target',
       pillar: customPillar || 'Strategic Growth',
       targetMetric: customMetric || '100% Target Met',
@@ -1854,6 +2037,20 @@
     queueAutoSave();
     renderYearlyGoals();
     updateAllMetrics();
+
+    // Smooth scroll down to the newly created goal card and add a bounce indicator animation
+    setTimeout(() => {
+      const cardEl = document.getElementById(`goal-card-${newId}`);
+      if (cardEl) {
+        cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        cardEl.classList.remove('goal-card-bouncing');
+        void cardEl.offsetWidth; // Trigger reflow
+        cardEl.classList.add('goal-card-bouncing');
+        const input = cardEl.querySelector('.yearly-goal-title-input');
+        if (input) input.focus();
+        setTimeout(() => cardEl.classList.remove('goal-card-bouncing'), 1200);
+      }
+    }, 80);
   }
 
   // ==========================================================================
@@ -2015,7 +2212,7 @@
       if (!state.year_data.four_months[horizonKey][monthKey]) {
         state.year_data.four_months[horizonKey][monthKey] = { target: '', milestones: [] };
       }
-      state.year_data.four_months[horizonKey][monthKey].milestones.push(title);
+      state.year_data.four_months[horizonKey][monthKey].milestones.push({ text: title, completed: false });
 
       queueAutoSave();
       renderFourMonthsHorizon();
@@ -2173,7 +2370,7 @@
     if (state.user && state.user.name) {
       return { name: state.user.name, email: state.user.email || 'prince@workspace.io' };
     }
-    return { name: 'Prince', email: 'prince@workspace.io' };
+    return null;
   }
 
   function saveSavedProfile(name, email) {
@@ -2201,9 +2398,28 @@
     const now = Date.now();
     const elapsed = now - lastActive;
     const isExpired = lastActive > 0 && elapsed >= INACTIVITY_LIMIT_MS;
-    const isFirstVisit = lastActive === 0;
+    const isFirstVisit = !profile || lastActive === 0;
 
-    // Update profile info on gateway
+    if (isFirstVisit) {
+      // First time user: directly show Create Account mode
+      if (dom.gatewayExpiryNotice) {
+        dom.gatewayExpiryNotice.classList.add('hidden');
+      }
+      showGatewayAuthPane('register');
+      dom.appAuthGateway.classList.remove('hidden');
+      return;
+    }
+
+    if (isExpired) {
+      if (dom.gatewayExpiryNotice) {
+        dom.gatewayExpiryNotice.classList.remove('hidden');
+      }
+      showGatewayAuthPane('login');
+      dom.appAuthGateway.classList.remove('hidden');
+      return;
+    }
+
+    // Active session (< 48h): Show quick resume card
     if (dom.gatewayUserName) dom.gatewayUserName.textContent = profile.name || 'Prince';
     if (dom.btnGatewayContinueText) dom.btnGatewayContinueText.textContent = `Continue as ${profile.name || 'Prince'}`;
     if (dom.gatewayUserAvatar) {
@@ -2211,27 +2427,19 @@
       dom.gatewayUserAvatar.textContent = initials;
     }
 
-    if (isFirstVisit || isExpired) {
-      if (dom.gatewayExpiryNotice) {
-        dom.gatewayExpiryNotice.classList.toggle('hidden', isFirstVisit);
+    if (dom.gatewaySessionStatus) {
+      const hoursAgo = Math.floor(elapsed / (1000 * 60 * 60));
+      const minsAgo = Math.floor((elapsed % (1000 * 60 * 60)) / (1000 * 60));
+      let timeStr = 'Just now';
+      if (hoursAgo > 0) {
+        timeStr = `${hoursAgo}h ${minsAgo}m ago`;
+      } else if (minsAgo > 0) {
+        timeStr = `${minsAgo}m ago`;
       }
-      showGatewayAuthPane('login');
-      dom.appAuthGateway.classList.remove('hidden');
-    } else {
-      if (dom.gatewaySessionStatus) {
-        const hoursAgo = Math.floor(elapsed / (1000 * 60 * 60));
-        const minsAgo = Math.floor((elapsed % (1000 * 60 * 60)) / (1000 * 60));
-        let timeStr = 'Just now';
-        if (hoursAgo > 0) {
-          timeStr = `${hoursAgo}h ${minsAgo}m ago`;
-        } else if (minsAgo > 0) {
-          timeStr = `${minsAgo}m ago`;
-        }
-        dom.gatewaySessionStatus.textContent = `Last active: ${timeStr} · Active Session (< 48h)`;
-      }
-      showGatewayWelcomePane();
-      dom.appAuthGateway.classList.remove('hidden');
+      dom.gatewaySessionStatus.textContent = `Last active: ${timeStr} · Active Session (< 48h)`;
     }
+    showGatewayWelcomePane();
+    dom.appAuthGateway.classList.remove('hidden');
   }
 
   function showGatewayWelcomePane() {
@@ -2262,7 +2470,7 @@
     if (dom.appAuthGateway) {
       dom.appAuthGateway.classList.add('hidden');
     }
-    showToast(`Welcome back, ${(profile && profile.name) || getSavedProfile().name || 'Prince'}`, 'success');
+    showToast(`Welcome back, ${(profile && profile.name) || (getSavedProfile() && getSavedProfile().name) || 'Prince'}`, 'success');
   }
 
   function handleGatewayAuthSubmit(e) {

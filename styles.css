@@ -4321,4 +4321,102 @@ a {
   }
 }
 
+/* --------------------------------------------------------------------------
+   Interactive Enhancements & Animations
+   -------------------------------------------------------------------------- */
+@keyframes goalBounceIndicator {
+  0% {
+    transform: scale(0.96) translateY(0);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4);
+  }
+  30% {
+    transform: scale(1.03) translateY(-8px);
+    box-shadow: 0 12px 28px rgba(255, 255, 255, 0.25);
+  }
+  50% {
+    transform: scale(0.99) translateY(2px);
+  }
+  70% {
+    transform: scale(1.02) translateY(-4px);
+    box-shadow: 0 8px 20px rgba(255, 255, 255, 0.15);
+  }
+  100% {
+    transform: scale(1) translateY(0);
+    box-shadow: none;
+  }
+}
+
+.goal-card-bouncing {
+  animation: goalBounceIndicator 0.85s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  border-color: var(--border-focus) !important;
+  z-index: 5;
+  position: relative;
+}
+
+/* Routine Card Jump Bounce */
+@keyframes routineHighlightBounce {
+  0% { transform: scale(0.97) translateY(0); }
+  40% { transform: scale(1.02) translateY(-6px); box-shadow: 0 8px 24px rgba(255, 255, 255, 0.18); }
+  100% { transform: scale(1) translateY(0); }
+}
+
+.routine-card-highlight {
+  animation: routineHighlightBounce 0.75s ease-out forwards;
+  border-color: var(--border-focus) !important;
+}
+
+/* Checkpoint Checkboxes */
+.milestone-checkbox {
+  accent-color: var(--text-primary);
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.milestone-input.done {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+/* Subpanel day preview mini-timeline */
+.subpanel-day-preview-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.45rem;
+  padding-top: 0.45rem;
+  border-top: 1px dashed var(--border-subtle);
+  width: 100%;
+}
+
+.subpanel-preview-slot {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+}
+
+.subpanel-preview-time {
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  min-width: 48px;
+  flex-shrink: 0;
+}
+
+.subpanel-preview-task {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+.subpanel-preview-task.completed-task {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}
+
+
 
