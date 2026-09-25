@@ -13,27 +13,51 @@
   const AUTH_TOKEN_KEY = 'productive_jwt_token';
   const AUTH_USER_KEY = 'productive_user_info';
   const THEME_KEY = 'productive_theme';
+  const LAST_ACTIVE_KEY = 'productive_last_active_time';
+  const SAVED_PROFILE_KEY = 'productive_saved_profile';
+  const INACTIVITY_LIMIT_MS = 48 * 60 * 60 * 1000; // 48 Hours Inactivity Expiry Limit
 
-  const TIME_SLOTS = [
-    { key: '06:00', label: '06:00 AM - 07:00 AM' },
-    { key: '07:00', label: '07:00 AM - 08:00 AM' },
-    { key: '08:00', label: '08:00 AM - 09:00 AM' },
-    { key: '09:00', label: '09:00 AM - 10:00 AM' },
-    { key: '10:00', label: '10:00 AM - 11:00 AM' },
-    { key: '11:00', label: '11:00 AM - 12:00 PM' },
-    { key: '12:00', label: '12:00 PM - 01:00 PM' },
-    { key: '13:00', label: '01:00 PM - 02:00 PM' },
-    { key: '14:00', label: '02:00 PM - 03:00 PM' },
-    { key: '15:00', label: '03:00 PM - 04:00 PM' },
-    { key: '16:00', label: '04:00 PM - 05:00 PM' },
-    { key: '17:00', label: '05:00 PM - 06:00 PM' },
-    { key: '18:00', label: '06:00 PM - 07:00 PM' },
-    { key: '19:00', label: '07:00 PM - 08:00 PM' },
-    { key: '20:00', label: '08:00 PM - 09:00 PM' },
-    { key: '21:00', label: '09:00 PM - 10:00 PM' },
-    { key: '22:00', label: '10:00 PM - 11:00 PM' },
-    { key: '23:00', label: '11:00 PM - 12:00 AM' }
-  ];
+  // PWA Service Worker Registration
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').then((reg) => {
+        console.log('[PWA] ServiceWorker registered with scope:', reg.scope);
+      }).catch((err) => {
+        console.warn('[PWA] ServiceWorker registration failed:', err);
+      });
+    });
+  }
+
+  /**
+   * Dynamic Time Slots Generator
+   * Generates hour slots based on user's configured schedule start/end hour
+   */
+  function getTimeSlots() {
+    const settings = (state && state.year_data && state.year_data.settings) || {};
+    const startStr = settings.schedule_start_hour || '05:00';
+    const endStr = settings.schedule_end_hour || '23:00';
+
+    let startHour = parseInt(startStr.split(':')[0], 10);
+    let endHour = parseInt(endStr.split(':')[0], 10);
+
+    if (isNaN(startHour)) startHour = 5;
+    if (isNaN(endHour)) endHour = 23;
+    if (endHour <= startHour) endHour = 23;
+
+    const slots = [];
+    for (let h = startHour; h <= endHour; h++) {
+      const hh = String(h % 24).padStart(2, '0') + ':00';
+      const nextH = String((h + 1) % 24).padStart(2, '0') + ':00';
+      const ampm1 = (h % 24) >= 12 ? 'PM' : 'AM';
+      const h12_1 = (h % 12 === 0 ? 12 : h % 12);
+      const ampm2 = ((h + 1) % 24) >= 12 ? 'PM' : 'AM';
+      const h12_2 = (((h + 1) % 12) === 0 ? 12 : ((h + 1) % 12));
+      const label = `${String(h12_1).padStart(2, '0')}:00 ${ampm1} - ${String(h12_2).padStart(2, '0')}:00 ${ampm2}`;
+      const shortBadge = `${String(h12_1).padStart(2, '0')}:00 ${ampm1}`;
+      slots.push({ key: hh, label, shortBadge, hour: h });
+    }
+    return slots;
+  }
 
   const DEFAULT_CATEGORIES = [
     'Deep Work',
@@ -49,7 +73,7 @@
   const ICONS = {
     check: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`,
     cross: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>`,
-    trash: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`,
+    trash: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`,
     info: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`,
     success: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`,
     alert: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`
@@ -60,11 +84,14 @@
     {
       id: 'builtin_std',
       name: 'Standard High-Performance Day',
-      description: 'Balanced 18-hour blueprint with deep work, health, learning, and wind-down',
+      description: 'Balanced precision blueprint with deep work, health, learning, and wind-down',
       isBuiltin: true,
       hours: {
-        '06:00': { task: 'Morning hydration, mobility stretch, and focus planning', category: 'Health & Fitness' },
-        '07:00': { task: 'Breakfast, espresso & review strategic weekly sprint', category: 'Admin & Ops' },
+        '03:00': { task: 'Early wake-up, cold hydration & meditation', category: 'Health & Fitness' },
+        '04:00': { task: 'Dawn silent focus: Highest-leverage creative sprint', category: 'Deep Work' },
+        '05:00': { task: 'Morning mobility stretch, espresso & strategic day planning', category: 'Health & Fitness' },
+        '06:00': { task: 'Morning routine & review strategic weekly sprint', category: 'Admin & Ops' },
+        '07:00': { task: 'Nutritious breakfast & daily focus alignment', category: 'Admin & Ops' },
         '08:00': { task: 'Deep Work Block 1: Core system architecture & coding', category: 'Deep Work' },
         '09:00': { task: 'Deep Work Block 1 (Cont): Critical technical delivery', category: 'Deep Work' },
         '10:00': { task: 'Focused execution & code review / testing', category: 'Core Focus' },
@@ -89,7 +116,10 @@
       description: 'Heavy focus protocol for heads-down coding, problem solving, and zero distractions',
       isBuiltin: true,
       hours: {
-        '06:00': { task: 'Wake up, hydrate, meditation & cold shower', category: 'Health & Fitness' },
+        '03:00': { task: 'Dawn wake-up & pure silent focus', category: 'Deep Work' },
+        '04:00': { task: 'Algorithmic design & math modeling', category: 'Deep Work' },
+        '05:00': { task: 'Cold shower, hydration & day sprint roadmap setup', category: 'Health & Fitness' },
+        '06:00': { task: 'Deep Sprint Warmup: Technical documentation review', category: 'Deep Work' },
         '07:00': { task: 'Light breakfast & daily technical roadmap review', category: 'Admin & Ops' },
         '08:00': { task: 'Deep Sprint Block 1: Core algorithmic architecture', category: 'Deep Work' },
         '09:00': { task: 'Deep Sprint Block 1: Feature implementation & refactoring', category: 'Deep Work' },
@@ -115,8 +145,11 @@
       description: 'Operational rhythm for leadership, team syncs, sprint planning, and client reviews',
       isBuiltin: true,
       hours: {
-        '06:00': { task: 'Morning breathwork, journaling & day priority setting', category: 'Health & Fitness' },
-        '07:00': { task: 'Executive briefing, industry news & email triage', category: 'Admin & Ops' },
+        '03:00': { task: 'Early meditation & peaceful reflection', category: 'Rest & Recharge' },
+        '04:00': { task: 'Long-range vision journaling & market research', category: 'Core Focus' },
+        '05:00': { task: 'Morning breathwork, journaling & executive priority setting', category: 'Health & Fitness' },
+        '06:00': { task: 'Executive briefing, industry news & email triage', category: 'Admin & Ops' },
+        '07:00': { task: 'Breakfast with family & morning check-in', category: 'Rest & Recharge' },
         '08:00': { task: 'Strategic planning & quarterly milestone review', category: 'Core Focus' },
         '09:00': { task: 'Leadership standup & team alignment sync', category: 'Meetings' },
         '10:00': { task: 'High-leverage business development & client calls', category: 'Meetings' },
@@ -141,7 +174,10 @@
       description: 'Restorative weekend rhythm balancing mastery, endurance, side projects, and recovery',
       isBuiltin: true,
       hours: {
-        '06:00': { task: 'Gentle morning wake-up & sunrise sunlight walk', category: 'Rest & Recharge' },
+        '03:00': { task: 'Peaceful deep sleep', category: 'Rest & Recharge' },
+        '04:00': { task: 'Quiet morning awakening & meditation', category: 'Rest & Recharge' },
+        '05:00': { task: 'Gentle sunrise stretch & morning tea', category: 'Rest & Recharge' },
+        '06:00': { task: 'Morning walk in nature & fresh air', category: 'Health & Fitness' },
         '07:00': { task: 'Nutritious breakfast, coffee & leisurely reflection', category: 'Rest & Recharge' },
         '08:00': { task: 'Long endurance outdoor run / cycling session', category: 'Health & Fitness' },
         '09:00': { task: 'Post-run stretching, foam roll & sauna / cold bath', category: 'Health & Fitness' },
@@ -335,7 +371,45 @@
     btnExportData: document.getElementById('btnExportData'),
     btnImportData: document.getElementById('btnImportData'),
     importFileInput: document.getElementById('importFileInput'),
-    toastContainer: document.getElementById('toastContainer')
+    toastContainer: document.getElementById('toastContainer'),
+
+    // Auth Gateway Landing Screen
+    appAuthGateway: document.getElementById('appAuthGateway'),
+    gatewayWelcomePane: document.getElementById('gatewayWelcomePane'),
+    gatewayAuthPane: document.getElementById('gatewayAuthPane'),
+    gatewayUserAvatar: document.getElementById('gatewayUserAvatar'),
+    gatewayUserName: document.getElementById('gatewayUserName'),
+    gatewaySessionStatus: document.getElementById('gatewaySessionStatus'),
+    btnGatewayContinue: document.getElementById('btnGatewayContinue'),
+    btnGatewayContinueText: document.getElementById('btnGatewayContinueText'),
+    btnGatewaySwitchAccount: document.getElementById('btnGatewaySwitchAccount'),
+    gatewayExpiryNotice: document.getElementById('gatewayExpiryNotice'),
+    btnGatewayTabLogin: document.getElementById('btnGatewayTabLogin'),
+    btnGatewayTabRegister: document.getElementById('btnGatewayTabRegister'),
+    gatewayAlertBox: document.getElementById('gatewayAlertBox'),
+    gatewayAuthForm: document.getElementById('gatewayAuthForm'),
+    gatewayNameGroup: document.getElementById('gatewayNameGroup'),
+    gatewayNameInput: document.getElementById('gatewayNameInput'),
+    gatewayEmailInput: document.getElementById('gatewayEmailInput'),
+    gatewayPasswordInput: document.getElementById('gatewayPasswordInput'),
+    btnGatewaySubmit: document.getElementById('btnGatewaySubmit'),
+    gatewaySubmitText: document.getElementById('gatewaySubmitText'),
+    gatewaySpinner: document.getElementById('gatewaySpinner'),
+    btnGatewayBackToWelcome: document.getElementById('btnGatewayBackToWelcome'),
+
+    // Schedule Hours Configuration
+    btnOpenScheduleConfig: document.getElementById('btnOpenScheduleConfig'),
+    scheduleRangeButtonText: document.getElementById('scheduleRangeButtonText'),
+    btnRoutineEditorHours: document.getElementById('btnRoutineEditorHours'),
+    routineEditorHoursLabel: document.getElementById('routineEditorHoursLabel'),
+    scheduleHoursModalBackdrop: document.getElementById('scheduleHoursModalBackdrop'),
+    btnCloseScheduleHoursModal: document.getElementById('btnCloseScheduleHoursModal'),
+    schedulePresetsContainer: document.getElementById('schedulePresetsContainer'),
+    scheduleStartHourSelect: document.getElementById('scheduleStartHourSelect'),
+    scheduleEndHourSelect: document.getElementById('scheduleEndHourSelect'),
+    scheduleHoursWindowText: document.getElementById('scheduleHoursWindowText'),
+    btnCancelScheduleHours: document.getElementById('btnCancelScheduleHours'),
+    btnApplyScheduleHours: document.getElementById('btnApplyScheduleHours')
   };
 
   let authMode = 'login';
@@ -347,11 +421,19 @@
     applyTheme(state.theme);
     loadInitialData();
     populateTimeSlotSelects();
+    updateScheduleRangeButtonUI();
     bindEventListeners();
     updateDateDisplay();
     renderAllViews();
     updateAllMetrics();
     renderSubpanel();
+
+    // Listen to user activity to refresh last active timestamp
+    ['click', 'keydown', 'touchstart'].forEach(evt => {
+      window.addEventListener(evt, () => recordUserActivity(), { passive: true });
+    });
+
+    checkGatewaySessionState();
 
     if (state.token) {
       loadGoalsFromBackend();
@@ -363,7 +445,7 @@
   function populateTimeSlotSelects() {
     if (!dom.newBlockTime) return;
     dom.newBlockTime.innerHTML = '';
-    TIME_SLOTS.forEach(slot => {
+    getTimeSlots().forEach(slot => {
       const opt = document.createElement('option');
       opt.value = slot.key;
       opt.textContent = slot.label;
@@ -464,6 +546,9 @@
         if (!state.year_data.custom_routines) {
           state.year_data.custom_routines = [];
         }
+        if (!state.year_data.settings) {
+          state.year_data.settings = { schedule_start_hour: '05:00', schedule_end_hour: '23:00' };
+        }
       } catch (err) {
         console.error('Failed to parse local stored data:', err);
         state.year_data = createDefaultYearData();
@@ -476,6 +561,10 @@
 
   function createDefaultYearData() {
     return {
+      settings: {
+        schedule_start_hour: '05:00',
+        schedule_end_hour: '23:00'
+      },
       yearly_goals: [
         { id: 'g1', title: 'Scale Enterprise SaaS Revenue to $250k ARR', pillar: 'Career & Growth', targetMetric: '$250,000 ARR', status: 'In Progress' },
         { id: 'g2', title: 'Complete Sub-4 Hour Marathon Championship', pillar: 'Health & Endurance', targetMetric: '42.2 km @ 5:35/km', status: 'In Progress' },
@@ -873,7 +962,7 @@
     let scheduledCount = 0;
     let completedCount = 0;
 
-    TIME_SLOTS.forEach(slot => {
+    getTimeSlots().forEach(slot => {
       const hourData = dailyData.hours[slot.key] || {
         task: '',
         category: 'Deep Work',
@@ -1125,7 +1214,7 @@
     }
 
     const dailyData = getDailyLog(dateStr);
-    TIME_SLOTS.forEach(slot => {
+    getTimeSlots().forEach(slot => {
       const sourceSlot = routine.hours && routine.hours[slot.key];
       if (sourceSlot && sourceSlot.task && sourceSlot.task.trim() !== '') {
         dailyData.hours[slot.key] = {
@@ -1160,6 +1249,7 @@
 
     if (!dom.routinesCardsGrid) return;
     dom.routinesCardsGrid.innerHTML = '';
+    const totalConfiguredHours = getTimeSlots().length;
 
     allRoutines.forEach(rt => {
       const { totalScheduled, counts } = calculateRoutineDistribution(rt.hours);
@@ -1179,11 +1269,11 @@
                 <h4 class="routine-card-title">${escapeHtml(rt.name)}</h4>
                 <span class="routine-preset-tag">${rt.isBuiltin ? 'PRESET' : 'CUSTOM'}</span>
               </div>
-              <p class="routine-card-desc">${escapeHtml(rt.description || '18-hour optimized schedule')}</p>
+              <p class="routine-card-desc">${escapeHtml(rt.description || 'Optimized daily schedule')}</p>
             </div>
           </div>
           <div class="routine-card-stats" style="margin-top: 0.75rem;">
-            <span class="routine-card-chip" style="font-weight: 700; color: var(--text-primary);">${totalScheduled}/18 Hours Scheduled</span>
+            <span class="routine-card-chip" style="font-weight: 700; color: var(--text-primary);">${totalScheduled}/${totalConfiguredHours} Hours Scheduled</span>
             ${chipsHtml}
           </div>
         </div>
@@ -1275,7 +1365,7 @@
     if (!dom.routineHoursEditorFeed) return;
     dom.routineHoursEditorFeed.innerHTML = '';
 
-    TIME_SLOTS.forEach(slot => {
+    getTimeSlots().forEach(slot => {
       const current = (hoursData && hoursData[slot.key]) || { task: '', category: 'Deep Work' };
       const row = document.createElement('div');
       row.className = 'routine-hour-row-card';
@@ -1339,9 +1429,10 @@
   function updateRoutineEditorLiveBreakdown() {
     const hours = collectRoutineEditorHours();
     const { totalScheduled, counts } = calculateRoutineDistribution(hours);
+    const totalConfigured = getTimeSlots().length;
 
     if (dom.routineBreakdownSummary) {
-      dom.routineBreakdownSummary.textContent = `${totalScheduled} / 18 hours scheduled`;
+      dom.routineBreakdownSummary.textContent = `${totalScheduled} / ${totalConfigured} hours scheduled`;
     }
 
     if (dom.routineCategoryChips) {
@@ -2067,6 +2158,268 @@
     localStorage.removeItem(AUTH_USER_KEY);
     updateUserSessionUI();
     if (notify) showToast('Signed out', 'info');
+    showGatewayAuthPane('login');
+    if (dom.appAuthGateway) dom.appAuthGateway.classList.remove('hidden');
+  }
+
+  // ==========================================================================
+  // AUTH GATEWAY & SESSION INACTIVITY (48h LIMIT)
+  // ==========================================================================
+  function getSavedProfile() {
+    try {
+      const stored = localStorage.getItem(SAVED_PROFILE_KEY);
+      if (stored) return JSON.parse(stored);
+    } catch (e) {}
+    if (state.user && state.user.name) {
+      return { name: state.user.name, email: state.user.email || 'prince@workspace.io' };
+    }
+    return { name: 'Prince', email: 'prince@workspace.io' };
+  }
+
+  function saveSavedProfile(name, email) {
+    const profile = { name: name || 'Prince', email: email || 'prince@workspace.io' };
+    localStorage.setItem(SAVED_PROFILE_KEY, JSON.stringify(profile));
+    return profile;
+  }
+
+  function getLastActiveTime() {
+    const val = localStorage.getItem(LAST_ACTIVE_KEY);
+    if (!val) return 0;
+    const num = parseInt(val, 10);
+    return isNaN(num) ? 0 : num;
+  }
+
+  function recordUserActivity() {
+    localStorage.setItem(LAST_ACTIVE_KEY, String(Date.now()));
+  }
+
+  function checkGatewaySessionState() {
+    if (!dom.appAuthGateway) return;
+
+    const profile = getSavedProfile();
+    const lastActive = getLastActiveTime();
+    const now = Date.now();
+    const elapsed = now - lastActive;
+    const isExpired = lastActive > 0 && elapsed >= INACTIVITY_LIMIT_MS;
+    const isFirstVisit = lastActive === 0;
+
+    // Update profile info on gateway
+    if (dom.gatewayUserName) dom.gatewayUserName.textContent = profile.name || 'Prince';
+    if (dom.btnGatewayContinueText) dom.btnGatewayContinueText.textContent = `Continue as ${profile.name || 'Prince'}`;
+    if (dom.gatewayUserAvatar) {
+      const initials = (profile.name || 'Prince').substring(0, 2).toUpperCase();
+      dom.gatewayUserAvatar.textContent = initials;
+    }
+
+    if (isFirstVisit || isExpired) {
+      if (dom.gatewayExpiryNotice) {
+        dom.gatewayExpiryNotice.classList.toggle('hidden', isFirstVisit);
+      }
+      showGatewayAuthPane('login');
+      dom.appAuthGateway.classList.remove('hidden');
+    } else {
+      if (dom.gatewaySessionStatus) {
+        const hoursAgo = Math.floor(elapsed / (1000 * 60 * 60));
+        const minsAgo = Math.floor((elapsed % (1000 * 60 * 60)) / (1000 * 60));
+        let timeStr = 'Just now';
+        if (hoursAgo > 0) {
+          timeStr = `${hoursAgo}h ${minsAgo}m ago`;
+        } else if (minsAgo > 0) {
+          timeStr = `${minsAgo}m ago`;
+        }
+        dom.gatewaySessionStatus.textContent = `Last active: ${timeStr} · Active Session (< 48h)`;
+      }
+      showGatewayWelcomePane();
+      dom.appAuthGateway.classList.remove('hidden');
+    }
+  }
+
+  function showGatewayWelcomePane() {
+    if (dom.gatewayWelcomePane) dom.gatewayWelcomePane.classList.remove('hidden');
+    if (dom.gatewayAuthPane) dom.gatewayAuthPane.classList.add('hidden');
+  }
+
+  function showGatewayAuthPane(mode = 'login') {
+    if (dom.gatewayWelcomePane) dom.gatewayWelcomePane.classList.add('hidden');
+    if (dom.gatewayAuthPane) dom.gatewayAuthPane.classList.remove('hidden');
+    setGatewayAuthMode(mode);
+  }
+
+  function setGatewayAuthMode(mode) {
+    authMode = mode;
+    if (dom.btnGatewayTabLogin) dom.btnGatewayTabLogin.classList.toggle('active', mode === 'login');
+    if (dom.btnGatewayTabRegister) dom.btnGatewayTabRegister.classList.toggle('active', mode === 'register');
+    if (dom.gatewayNameGroup) dom.gatewayNameGroup.classList.toggle('hidden', mode === 'login');
+    if (dom.gatewaySubmitText) dom.gatewaySubmitText.textContent = mode === 'login' ? 'Sign In & Enter Workspace' : 'Create Account & Continue';
+    if (dom.gatewayAlertBox) dom.gatewayAlertBox.classList.add('hidden');
+  }
+
+  function unlockAppSession(profile) {
+    if (profile) {
+      saveSavedProfile(profile.name, profile.email);
+    }
+    recordUserActivity();
+    if (dom.appAuthGateway) {
+      dom.appAuthGateway.classList.add('hidden');
+    }
+    showToast(`Welcome back, ${(profile && profile.name) || getSavedProfile().name || 'Prince'}`, 'success');
+  }
+
+  function handleGatewayAuthSubmit(e) {
+    e.preventDefault();
+    const email = (dom.gatewayEmailInput?.value || '').trim();
+    const password = (dom.gatewayPasswordInput?.value || '').trim();
+    const name = (dom.gatewayNameInput?.value || '').trim() || (email ? email.split('@')[0] : 'Prince');
+
+    if (!email || !password) {
+      if (dom.gatewayAlertBox) {
+        dom.gatewayAlertBox.textContent = 'Please enter both email and password';
+        dom.gatewayAlertBox.classList.remove('hidden');
+      }
+      return;
+    }
+
+    if (dom.gatewaySpinner) dom.gatewaySpinner.classList.remove('hidden');
+    if (dom.btnGatewaySubmit) dom.btnGatewaySubmit.disabled = true;
+
+    setTimeout(() => {
+      if (dom.gatewaySpinner) dom.gatewaySpinner.classList.add('hidden');
+      if (dom.btnGatewaySubmit) dom.btnGatewaySubmit.disabled = false;
+
+      const profile = saveSavedProfile(name, email);
+      state.user = { email, name };
+      state.token = 'demo_token_' + Date.now();
+      localStorage.setItem(AUTH_TOKEN_KEY, state.token);
+      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(state.user));
+      updateUserSessionUI();
+      unlockAppSession(profile);
+    }, 450);
+  }
+
+  // ==========================================================================
+  // SCHEDULE HOURS CONFIGURATION & PRESETS
+  // ==========================================================================
+  const SCHEDULE_PRESETS = [
+    { start: '03:00', end: '23:00', title: '03:00 AM · Early Bird Protocol', desc: 'Ultra-early 21-hour focus window' },
+    { start: '04:00', end: '23:00', title: '04:00 AM · Dawn Sprint Master', desc: '20-hour high-output rhythm' },
+    { start: '05:00', end: '23:00', title: '05:00 AM · Optimal 5 AM Day (Recommended)', desc: '19-hour balanced schedule' },
+    { start: '06:00', end: '23:00', title: '06:00 AM · Standard Cadence', desc: '18-hour classic productive day' },
+    { start: '07:00', end: '23:00', title: '07:00 AM · Gentle Morning', desc: '17-hour focused workday' }
+  ];
+
+  function openScheduleHoursModal() {
+    const settings = (state.year_data && state.year_data.settings) || { schedule_start_hour: '05:00', schedule_end_hour: '23:00' };
+    const curStart = settings.schedule_start_hour || '05:00';
+    const curEnd = settings.schedule_end_hour || '23:00';
+
+    if (dom.scheduleStartHourSelect) dom.scheduleStartHourSelect.value = curStart;
+    if (dom.scheduleEndHourSelect) dom.scheduleEndHourSelect.value = curEnd;
+
+    renderSchedulePresets(curStart, curEnd);
+    updateScheduleModalSummary(curStart, curEnd);
+
+    if (dom.scheduleHoursModalBackdrop) {
+      dom.scheduleHoursModalBackdrop.classList.remove('hidden');
+    }
+  }
+
+  function closeScheduleHoursModal() {
+    if (dom.scheduleHoursModalBackdrop) {
+      dom.scheduleHoursModalBackdrop.classList.add('hidden');
+    }
+  }
+
+  function renderSchedulePresets(activeStart, activeEnd) {
+    if (!dom.schedulePresetsContainer) return;
+    dom.schedulePresetsContainer.innerHTML = '';
+
+    SCHEDULE_PRESETS.forEach(preset => {
+      const isSelected = preset.start === activeStart && preset.end === activeEnd;
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = `preset-pill-btn ${isSelected ? 'active' : ''}`;
+      btn.innerHTML = `
+        <div class="preset-pill-header">
+          <span class="preset-pill-title">${preset.title}</span>
+          ${isSelected ? '<span class="preset-active-tag">ACTIVE</span>' : ''}
+        </div>
+        <p class="preset-pill-desc">${preset.desc}</p>
+      `;
+      btn.addEventListener('click', () => {
+        if (dom.scheduleStartHourSelect) dom.scheduleStartHourSelect.value = preset.start;
+        if (dom.scheduleEndHourSelect) dom.scheduleEndHourSelect.value = preset.end;
+        renderSchedulePresets(preset.start, preset.end);
+        updateScheduleModalSummary(preset.start, preset.end);
+      });
+      dom.schedulePresetsContainer.appendChild(btn);
+    });
+  }
+
+  function updateScheduleModalSummary(startStr, endStr) {
+    if (!dom.scheduleHoursWindowText) return;
+    const startH = parseInt((startStr || '05:00').split(':')[0], 10);
+    const endH = parseInt((endStr || '23:00').split(':')[0], 10);
+    const totalH = (endH - startH + 1);
+    const startLabel = formatHourBadge(startH);
+    const endLabel = formatHourBadge(endH + 1);
+    dom.scheduleHoursWindowText.textContent = `${startLabel} to ${endLabel} (${totalH} hours active daily)`;
+  }
+
+  function formatHourBadge(hour) {
+    const h = hour % 24;
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    const h12 = h % 12 === 0 ? 12 : h % 12;
+    return `${String(h12).padStart(2, '0')}:00 ${ampm}`;
+  }
+
+  function applyScheduleHours() {
+    const startStr = dom.scheduleStartHourSelect?.value || '05:00';
+    const endStr = dom.scheduleEndHourSelect?.value || '23:00';
+
+    const startH = parseInt(startStr.split(':')[0], 10);
+    const endH = parseInt(endStr.split(':')[0], 10);
+
+    if (endH <= startH) {
+      showToast('End hour must be later than start hour', 'alert');
+      return;
+    }
+
+    if (!state.year_data.settings) {
+      state.year_data.settings = {};
+    }
+    state.year_data.settings.schedule_start_hour = startStr;
+    state.year_data.settings.schedule_end_hour = endStr;
+
+    saveDataLocally();
+    closeScheduleHoursModal();
+    updateScheduleRangeButtonUI();
+    populateTimeSlotSelects();
+    renderHourlySchedule();
+    if (state.currentLevel === 'routines') {
+      renderRoutinesStageView();
+      if (state.activeEditingRoutineId !== null) {
+        openRoutineEditor(state.activeEditingRoutineId);
+      }
+    }
+    renderSubpanel();
+    showToast(`Schedule hours updated: ${formatHourBadge(startH)} - ${formatHourBadge(endH + 1)}`, 'success');
+  }
+
+  function updateScheduleRangeButtonUI() {
+    const settings = (state.year_data && state.year_data.settings) || { schedule_start_hour: '05:00', schedule_end_hour: '23:00' };
+    const startStr = settings.schedule_start_hour || '05:00';
+    const endStr = settings.schedule_end_hour || '23:00';
+    const startH = parseInt(startStr.split(':')[0], 10);
+    const endH = parseInt(endStr.split(':')[0], 10);
+    const totalH = (endH - startH + 1);
+    const label = `${formatHourBadge(startH)} - ${formatHourBadge(endH + 1)} (${totalH}h)`;
+
+    if (dom.scheduleRangeButtonText) {
+      dom.scheduleRangeButtonText.textContent = label;
+    }
+    if (dom.routineEditorHoursLabel) {
+      dom.routineEditorHoursLabel.textContent = label;
+    }
   }
 
   // ==========================================================================
@@ -2464,6 +2817,74 @@
     dom.btnExportData.addEventListener('click', exportBackupJSON);
     dom.btnImportData.addEventListener('click', () => dom.importFileInput.click());
     dom.importFileInput.addEventListener('change', importBackupJSON);
+
+    // Auth Gateway Listeners
+    if (dom.btnGatewayContinue) {
+      dom.btnGatewayContinue.addEventListener('click', () => {
+        unlockAppSession(getSavedProfile());
+      });
+    }
+
+    if (dom.btnGatewaySwitchAccount) {
+      dom.btnGatewaySwitchAccount.addEventListener('click', () => {
+        showGatewayAuthPane('login');
+      });
+    }
+
+    if (dom.btnGatewayTabLogin) {
+      dom.btnGatewayTabLogin.addEventListener('click', () => {
+        setGatewayAuthMode('login');
+      });
+    }
+
+    if (dom.btnGatewayTabRegister) {
+      dom.btnGatewayTabRegister.addEventListener('click', () => {
+        setGatewayAuthMode('register');
+      });
+    }
+
+    if (dom.gatewayAuthForm) {
+      dom.gatewayAuthForm.addEventListener('submit', handleGatewayAuthSubmit);
+    }
+
+    if (dom.btnGatewayBackToWelcome) {
+      dom.btnGatewayBackToWelcome.addEventListener('click', () => {
+        showGatewayWelcomePane();
+      });
+    }
+
+    // Schedule Hours Configuration Listeners
+    if (dom.btnOpenScheduleConfig) {
+      dom.btnOpenScheduleConfig.addEventListener('click', openScheduleHoursModal);
+    }
+
+    if (dom.btnRoutineEditorHours) {
+      dom.btnRoutineEditorHours.addEventListener('click', openScheduleHoursModal);
+    }
+
+    if (dom.btnCloseScheduleHoursModal) {
+      dom.btnCloseScheduleHoursModal.addEventListener('click', closeScheduleHoursModal);
+    }
+
+    if (dom.btnCancelScheduleHours) {
+      dom.btnCancelScheduleHours.addEventListener('click', closeScheduleHoursModal);
+    }
+
+    if (dom.btnApplyScheduleHours) {
+      dom.btnApplyScheduleHours.addEventListener('click', applyScheduleHours);
+    }
+
+    if (dom.scheduleStartHourSelect) {
+      dom.scheduleStartHourSelect.addEventListener('change', () => {
+        updateScheduleModalSummary(dom.scheduleStartHourSelect.value, dom.scheduleEndHourSelect?.value);
+      });
+    }
+
+    if (dom.scheduleEndHourSelect) {
+      dom.scheduleEndHourSelect.addEventListener('change', () => {
+        updateScheduleModalSummary(dom.scheduleStartHourSelect?.value, dom.scheduleEndHourSelect.value);
+      });
+    }
   }
 
   // --- Initialize App on DOM Load ---

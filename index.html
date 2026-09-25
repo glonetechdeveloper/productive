@@ -2,9 +2,19 @@
 <html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="description" content="Productive - Minimalist Goal Hierarchy, Time Blocking & Productivity Workspace" />
   <title>Productive &bull; Workspace</title>
+
+  <!-- PWA & Mobile Web App Meta Tags -->
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#090a0d" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Productive" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+  <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
+  <link rel="icon" type="image/png" href="/icons/icon-192.png" />
 
   <!-- Google Fonts: Inter & JetBrains Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -15,6 +25,108 @@
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
+  <!-- ========================================================================== -->
+  <!-- AUTH & LANDING GATEWAY SCREEN (PWA / Welcome / 48h Inactivity Expiry) -->
+  <!-- ========================================================================== -->
+  <div class="auth-gateway-overlay" id="appAuthGateway">
+    <div class="auth-gateway-backdrop"></div>
+    
+    <div class="auth-gateway-card">
+      <!-- Brand Header -->
+      <div class="gateway-brand">
+        <div class="gateway-logo-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <div class="gateway-brand-text">
+          <h1 class="gateway-brand-title">Productive</h1>
+          <span class="gateway-brand-tag">Precision Daily Architecture</span>
+        </div>
+      </div>
+
+      <!-- MODE 1: WELCOME BACK / QUICK RESUME (< 48h active) -->
+      <div class="gateway-pane" id="gatewayWelcomePane">
+        <div class="gateway-user-card">
+          <div class="gateway-avatar" id="gatewayUserAvatar">PR</div>
+          <div class="gateway-user-meta">
+            <span class="gateway-welcome-label">Welcome back,</span>
+            <h2 class="gateway-user-name" id="gatewayUserName">Prince</h2>
+            <span class="gateway-session-status" id="gatewaySessionStatus">
+              <span class="gateway-status-dot"></span> Session Active &bull; Ready
+            </span>
+          </div>
+        </div>
+
+        <div class="gateway-actions">
+          <button type="button" class="btn-gateway-primary" id="btnGatewayContinue">
+            <span id="btnGatewayContinueText">Continue as Prince</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+              <polyline points="12 5 19 12 12 19"></polyline>
+            </svg>
+          </button>
+
+          <div class="gateway-links-row">
+            <button type="button" class="gateway-text-btn" id="btnGatewaySwitchAccount">Switch account / Sign in &rarr;</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- MODE 2: SIGN IN / CREATE ACCOUNT (>= 48h inactive or new user) -->
+      <div class="gateway-pane hidden" id="gatewayAuthPane">
+        <!-- Inactivity notice if 48h elapsed -->
+        <div class="gateway-expiry-banner hidden" id="gatewayExpiryNotice">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+          </svg>
+          <span>Session expired after 48h of inactivity. Please sign in to resume.</span>
+        </div>
+
+        <!-- Sign In / Sign Up Tabs -->
+        <div class="gateway-tabs">
+          <button type="button" class="gateway-tab-btn active" id="btnGatewayTabLogin">Sign In</button>
+          <button type="button" class="gateway-tab-btn" id="btnGatewayTabRegister">Create Account</button>
+        </div>
+
+        <div class="auth-alert hidden" id="gatewayAlertBox"></div>
+
+        <form id="gatewayAuthForm" class="gateway-form" novalidate>
+          <div class="form-group hidden" id="gatewayNameGroup">
+            <label class="form-label" for="gatewayNameInput">Your Name</label>
+            <input type="text" id="gatewayNameInput" class="form-input" placeholder="e.g. Prince" autocomplete="name" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="gatewayEmailInput">Email Address</label>
+            <input type="email" id="gatewayEmailInput" class="form-input" placeholder="prince@workspace.io" required autocomplete="email" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="gatewayPasswordInput">Password</label>
+            <input type="password" id="gatewayPasswordInput" class="form-input" placeholder="Password (Min 6 chars)" required minlength="6" autocomplete="current-password" />
+          </div>
+
+          <button type="submit" class="btn-gateway-primary" id="btnGatewaySubmit">
+            <span id="gatewaySubmitText">Sign In & Enter Workspace</span>
+            <span id="gatewaySpinner" class="spinner-small hidden"></span>
+          </button>
+
+          <button type="button" class="gateway-text-btn hidden" id="btnGatewayBackToWelcome">
+            &larr; Back to quick resume
+          </button>
+        </form>
+      </div>
+
+      <!-- Gateway Footer -->
+      <div class="gateway-footer">
+        <span>PWA Ready &bull; Fast Local Storage &bull; Cloud Sync</span>
+      </div>
+    </div>
+  </div>
+
   <!-- App Container -->
   <div class="app-container">
     
@@ -339,6 +451,13 @@
                     </div>
                   </div>
 
+                  <button id="btnOpenScheduleConfig" class="btn-secondary-sm schedule-range-btn" title="Customize day start hour and active schedule window">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span id="scheduleRangeButtonText">05:00 AM – 11:00 PM</span>
+                  </button>
                   <button id="btnMarkAllDayDone" class="btn-secondary-sm" title="Mark all blocks complete">
                     Mark All Done
                   </button>
@@ -630,6 +749,13 @@
                     <span class="stage-sub-status">Fill in tasks and categories for all 18 hourly slots (06:00 AM to 11:00 PM)</span>
                   </div>
                   <div class="routine-editor-quick-actions">
+                    <button type="button" id="btnRoutineEditorHours" class="btn-secondary-sm" title="Configure hours range for this blueprint">
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 3px; display: inline-block; vertical-align: middle;">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                      </svg>
+                      <span id="routineEditorHoursLabel">Schedule Hours</span>
+                    </button>
                     <button type="button" id="btnRoutineEditorPreloadStd" class="btn-secondary-sm" title="Load standard preset items">Load Template</button>
                     <button type="button" id="btnRoutineEditorClearAll" class="btn-secondary-sm btn-danger-hover" title="Clear all slots">Clear Slots</button>
                   </div>
@@ -1135,6 +1261,95 @@
       <button id="btnContinueGuest" class="btn-secondary-block">
         Continue with Local Storage
       </button>
+    </div>
+  </div>
+
+  <!-- ========================================================================== -->
+  <!-- MODAL: SCHEDULE HOURS / TIME SLOTS CONFIGURATION -->
+  <!-- ========================================================================== -->
+  <div class="modal-backdrop hidden" id="scheduleHoursModalBackdrop">
+    <div class="modal-card schedule-modal-card">
+      <button class="modal-close-btn" id="btnCloseScheduleHoursModal" aria-label="Close modal">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+
+      <div class="modal-header">
+        <div class="modal-badge-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <polyline points="12 6 12 12 16 14"></polyline>
+          </svg>
+        </div>
+        <h2 class="modal-title">Customize Schedule Hours</h2>
+        <p class="modal-subtitle">Set your day's start hour (e.g. 05:00 AM, 04:00 AM, 03:00 AM) and active window.</p>
+      </div>
+
+      <div class="schedule-presets-wrapper">
+        <label class="form-label">Quick Starting Hour Presets:</label>
+        <div class="schedule-presets-grid" id="schedulePresetsContainer">
+          <button type="button" class="preset-pill-btn" data-start="03:00" data-end="22:00">
+            <strong>03:00 AM</strong> Early Bird (20h)
+          </button>
+          <button type="button" class="preset-pill-btn" data-start="04:00" data-end="23:00">
+            <strong>04:00 AM</strong> Dawn Sprint (20h)
+          </button>
+          <button type="button" class="preset-pill-btn active" data-start="05:00" data-end="23:00">
+            <strong>05:00 AM</strong> Optimal Day (19h)
+          </button>
+          <button type="button" class="preset-pill-btn" data-start="06:00" data-end="23:00">
+            <strong>06:00 AM</strong> Standard Day (18h)
+          </button>
+          <button type="button" class="preset-pill-btn" data-start="07:00" data-end="23:00">
+            <strong>07:00 AM</strong> Morning Rise (17h)
+          </button>
+        </div>
+      </div>
+
+      <div class="schedule-hours-custom-row">
+        <div class="form-group">
+          <label class="form-label" for="scheduleStartHourSelect">Day Starts At</label>
+          <select id="scheduleStartHourSelect" class="form-input">
+            <option value="00:00">12:00 AM (Midnight)</option>
+            <option value="01:00">01:00 AM</option>
+            <option value="02:00">02:00 AM</option>
+            <option value="03:00">03:00 AM</option>
+            <option value="04:00">04:00 AM</option>
+            <option value="05:00" selected>05:00 AM (Default)</option>
+            <option value="06:00">06:00 AM</option>
+            <option value="07:00">07:00 AM</option>
+            <option value="08:00">08:00 AM</option>
+            <option value="09:00">09:00 AM</option>
+            <option value="10:00">10:00 AM</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="scheduleEndHourSelect">Day Ends At</label>
+          <select id="scheduleEndHourSelect" class="form-input">
+            <option value="19:00">07:00 PM</option>
+            <option value="20:00">08:00 PM</option>
+            <option value="21:00">09:00 PM</option>
+            <option value="22:00">10:00 PM</option>
+            <option value="23:00" selected>11:00 PM (Default)</option>
+            <option value="24:00">12:00 AM (Midnight)</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="schedule-hours-summary-card" id="scheduleHoursSummaryCard">
+        <div class="summary-card-inner">
+          <span class="stat-mini-label">Configured Schedule Window:</span>
+          <span class="stat-highlight" id="scheduleHoursWindowText">05:00 AM &ndash; 11:00 PM (19 Total Hourly Blocks)</span>
+        </div>
+      </div>
+
+      <div class="modal-actions-row">
+        <button type="button" class="btn-secondary-sm" id="btnCancelScheduleHours">Cancel</button>
+        <button type="button" class="btn-primary-pill" id="btnApplyScheduleHours">Apply Schedule Range</button>
+      </div>
     </div>
   </div>
 
