@@ -2563,17 +2563,13 @@ a {
     gap: 0.35rem;
   }
 
-  .btn-primary-pill span {
+  .topbar-actions .btn-primary-pill span {
     display: none;
   }
 
-  .btn-primary-pill {
+  .topbar-actions .btn-primary-pill {
     padding: 0.45rem 0.55rem;
     gap: 0;
-  }
-
-  .select-wrapper {
-    display: none;
   }
 
   /* Workspace body: hide subpanel, full-width stage */
