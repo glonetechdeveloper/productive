@@ -407,6 +407,8 @@
     authModalHeading: document.getElementById('authModalHeading'),
     authModalSubtitle: document.getElementById('authModalSubtitle'),
     authForm: document.getElementById('authForm'),
+    authNameGroup: document.getElementById('authNameGroup'),
+    authName: document.getElementById('authName'),
     authEmail: document.getElementById('authEmail'),
     authPassword: document.getElementById('authPassword'),
     togglePasswordBtn: document.getElementById('togglePasswordBtn'),
@@ -964,6 +966,12 @@
     dom.subpanelItemsContainer.innerHTML = '';
     const q = (state.searchQuery || '').toLowerCase();
 
+    // Clean up weekNavHeader if not on micro/daily
+    const existingWeekHeader = document.getElementById('weekNavHeader');
+    if (existingWeekHeader && state.currentLevel !== 'micro' && state.currentLevel !== 'daily') {
+      existingWeekHeader.remove();
+    }
+
     if (state.currentLevel === 'micro' || state.currentLevel === 'daily') {
       renderWeekNavHeader();
       const weekDays = getOffsetWeekDateRange(state.currentDate, state.weekOffset);
@@ -1246,13 +1254,24 @@
               <span class="subpanel-item-time">${ch.durationDays}d</span>
             </div>
             <div class="subpanel-item-row-sub">
-              <span class="subpanel-item-snippet">${ch.isPublic ? '🌐 Public' : '🔒 Code: ' + ch.code} &bull; ${(ch.participants || []).length} joined</span>
+              <span class="subpanel-item-snippet">${ch.isPublic ? 'Public' : 'Code: ' + ch.code} &bull; ${(ch.participants || []).length} joined</span>
               ${isCheckedToday ? '<span class="badge-tag status-achieved" style="font-size:0.62rem;">Done</span>' : '<span class="badge-tag status-progress" style="font-size:0.62rem;">Check-in</span>'}
             </div>
           </div>
         `;
         card.addEventListener('click', () => {
+          switchToLevel('challenge');
           switchChallengeTab('active');
+          setTimeout(() => {
+            const cardEl = document.getElementById(`challenge-card-${ch.id}`);
+            if (cardEl) {
+              cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              cardEl.classList.remove('challenge-highlight-bounce');
+              void cardEl.offsetWidth;
+              cardEl.classList.add('challenge-highlight-bounce');
+              setTimeout(() => cardEl.classList.remove('challenge-highlight-bounce'), 1000);
+            }
+          }, 80);
         });
         dom.subpanelItemsContainer.appendChild(card);
       });
@@ -2321,6 +2340,28 @@
     }
 
     renderChallengesStageView(tabName);
+
+    // Scroll to active section and trigger bounce indicator
+    setTimeout(() => {
+      let targetEl = null;
+      if (tabName === 'active') {
+        targetEl = dom.challengeSubPaneActive.querySelector('.challenge-card') || dom.challengeSubPaneActive.querySelector('.routines-hero-banner');
+      } else if (tabName === 'leaderboard') {
+        targetEl = dom.challengeSubPaneLeaderboard.querySelector('.detail-card-panel');
+      } else if (tabName === 'join') {
+        targetEl = dom.challengeSubPaneJoin.querySelector('.detail-card-panel');
+      } else if (tabName === 'create') {
+        targetEl = dom.challengeSubPaneCreate.querySelector('.detail-card-panel');
+      }
+
+      if (targetEl) {
+        targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        targetEl.classList.remove('challenge-highlight-bounce');
+        void targetEl.offsetWidth;
+        targetEl.classList.add('challenge-highlight-bounce');
+        setTimeout(() => targetEl.classList.remove('challenge-highlight-bounce'), 900);
+      }
+    }, 60);
   }
 
   function renderChallengesStageView(tab = currentChallengeTab) {
@@ -2337,7 +2378,7 @@
         const p = (c.participants || []).find(x => x.name.includes('You') || (state.user && x.email === state.user.email));
         if (p && p.streak > maxStreak) maxStreak = p.streak;
       });
-      dom.heroUserStreakCount.textContent = `🔥 ${maxStreak > 0 ? maxStreak + 'd' : '0d'}`;
+      dom.heroUserStreakCount.textContent = `${maxStreak > 0 ? maxStreak + 'd' : '0d'}`;
     }
 
     if (dom.sidebarChallengesBadge) {
@@ -2405,7 +2446,7 @@
         <div class="challenge-card-header">
           <div class="challenge-meta-row">
             <span class="challenge-tag">${escapeHtml(ch.category || 'Focus')}</span>
-            <span class="challenge-tag ${ch.isPublic ? 'public' : 'private'}">${ch.isPublic ? '🌐 Public' : '🔒 Private'}</span>
+            <span class="challenge-tag ${ch.isPublic ? 'public' : 'private'}">${ch.isPublic ? 'Public' : 'Private'}</span>
           </div>
           ${!ch.isPublic ? `
             <button type="button" class="challenge-code-chip" title="Click to copy invite code" data-code="${ch.code}">
@@ -2441,7 +2482,7 @@
             </button>
             ${isCheckedInToday ? `
               <span class="badge-tag status-achieved" style="padding: 0.35rem 0.65rem; font-size: 0.72rem; font-weight: 600;">
-                ✓ Proof Verified
+                Verified
               </span>
             ` : `
               <button type="button" class="btn-primary-pill btn-challenge-checkin" data-challenge-id="${ch.id}">
@@ -2504,7 +2545,7 @@
 
     queueAutoSave();
     renderChallengesStageView('active');
-    showToast(`🔥 Daily proof logged for "${ch.title}"! Streak extended!`, 'success');
+    showToast(`Daily proof logged for "${ch.title}"! Streak extended.`, 'success');
   }
 
   function renderChallengeLeaderboard(selectedChallengeId = 'all') {
@@ -2560,16 +2601,16 @@
             <div class="podium-avatar">${second.avatar || second.name.substring(0, 2).toUpperCase()}</div>
             <div class="podium-name">${escapeHtml(second.name)}</div>
             <div class="podium-score">${second.hours || 0}h focus logged</div>
-            <div class="podium-flame">🔥 ${second.streak || 0}d streak</div>
+            <div class="podium-flame">${second.streak || 0}d streak</div>
           </div>
 
           <!-- 1st Place (Winner) -->
           <div class="podium-card first">
-            <span class="podium-rank-badge">👑 #1 Champion</span>
+            <span class="podium-rank-badge">#1 Champion</span>
             <div class="podium-avatar" style="border-color: #eab308; background-color: rgba(234, 179, 8, 0.15);">${first.avatar || first.name.substring(0, 2).toUpperCase()}</div>
             <div class="podium-name">${escapeHtml(first.name)}</div>
             <div class="podium-score">${first.hours || 0}h focus logged</div>
-            <div class="podium-flame">🔥 ${first.streak || 0}d streak</div>
+            <div class="podium-flame">${first.streak || 0}d streak</div>
           </div>
 
           <!-- 3rd Place -->
@@ -2578,7 +2619,7 @@
             <div class="podium-avatar">${third.avatar || third.name.substring(0, 2).toUpperCase()}</div>
             <div class="podium-name">${escapeHtml(third.name)}</div>
             <div class="podium-score">${third.hours || 0}h focus logged</div>
-            <div class="podium-flame">🔥 ${third.streak || 0}d streak</div>
+            <div class="podium-flame">${third.streak || 0}d streak</div>
           </div>
         `;
       } else {
@@ -2589,9 +2630,9 @@
     // Render Table Rows
     dom.leaderboardTableBody.innerHTML = '';
     participantsList.forEach((p, idx) => {
-      const rankBadge = idx === 0 ? '🥇 #1' : idx === 1 ? '🥈 #2' : idx === 2 ? '🥉 #3' : `#${idx + 1}`;
+      const rankBadge = idx === 0 ? '#1' : idx === 1 ? '#2' : idx === 2 ? '#3' : `#${idx + 1}`;
       const initials = p.avatar || (p.name || 'U').substring(0, 2).toUpperCase();
-      const statusBadge = p.streak >= 4 ? '<span class="badge-tag status-achieved">🔥 On Fire</span>' : '<span class="badge-tag status-progress">⚡ Active</span>';
+      const statusBadge = p.streak >= 4 ? '<span class="badge-tag status-achieved">Top Streak</span>' : '<span class="badge-tag status-progress">Active</span>';
 
       const tr = document.createElement('tr');
       tr.innerHTML = `
@@ -2603,7 +2644,7 @@
           </div>
         </td>
         <td><span style="font-size: 0.78rem; color: var(--text-muted);">${escapeHtml(p.challengeTitle || 'Focus Arena')}</span></td>
-        <td><strong style="color: #f97316;">🔥 ${p.streak || 0} days</strong></td>
+        <td><strong style="color: var(--text-primary);">${p.streak || 0} days</strong></td>
         <td><strong>${p.hours || 0} hrs</strong></td>
         <td>${p.completedDays || 0} days verified</td>
         <td>${statusBadge}</td>
@@ -3035,6 +3076,7 @@
     authMode = mode;
     updateAuthModalModeUI();
     dom.authAlertBox.classList.add('hidden');
+    if (dom.authName) dom.authName.value = '';
     dom.authEmail.value = '';
     dom.authPassword.value = '';
     dom.authModalBackdrop.classList.remove('hidden');
@@ -3051,12 +3093,14 @@
       dom.authModalHeading.textContent = 'Sign In';
       dom.authModalSubtitle.textContent = 'Sign in to sync your productivity data across devices via PostgreSQL.';
       dom.authSubmitBtnText.textContent = 'Sign In';
+      if (dom.authNameGroup) dom.authNameGroup.classList.add('hidden');
     } else {
       dom.tabSwitchRegister.classList.add('active');
       dom.tabSwitchLogin.classList.remove('active');
       dom.authModalHeading.textContent = 'Create Account';
       dom.authModalSubtitle.textContent = 'Provision your cloud storage on PostgreSQL.';
       dom.authSubmitBtnText.textContent = 'Create Account';
+      if (dom.authNameGroup) dom.authNameGroup.classList.remove('hidden');
     }
   }
 
@@ -3064,6 +3108,7 @@
     e.preventDefault();
     const email = dom.authEmail.value.trim();
     const password = dom.authPassword.value;
+    const name = (dom.authName?.value || '').trim() || (email ? email.split('@')[0] : 'Prince');
 
     if (!email || !password) {
       showAuthAlert('Please fill in both email and password.');
@@ -3097,9 +3142,13 @@
       localStorage.setItem(AUTH_TOKEN_KEY, data.token);
       localStorage.setItem(AUTH_USER_KEY, JSON.stringify(data.user));
 
+      if (authMode === 'register' || name) {
+        saveSavedProfile(name, email);
+      }
+
       updateUserSessionUI();
       closeAuthModal();
-      showToast(`Welcome, ${data.user.email}!`, 'success');
+      showToast(`Welcome, ${name || data.user.email}!`, 'success');
       await loadGoalsFromBackend();
     } catch (err) {
       showAuthAlert(err.message);

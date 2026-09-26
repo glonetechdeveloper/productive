@@ -1141,7 +1141,7 @@
                     <span class="routine-stat-lbl">Active Arenas</span>
                   </div>
                   <div class="routine-hero-stat-box">
-                    <span class="routine-stat-num" id="heroUserStreakCount">🔥 4d</span>
+                    <span class="routine-stat-num" id="heroUserStreakCount">4d</span>
                     <span class="routine-stat-lbl">Daily Streak</span>
                   </div>
                 </div>
@@ -1492,6 +1492,11 @@
 
       <!-- Auth Form -->
       <form id="authForm" class="auth-form" novalidate>
+        <div class="form-group hidden" id="authNameGroup">
+          <label for="authName" class="form-label">Your Name</label>
+          <input type="text" id="authName" class="form-input" placeholder="e.g. Prince" autocomplete="name" />
+        </div>
+
         <div class="form-group">
           <label for="authEmail" class="form-label">Email Address</label>
           <input type="email" id="authEmail" class="form-input" placeholder="name@domain.com" required autocomplete="email" />
