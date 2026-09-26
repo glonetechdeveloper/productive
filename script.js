@@ -211,6 +211,7 @@
     currentHorizon: 'h1',
     selectedMonthWeek: 1,
     searchQuery: '',
+    weekOffset: 0,
     activeEditingRoutineId: null,
     year_data: {
       yearly_goals: [],
@@ -757,12 +758,91 @@
   // ==========================================================================
   // CONTEXTUAL SUB-PANEL RENDERING
   // ==========================================================================
+  function getOffsetWeekDateRange(dateStr, offset) {
+    const current = parseISODate(dateStr);
+    const dayOfWeek = current.getDay();
+    const startSunday = new Date(current);
+    startSunday.setDate(current.getDate() - dayOfWeek + (offset * 7));
+    const weekDays = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(startSunday);
+      d.setDate(startSunday.getDate() + i);
+      weekDays.push(formatISODate(d));
+    }
+    return weekDays;
+  }
+
+  function renderWeekNavHeader() {
+    // Remove existing header if present
+    const existing = document.getElementById('weekNavHeader');
+    if (existing) existing.remove();
+
+    if (state.currentLevel !== 'micro' && state.currentLevel !== 'daily') return;
+
+    const header = document.createElement('div');
+    header.id = 'weekNavHeader';
+    header.className = 'week-nav-header';
+
+    const weekDays = getOffsetWeekDateRange(state.currentDate, state.weekOffset);
+    const startDate = parseISODate(weekDays[0]);
+    const endDate = parseISODate(weekDays[6]);
+    const startLabel = startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const endLabel = endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+    let weekLabel = `${startLabel} – ${endLabel}`;
+    if (state.weekOffset === 0) weekLabel = `This Week · ${startLabel} – ${endLabel}`;
+    else if (state.weekOffset === -1) weekLabel = `Last Week · ${startLabel} – ${endLabel}`;
+    else if (state.weekOffset < -1) weekLabel = `${Math.abs(state.weekOffset)} weeks ago · ${startLabel} – ${endLabel}`;
+    else if (state.weekOffset === 1) weekLabel = `Next Week · ${startLabel} – ${endLabel}`;
+    else if (state.weekOffset > 1) weekLabel = `${state.weekOffset} weeks ahead · ${startLabel} – ${endLabel}`;
+
+    header.innerHTML = `
+      <button class="week-nav-btn" id="btnPrevWeek" title="Previous Week">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </button>
+      <span class="week-nav-label">${weekLabel}</span>
+      <button class="week-nav-btn" id="btnNextWeek" title="Next Week">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+      </button>
+      ${state.weekOffset !== 0 ? '<button class="week-nav-today-btn" id="btnWeekToday">Current</button>' : ''}
+    `;
+
+    // Insert after the subpanel header
+    const subpanelHeader = dom.subpanelItemsContainer.parentElement.querySelector('.subpanel-header');
+    if (subpanelHeader) {
+      subpanelHeader.after(header);
+    }
+
+    header.querySelector('#btnPrevWeek').addEventListener('click', (e) => {
+      e.stopPropagation();
+      state.weekOffset--;
+      renderSubpanel();
+      renderSevenDaysGrid();
+    });
+    header.querySelector('#btnNextWeek').addEventListener('click', (e) => {
+      e.stopPropagation();
+      state.weekOffset++;
+      renderSubpanel();
+      renderSevenDaysGrid();
+    });
+    const todayBtn = header.querySelector('#btnWeekToday');
+    if (todayBtn) {
+      todayBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        state.weekOffset = 0;
+        renderSubpanel();
+        renderSevenDaysGrid();
+      });
+    }
+  }
+
   function renderSubpanel() {
     dom.subpanelItemsContainer.innerHTML = '';
     const q = (state.searchQuery || '').toLowerCase();
 
     if (state.currentLevel === 'micro' || state.currentLevel === 'daily') {
-      const weekDays = getWeekDateRange(state.currentDate);
+      renderWeekNavHeader();
+      const weekDays = getOffsetWeekDateRange(state.currentDate, state.weekOffset);
       const todayISO = getTodayISODate();
 
       weekDays.forEach(dayStr => {
@@ -1674,7 +1754,7 @@
   // ==========================================================================
   function renderSevenDaysGrid() {
     dom.sevenDaysContainer.innerHTML = '';
-    const weekDays = getWeekDateRange(state.currentDate);
+    const weekDays = getOffsetWeekDateRange(state.currentDate, state.weekOffset);
     const todayISO = getTodayISODate();
     const searchFilter = (state.searchQuery || '').toLowerCase();
 
@@ -2353,6 +2433,8 @@
     state.user = null;
     localStorage.removeItem(AUTH_TOKEN_KEY);
     localStorage.removeItem(AUTH_USER_KEY);
+    localStorage.removeItem(SAVED_PROFILE_KEY);
+    localStorage.removeItem(LAST_ACTIVE_KEY);
     updateUserSessionUI();
     if (notify) showToast('Signed out', 'info');
     showGatewayAuthPane('login');
@@ -2473,7 +2555,7 @@
     showToast(`Welcome back, ${(profile && profile.name) || (getSavedProfile() && getSavedProfile().name) || 'Prince'}`, 'success');
   }
 
-  function handleGatewayAuthSubmit(e) {
+  async function handleGatewayAuthSubmit(e) {
     e.preventDefault();
     const email = (dom.gatewayEmailInput?.value || '').trim();
     const password = (dom.gatewayPasswordInput?.value || '').trim();
@@ -2487,21 +2569,50 @@
       return;
     }
 
+    if (password.length < 6) {
+      if (dom.gatewayAlertBox) {
+        dom.gatewayAlertBox.textContent = 'Password must be at least 6 characters.';
+        dom.gatewayAlertBox.classList.remove('hidden');
+      }
+      return;
+    }
+
     if (dom.gatewaySpinner) dom.gatewaySpinner.classList.remove('hidden');
     if (dom.btnGatewaySubmit) dom.btnGatewaySubmit.disabled = true;
+    if (dom.gatewayAlertBox) dom.gatewayAlertBox.classList.add('hidden');
 
-    setTimeout(() => {
-      if (dom.gatewaySpinner) dom.gatewaySpinner.classList.add('hidden');
-      if (dom.btnGatewaySubmit) dom.btnGatewaySubmit.disabled = false;
+    const endpoint = authMode === 'register' ? '/api/auth/register' : '/api/auth/login';
+
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.error || 'Authentication failed.');
+      }
+
+      state.token = data.token;
+      state.user = data.user;
+      localStorage.setItem(AUTH_TOKEN_KEY, data.token);
+      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(data.user));
 
       const profile = saveSavedProfile(name, email);
-      state.user = { email, name };
-      state.token = 'demo_token_' + Date.now();
-      localStorage.setItem(AUTH_TOKEN_KEY, state.token);
-      localStorage.setItem(AUTH_USER_KEY, JSON.stringify(state.user));
       updateUserSessionUI();
       unlockAppSession(profile);
-    }, 450);
+      await loadGoalsFromBackend();
+    } catch (err) {
+      if (dom.gatewayAlertBox) {
+        dom.gatewayAlertBox.textContent = err.message;
+        dom.gatewayAlertBox.classList.remove('hidden');
+      }
+    } finally {
+      if (dom.gatewaySpinner) dom.gatewaySpinner.classList.add('hidden');
+      if (dom.btnGatewaySubmit) dom.btnGatewaySubmit.disabled = false;
+    }
   }
 
   // ==========================================================================
