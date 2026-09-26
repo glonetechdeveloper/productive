@@ -216,6 +216,46 @@
           <span class="nav-label">Annual Goals</span>
         </button>
 
+        <!-- CHALLENGES SECTION WITH DROPDOWN -->
+        <div class="sidebar-nav-dropdown-group" id="challengesNavGroup">
+          <div class="sidebar-dropdown-row">
+            <button class="nav-item-btn nav-item-btn-compound" data-level="challenge" id="tabChallenge">
+              <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+                <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+                <path d="M4 22h16"></path>
+                <path d="M10 14.66V17c0 .55-.45 1-1 1H7v4h10v-4h-2c-.55 0-1-.45-1-1v-2.34"></path>
+                <path d="M18 2H6v7a6 6 0 0 0 12 0V2z"></path>
+              </svg>
+              <span class="nav-label">Challenge</span>
+              <span class="nav-badge" id="sidebarChallengesBadge">2</span>
+            </button>
+            <button type="button" class="sidebar-sub-chevron-btn" id="btnChallengeDropdownToggle" aria-label="Toggle Challenge menu" title="Challenge options">
+              <svg class="dropdown-chevron-icon" id="challengeChevronIcon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </button>
+          </div>
+          <div class="sidebar-sub-menu hidden" id="challengeSubMenu">
+            <button type="button" class="sidebar-sub-link active" data-challenge-tab="active" id="btnNavAllChallenges">
+              <span class="sub-link-dot"></span>
+              <span>Active Challenges</span>
+            </button>
+            <button type="button" class="sidebar-sub-link" data-challenge-tab="new" id="btnNavNewChallenge">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              <span>New Challenge</span>
+            </button>
+            <button type="button" class="sidebar-sub-link" data-challenge-tab="leaderboard" id="btnNavLeaderboard">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              <span>Leaderboard</span>
+            </button>
+            <button type="button" class="sidebar-sub-link" data-challenge-tab="join" id="btnNavJoinChallenge">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+              <span>Join Challenge</span>
+            </button>
+          </div>
+        </div>
+
         <button class="nav-item-btn" data-level="guide" id="tabGuide">
           <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="10"></circle>
@@ -1052,6 +1092,231 @@
                 </div>
               </div>
 
+            </div>
+          </section>
+
+          <!-- ========================================================== -->
+          <!-- VIEW 7: CHALLENGES & ACCOUNTABILITY ARENA -->
+          <!-- ========================================================== -->
+          <section class="stage-view-pane" id="view-challenge">
+            <div class="stage-pane-header">
+              <div class="stage-title-wrap">
+                <div class="stage-avatar-pill">
+                  <span class="stage-avatar-txt">CL</span>
+                </div>
+                <div>
+                  <h2 class="stage-heading" id="challengePageHeading">Challenges &amp; Accountability</h2>
+                  <span class="stage-sub-status" id="challengePageSubtitle">Compete, stay consistent, and share private codes</span>
+                </div>
+              </div>
+
+              <div class="stage-header-actions">
+                <div class="segmented-control" id="challengeViewTabs">
+                  <button class="segment-btn active" data-tab="active" id="tabChallengeActive">Active</button>
+                  <button class="segment-btn" data-tab="leaderboard" id="tabChallengeLeaderboard">Leaderboard</button>
+                  <button class="segment-btn" data-tab="join" id="tabChallengeJoin">Join</button>
+                  <button class="segment-btn" data-tab="create" id="tabChallengeCreate">+ New</button>
+                </div>
+                <button id="btnQuickJoinCode" class="btn-secondary-sm" title="Enter 6-character private invite code">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                  </svg>
+                  <span>Enter Code</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- SUB-PANE 1: ACTIVE CHALLENGES -->
+            <div class="challenge-sub-pane" id="challengeSubPaneActive">
+              <!-- Hero Banner -->
+              <div class="routines-hero-banner challenge-hero-banner">
+                <div class="routines-hero-content">
+                  <h3 class="routines-hero-title">Accountability Arena</h3>
+                  <p class="routines-hero-desc">Push your limits with shared productivity challenges. Join private cohorts with secret invite codes, enter public community sprints, and log daily proofs to top the leaderboard.</p>
+                </div>
+                <div class="routines-hero-stats">
+                  <div class="routine-hero-stat-box">
+                    <span class="routine-stat-num" id="heroActiveChallengesCount">2</span>
+                    <span class="routine-stat-lbl">Active Arenas</span>
+                  </div>
+                  <div class="routine-hero-stat-box">
+                    <span class="routine-stat-num" id="heroUserStreakCount">🔥 4d</span>
+                    <span class="routine-stat-lbl">Daily Streak</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Active Challenges Grid -->
+              <div class="challenge-cards-grid" id="activeChallengesContainer">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+
+            <!-- SUB-PANE 2: LEADERBOARD -->
+            <div class="challenge-sub-pane hidden" id="challengeSubPaneLeaderboard">
+              <div class="detail-card-panel">
+                <div class="panel-card-header">
+                  <div>
+                    <h3 class="panel-card-title">Challenge Leaderboard &amp; Rankings</h3>
+                    <span class="stage-sub-status">Ranked by consistency streak, focus hours logged, and daily completion</span>
+                  </div>
+                  <div class="leaderboard-filter-wrap">
+                    <select id="leaderboardChallengeFilter" class="form-input form-input-sm">
+                      <option value="all">All Challenges (Global)</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Top 3 Podium Cards -->
+                <div class="leaderboard-podium" id="leaderboardPodium">
+                  <!-- Dynamic podium (2nd, 1st, 3rd) -->
+                </div>
+
+                <!-- Leaderboard Table -->
+                <div class="table-responsive">
+                  <table class="leaderboard-table">
+                    <thead>
+                      <tr>
+                        <th style="width: 60px;">Rank</th>
+                        <th>Member</th>
+                        <th>Challenge</th>
+                        <th>Streak</th>
+                        <th>Focus Time</th>
+                        <th>Completion</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody id="leaderboardTableBody">
+                      <!-- Dynamic rows -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+
+            <!-- SUB-PANE 3: JOIN CHALLENGE -->
+            <div class="challenge-sub-pane hidden" id="challengeSubPaneJoin">
+              <!-- Join by Secret Code -->
+              <div class="detail-card-panel" style="margin-bottom: 1.5rem;">
+                <div class="panel-card-header">
+                  <div>
+                    <h3 class="panel-card-title">Join via Private Invite Code</h3>
+                    <span class="stage-sub-status">Enter the 6-character code shared by your friend or team</span>
+                  </div>
+                </div>
+                <form id="formJoinByCode" class="challenge-code-form">
+                  <div class="challenge-code-input-wrap">
+                    <input type="text" id="inputJoinCode" class="challenge-code-input" placeholder="e.g. ROUT30" maxlength="10" required autocomplete="off" />
+                    <button type="submit" class="btn-primary-pill" id="btnSubmitJoinCode">
+                      <span>Join Challenge</span>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                      </svg>
+                    </button>
+                  </div>
+                  <p class="form-help-text">Codes are case-insensitive. Private challenges cannot be accessed without an invite code.</p>
+                </form>
+              </div>
+
+              <!-- Public Challenges Directory -->
+              <div class="panel-card-header" style="margin-bottom: 0.75rem;">
+                <div>
+                  <h3 class="panel-card-title">Public Community Challenges</h3>
+                  <span class="stage-sub-status">Open challenges anyone in the workspace community can join</span>
+                </div>
+              </div>
+              <div class="challenge-cards-grid" id="publicChallengesContainer">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+
+            <!-- SUB-PANE 4: CREATE NEW CHALLENGE -->
+            <div class="challenge-sub-pane hidden" id="challengeSubPaneCreate">
+              <div class="detail-card-panel">
+                <div class="panel-card-header">
+                  <div>
+                    <h3 class="panel-card-title">Create New Productivity Challenge</h3>
+                    <span class="stage-sub-status">Set up rules, invite friends with a code, or publish to the community</span>
+                  </div>
+                </div>
+
+                <form id="formCreateChallenge" class="challenge-create-form">
+                  <div class="form-group">
+                    <label class="form-label" for="newChallengeTitle">Challenge Name</label>
+                    <input type="text" id="newChallengeTitle" class="form-input" placeholder="e.g. 14-Day 5 AM Execution Sprint" required />
+                  </div>
+
+                  <div class="form-group">
+                    <label class="form-label" for="newChallengeDesc">Description &amp; Rules</label>
+                    <textarea id="newChallengeDesc" class="form-input form-textarea" rows="2" placeholder="e.g. Complete minimum 5 hours of deep work daily. Post check-in before 11:00 PM." required></textarea>
+                  </div>
+
+                  <div class="form-grid-2">
+                    <div class="form-group">
+                      <label class="form-label" for="newChallengeCategory">Category</label>
+                      <select id="newChallengeCategory" class="form-input">
+                        <option value="Deep Work">Deep Work &amp; Focus</option>
+                        <option value="Routine Discipline">Routine &amp; Blueprint Mastery</option>
+                        <option value="Fitness &amp; Endurance">Health &amp; Endurance</option>
+                        <option value="Learning &amp; Code">Learning &amp; Skill Building</option>
+                        <option value="No Distraction">Digital Detox &amp; Discipline</option>
+                      </select>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label" for="newChallengeDuration">Duration</label>
+                      <select id="newChallengeDuration" class="form-input">
+                        <option value="7">7 Days (Sprint)</option>
+                        <option value="14">14 Days (Habit Builder)</option>
+                        <option value="21">21 Days (Transformation)</option>
+                        <option value="30" selected>30 Days (Mastery)</option>
+                        <option value="60">60 Days (Iron Will)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="form-grid-2">
+                    <div class="form-group">
+                      <label class="form-label" for="newChallengeTargetHours">Daily Focus Target</label>
+                      <select id="newChallengeTargetHours" class="form-input">
+                        <option value="2">2+ Hours / Day</option>
+                        <option value="4">4+ Hours / Day</option>
+                        <option value="5" selected>5+ Hours / Day (Deep Work)</option>
+                        <option value="6">6+ Hours / Day (High Intensity)</option>
+                        <option value="8">8+ Hours / Day (Ultra Marathon)</option>
+                      </select>
+                    </div>
+
+                    <div class="form-group">
+                      <label class="form-label" for="newChallengeVisibility">Access &amp; Privacy</label>
+                      <select id="newChallengeVisibility" class="form-input">
+                        <option value="private" selected>Private (Invite Code Required)</option>
+                        <option value="public">Public (Anyone Can Join)</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- Generated Code Preview Box -->
+                  <div class="challenge-code-preview-card" id="codePreviewCard">
+                    <div class="code-preview-left">
+                      <span class="code-preview-label">Generated Shareable Invite Code:</span>
+                      <strong class="code-preview-text" id="newChallengeGeneratedCode">SPRINT-82</strong>
+                    </div>
+                    <span class="code-preview-badge">Share with friends</span>
+                  </div>
+
+                  <div class="challenge-form-actions">
+                    <button type="button" class="btn-secondary-sm" id="btnCancelCreateChallenge">Cancel</button>
+                    <button type="submit" class="btn-primary-pill" id="btnSubmitCreateChallenge">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                      </svg>
+                      <span>Create &amp; Launch Challenge</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
             </div>
           </section>
 

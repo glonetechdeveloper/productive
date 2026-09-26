@@ -218,10 +218,13 @@
       four_months: {},
       weekly_plans: {},
       daily_logs: {},
-      custom_routines: []
+      custom_routines: [],
+      challenges: []
     }
   };
 
+  let authMode = 'login';
+  let currentChallengeTab = 'active';
   let debounceSaveTimeout = null;
   let newItemType = 'block';
 
@@ -263,6 +266,18 @@
     dbStatusBadge: document.getElementById('dbStatusBadge'),
     sidebarTodayPendingBadge: document.getElementById('sidebarTodayPendingBadge'),
     sidebarRoutinesBadge: document.getElementById('sidebarRoutinesBadge'),
+    sidebarChallengesBadge: document.getElementById('sidebarChallengesBadge'),
+
+    // Challenges Sidebar Dropdown
+    challengesNavGroup: document.getElementById('challengesNavGroup'),
+    tabChallenge: document.getElementById('tabChallenge'),
+    btnChallengeDropdownToggle: document.getElementById('btnChallengeDropdownToggle'),
+    challengeChevronIcon: document.getElementById('challengeChevronIcon'),
+    challengeSubMenu: document.getElementById('challengeSubMenu'),
+    btnNavAllChallenges: document.getElementById('btnNavAllChallenges'),
+    btnNavNewChallenge: document.getElementById('btnNavNewChallenge'),
+    btnNavLeaderboard: document.getElementById('btnNavLeaderboard'),
+    btnNavJoinChallenge: document.getElementById('btnNavJoinChallenge'),
 
     // Navigation & Views
     navButtons: document.querySelectorAll('.nav-item-btn[data-level]'),
@@ -333,6 +348,39 @@
     yearlyVisionStatusText: document.getElementById('yearlyVisionStatusText'),
     yearlyGoalsContainer: document.getElementById('yearlyGoalsContainer'),
     btnAddNewYearlyGoal: document.getElementById('btnAddNewYearlyGoal'),
+
+    // Challenges Stage View Elements
+    viewChallenge: document.getElementById('view-challenge'),
+    challengeViewTabs: document.getElementById('challengeViewTabs'),
+    tabChallengeActive: document.getElementById('tabChallengeActive'),
+    tabChallengeLeaderboard: document.getElementById('tabChallengeLeaderboard'),
+    tabChallengeJoin: document.getElementById('tabChallengeJoin'),
+    tabChallengeCreate: document.getElementById('tabChallengeCreate'),
+    btnQuickJoinCode: document.getElementById('btnQuickJoinCode'),
+    challengeSubPaneActive: document.getElementById('challengeSubPaneActive'),
+    challengeSubPaneLeaderboard: document.getElementById('challengeSubPaneLeaderboard'),
+    challengeSubPaneJoin: document.getElementById('challengeSubPaneJoin'),
+    challengeSubPaneCreate: document.getElementById('challengeSubPaneCreate'),
+    heroActiveChallengesCount: document.getElementById('heroActiveChallengesCount'),
+    heroUserStreakCount: document.getElementById('heroUserStreakCount'),
+    activeChallengesContainer: document.getElementById('activeChallengesContainer'),
+    publicChallengesContainer: document.getElementById('publicChallengesContainer'),
+    leaderboardChallengeFilter: document.getElementById('leaderboardChallengeFilter'),
+    leaderboardPodium: document.getElementById('leaderboardPodium'),
+    leaderboardTableBody: document.getElementById('leaderboardTableBody'),
+    formJoinByCode: document.getElementById('formJoinByCode'),
+    inputJoinCode: document.getElementById('inputJoinCode'),
+    btnSubmitJoinCode: document.getElementById('btnSubmitJoinCode'),
+    formCreateChallenge: document.getElementById('formCreateChallenge'),
+    newChallengeTitle: document.getElementById('newChallengeTitle'),
+    newChallengeDesc: document.getElementById('newChallengeDesc'),
+    newChallengeCategory: document.getElementById('newChallengeCategory'),
+    newChallengeDuration: document.getElementById('newChallengeDuration'),
+    newChallengeTargetHours: document.getElementById('newChallengeTargetHours'),
+    newChallengeVisibility: document.getElementById('newChallengeVisibility'),
+    newChallengeGeneratedCode: document.getElementById('newChallengeGeneratedCode'),
+    btnCancelCreateChallenge: document.getElementById('btnCancelCreateChallenge'),
+    btnSubmitCreateChallenge: document.getElementById('btnSubmitCreateChallenge'),
 
     // New Item Modal
     newItemModalBackdrop: document.getElementById('newItemModalBackdrop'),
@@ -556,6 +604,74 @@
   // ==========================================================================
   // DATA MANAGEMENT & SYNC
   // ==========================================================================
+  function getDefaultChallenges() {
+    const today = getTodayISODate();
+    return [
+      {
+        id: 'ch_deepwork_7d',
+        title: '7-Day 6:00 AM Deep Work Sprint',
+        description: 'Execute minimum 5 hours of uninterrupted deep work before 12:00 PM daily. Strict accountability.',
+        category: 'Deep Work',
+        isPublic: true,
+        code: 'DEEP7D',
+        creator: 'Prince (You)',
+        creatorEmail: 'prince@workspace.io',
+        durationDays: 7,
+        startDate: today,
+        targetHoursPerDay: 5,
+        participants: [
+          { name: 'Prince (You)', email: 'prince@workspace.io', avatar: 'PR', streak: 4, hours: 22.5, completedDays: 4, rank: 1 },
+          { name: 'Alex Rivera', email: 'alex@dev.io', avatar: 'AR', streak: 3, hours: 19.0, completedDays: 3, rank: 2 },
+          { name: 'Elena Rostova', email: 'elena@arch.io', avatar: 'ER', streak: 4, hours: 18.5, completedDays: 4, rank: 3 },
+          { name: 'Marcus Chen', email: 'marcus@ai.org', avatar: 'MC', streak: 2, hours: 14.0, completedDays: 2, rank: 4 }
+        ],
+        checkIns: {
+          [today]: true
+        },
+        userJoined: true
+      },
+      {
+        id: 'ch_routine_mastery_30d',
+        title: '30-Day 18h Routine Discipline',
+        description: 'Follow your daily blueprint with 80%+ block completion rate. Private mastermind cohort.',
+        category: 'Routine Discipline',
+        isPublic: false,
+        code: 'ROUT30',
+        creator: 'Prince (You)',
+        creatorEmail: 'prince@workspace.io',
+        durationDays: 30,
+        startDate: today,
+        targetHoursPerDay: 6,
+        participants: [
+          { name: 'Prince (You)', email: 'prince@workspace.io', avatar: 'PR', streak: 12, hours: 78.0, completedDays: 12, rank: 1 },
+          { name: 'Jordan Hayes', email: 'jordan@tech.co', avatar: 'JH', streak: 11, hours: 71.5, completedDays: 11, rank: 2 },
+          { name: 'Samantha Wu', email: 'sam@growth.io', avatar: 'SW', streak: 9, hours: 58.0, completedDays: 9, rank: 3 }
+        ],
+        checkIns: {},
+        userJoined: true
+      },
+      {
+        id: 'ch_monk_mode_14d',
+        title: '14-Day Monk Mode Focus Sprint',
+        description: 'Zero social media during work hours. 6+ hours of high-leverage deliverables daily.',
+        category: 'No Distraction',
+        isPublic: true,
+        code: 'MONK14',
+        creator: 'Liam Vance',
+        creatorEmail: 'liam@founder.io',
+        durationDays: 14,
+        startDate: today,
+        targetHoursPerDay: 6,
+        participants: [
+          { name: 'Liam Vance', email: 'liam@founder.io', avatar: 'LV', streak: 8, hours: 51.0, completedDays: 8, rank: 1 },
+          { name: 'Chloe Dubois', email: 'chloe@design.fr', avatar: 'CD', streak: 7, hours: 44.5, completedDays: 7, rank: 2 }
+        ],
+        checkIns: {},
+        userJoined: false
+      }
+    ];
+  }
+
   function loadInitialData() {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
@@ -566,6 +682,9 @@
         }
         if (!state.year_data.settings) {
           state.year_data.settings = { schedule_start_hour: '05:00', schedule_end_hour: '23:00' };
+        }
+        if (!state.year_data.challenges || state.year_data.challenges.length === 0) {
+          state.year_data.challenges = getDefaultChallenges();
         }
       } catch (err) {
         console.error('Failed to parse local stored data:', err);
@@ -611,7 +730,8 @@
       },
       weekly_plans: {},
       daily_logs: {},
-      custom_routines: []
+      custom_routines: [],
+      challenges: getDefaultChallenges()
     };
   }
 
@@ -789,22 +909,26 @@
     const startLabel = startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     const endLabel = endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
-    let weekLabel = `${startLabel} – ${endLabel}`;
-    if (state.weekOffset === 0) weekLabel = `This Week · ${startLabel} – ${endLabel}`;
-    else if (state.weekOffset === -1) weekLabel = `Last Week · ${startLabel} – ${endLabel}`;
-    else if (state.weekOffset < -1) weekLabel = `${Math.abs(state.weekOffset)} weeks ago · ${startLabel} – ${endLabel}`;
-    else if (state.weekOffset === 1) weekLabel = `Next Week · ${startLabel} – ${endLabel}`;
-    else if (state.weekOffset > 1) weekLabel = `${state.weekOffset} weeks ahead · ${startLabel} – ${endLabel}`;
+    let offsetLabel = 'This Week';
+    if (state.weekOffset === -1) offsetLabel = '1 week ago';
+    else if (state.weekOffset < -1) offsetLabel = `${Math.abs(state.weekOffset)} weeks ago`;
+    else if (state.weekOffset === 1) offsetLabel = 'In 1 week';
+    else if (state.weekOffset > 1) offsetLabel = `In ${state.weekOffset} weeks`;
 
     header.innerHTML = `
-      <button class="week-nav-btn" id="btnPrevWeek" title="Previous Week">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-      </button>
-      <span class="week-nav-label">${weekLabel}</span>
-      <button class="week-nav-btn" id="btnNextWeek" title="Next Week">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-      </button>
-      ${state.weekOffset !== 0 ? '<button class="week-nav-today-btn" id="btnWeekToday">Current</button>' : ''}
+      <div class="week-nav-bar">
+        <button class="week-nav-btn" id="btnPrevWeek" title="Previous Week" aria-label="Previous Week">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+        </button>
+        <div class="week-nav-center">
+          <span class="week-nav-offset-badge">${offsetLabel}</span>
+          <span class="week-nav-dates">${startLabel} – ${endLabel}</span>
+        </div>
+        <button class="week-nav-btn" id="btnNextWeek" title="Next Week" aria-label="Next Week">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+      </div>
+      ${state.weekOffset !== 0 ? '<button class="week-nav-today-pill" id="btnWeekToday">Reset to Current Week</button>' : ''}
     `;
 
     // Insert after the subpanel header
@@ -1098,6 +1222,38 @@
           }
         });
 
+        dom.subpanelItemsContainer.appendChild(card);
+      });
+    } else if (state.currentLevel === 'challenge') {
+      const challenges = state.year_data.challenges || [];
+      const userChallenges = challenges.filter(c => c.userJoined);
+
+      userChallenges.forEach(ch => {
+        if (q) {
+          const matchTitle = (ch.title || '').toLowerCase().includes(q);
+          const matchCategory = (ch.category || '').toLowerCase().includes(q);
+          if (!matchTitle && !matchCategory) return;
+        }
+
+        const isCheckedToday = ch.checkIns && ch.checkIns[getTodayISODate()];
+        const card = document.createElement('div');
+        card.className = 'subpanel-item-card';
+        card.innerHTML = `
+          <div class="subpanel-item-avatar">${(ch.category || 'CL').substring(0, 2).toUpperCase()}</div>
+          <div class="subpanel-item-content">
+            <div class="subpanel-item-row-top">
+              <span class="subpanel-item-title">${escapeHtml(ch.title)}</span>
+              <span class="subpanel-item-time">${ch.durationDays}d</span>
+            </div>
+            <div class="subpanel-item-row-sub">
+              <span class="subpanel-item-snippet">${ch.isPublic ? '🌐 Public' : '🔒 Code: ' + ch.code} &bull; ${(ch.participants || []).length} joined</span>
+              ${isCheckedToday ? '<span class="badge-tag status-achieved" style="font-size:0.62rem;">Done</span>' : '<span class="badge-tag status-progress" style="font-size:0.62rem;">Check-in</span>'}
+            </div>
+          </div>
+        `;
+        card.addEventListener('click', () => {
+          switchChallengeTab('active');
+        });
         dom.subpanelItemsContainer.appendChild(card);
       });
     }
@@ -2134,6 +2290,554 @@
   }
 
   // ==========================================================================
+  // LEVEL 07: CHALLENGES & ACCOUNTABILITY ARENA
+  // ==========================================================================
+  function switchChallengeTab(tabName) {
+    currentChallengeTab = tabName;
+
+    // Update segmented control buttons
+    if (dom.challengeViewTabs) {
+      dom.challengeViewTabs.querySelectorAll('.segment-btn').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.tab === tabName);
+      });
+    }
+
+    // Update sidebar sub-links
+    if (dom.challengeSubMenu) {
+      dom.challengeSubMenu.querySelectorAll('.sidebar-sub-link').forEach(link => {
+        link.classList.toggle('active', link.dataset.challengeTab === tabName);
+      });
+    }
+
+    // Toggle sub-panes
+    if (dom.challengeSubPaneActive) dom.challengeSubPaneActive.classList.toggle('hidden', tabName !== 'active');
+    if (dom.challengeSubPaneLeaderboard) dom.challengeSubPaneLeaderboard.classList.toggle('hidden', tabName !== 'leaderboard');
+    if (dom.challengeSubPaneJoin) dom.challengeSubPaneJoin.classList.toggle('hidden', tabName !== 'join');
+    if (dom.challengeSubPaneCreate) {
+      dom.challengeSubPaneCreate.classList.toggle('hidden', tabName !== 'create');
+      if (tabName === 'create') {
+        generateRandomChallengeCode();
+      }
+    }
+
+    renderChallengesStageView(tabName);
+  }
+
+  function renderChallengesStageView(tab = currentChallengeTab) {
+    const challenges = state.year_data.challenges || [];
+    const userChallenges = challenges.filter(c => c.userJoined);
+
+    // Hero stats
+    if (dom.heroActiveChallengesCount) {
+      dom.heroActiveChallengesCount.textContent = String(userChallenges.length);
+    }
+    if (dom.heroUserStreakCount) {
+      let maxStreak = 0;
+      userChallenges.forEach(c => {
+        const p = (c.participants || []).find(x => x.name.includes('You') || (state.user && x.email === state.user.email));
+        if (p && p.streak > maxStreak) maxStreak = p.streak;
+      });
+      dom.heroUserStreakCount.textContent = `🔥 ${maxStreak > 0 ? maxStreak + 'd' : '0d'}`;
+    }
+
+    if (dom.sidebarChallengesBadge) {
+      dom.sidebarChallengesBadge.textContent = String(userChallenges.length);
+    }
+
+    if (tab === 'active') {
+      renderActiveChallengesGrid();
+    } else if (tab === 'leaderboard') {
+      renderChallengeLeaderboard();
+    } else if (tab === 'join') {
+      renderPublicChallengesDirectory();
+    }
+  }
+
+  function renderActiveChallengesGrid() {
+    if (!dom.activeChallengesContainer) return;
+    dom.activeChallengesContainer.innerHTML = '';
+    const challenges = state.year_data.challenges || [];
+    const userChallenges = challenges.filter(c => c.userJoined);
+
+    if (userChallenges.length === 0) {
+      dom.activeChallengesContainer.innerHTML = `
+        <div class="empty-state-card" style="grid-column: 1 / -1; padding: 2.5rem 1rem; text-align: center;">
+          <div class="empty-state-icon">${ICONS.plus}</div>
+          <h4 style="font-size: 1rem; font-weight: 600; margin: 0.5rem 0 0.25rem;">No Active Challenges Joined</h4>
+          <p style="font-size: 0.82rem; color: var(--text-muted); max-width: 360px; margin: 0 auto 1.25rem;">Join a community sprint, enter a private friend code, or create your own accountability cohort.</p>
+          <div style="display: flex; gap: 0.75rem; justify-content: center;">
+            <button class="btn-primary-pill" id="btnEmptyJoinChallenge">Browse Challenges</button>
+            <button class="btn-secondary-sm" id="btnEmptyCreateChallenge">+ New Challenge</button>
+          </div>
+        </div>
+      `;
+      const btnJ = dom.activeChallengesContainer.querySelector('#btnEmptyJoinChallenge');
+      if (btnJ) btnJ.addEventListener('click', () => switchChallengeTab('join'));
+      const btnC = dom.activeChallengesContainer.querySelector('#btnEmptyCreateChallenge');
+      if (btnC) btnC.addEventListener('click', () => switchChallengeTab('create'));
+      return;
+    }
+
+    const todayISO = getTodayISODate();
+
+    userChallenges.forEach(ch => {
+      const isCheckedInToday = ch.checkIns && ch.checkIns[todayISO];
+      const participants = ch.participants || [];
+      
+      // Calculate days elapsed
+      const startD = parseISODate(ch.startDate || todayISO);
+      const currD = parseISODate(todayISO);
+      const diffTime = Math.max(0, currD - startD);
+      const diffDays = Math.min(ch.durationDays, Math.floor(diffTime / (1000 * 60 * 60 * 24)) + 1);
+      const progressPct = Math.min(100, Math.round((diffDays / ch.durationDays) * 100));
+
+      const card = document.createElement('div');
+      card.className = 'challenge-card';
+      card.id = `challenge-card-${ch.id}`;
+
+      // Build participant avatar stack
+      const avatarStackHtml = participants.slice(0, 4).map(p => {
+        const initials = p.avatar || (p.name || 'U').substring(0, 2).toUpperCase();
+        return `<div class="participant-mini-avatar" title="${escapeHtml(p.name)} (${p.streak}d streak)">${initials}</div>`;
+      }).join('');
+
+      card.innerHTML = `
+        <div class="challenge-card-header">
+          <div class="challenge-meta-row">
+            <span class="challenge-tag">${escapeHtml(ch.category || 'Focus')}</span>
+            <span class="challenge-tag ${ch.isPublic ? 'public' : 'private'}">${ch.isPublic ? '🌐 Public' : '🔒 Private'}</span>
+          </div>
+          ${!ch.isPublic ? `
+            <button type="button" class="challenge-code-chip" title="Click to copy invite code" data-code="${ch.code}">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+              <span>${ch.code}</span>
+            </button>
+          ` : ''}
+        </div>
+
+        <div>
+          <h3 class="challenge-card-title">${escapeHtml(ch.title)}</h3>
+          <p class="challenge-card-desc">${escapeHtml(ch.description || '')}</p>
+        </div>
+
+        <div class="challenge-progress-section">
+          <div class="challenge-progress-header">
+            <span>Day ${diffDays} of ${ch.durationDays} · Target: ${ch.targetHoursPerDay || 5}h/day</span>
+            <strong>${progressPct}%</strong>
+          </div>
+          <div class="challenge-progress-bar">
+            <div class="challenge-progress-fill" style="width: ${progressPct}%"></div>
+          </div>
+        </div>
+
+        <div class="challenge-card-footer">
+          <div class="participant-avatar-stack">
+            ${avatarStackHtml}
+            <span class="participant-count-text">${participants.length} members</span>
+          </div>
+          <div style="display: flex; gap: 0.4rem; align-items: center;">
+            <button type="button" class="btn-secondary-sm btn-challenge-leaderboard" data-challenge-id="${ch.id}" title="View challenge leaderboard">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+            </button>
+            ${isCheckedInToday ? `
+              <span class="badge-tag status-achieved" style="padding: 0.35rem 0.65rem; font-size: 0.72rem; font-weight: 600;">
+                ✓ Proof Verified
+              </span>
+            ` : `
+              <button type="button" class="btn-primary-pill btn-challenge-checkin" data-challenge-id="${ch.id}">
+                <span>Check In</span>
+              </button>
+            `}
+          </div>
+        </div>
+      `;
+
+      // Copy invite code handler
+      const codeChip = card.querySelector('.challenge-code-chip');
+      if (codeChip) {
+        codeChip.addEventListener('click', (e) => {
+          e.stopPropagation();
+          copyChallengeInviteCode(codeChip.dataset.code);
+        });
+      }
+
+      // Check-in handler
+      const checkInBtn = card.querySelector('.btn-challenge-checkin');
+      if (checkInBtn) {
+        checkInBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          handleChallengeCheckIn(ch.id);
+        });
+      }
+
+      // Leaderboard filter jump
+      const lbBtn = card.querySelector('.btn-challenge-leaderboard');
+      if (lbBtn) {
+        lbBtn.addEventListener('click', (e) => {
+          e.stopPropagation();
+          switchChallengeTab('leaderboard');
+          if (dom.leaderboardChallengeFilter) {
+            dom.leaderboardChallengeFilter.value = ch.id;
+            renderChallengeLeaderboard(ch.id);
+          }
+        });
+      }
+
+      dom.activeChallengesContainer.appendChild(card);
+    });
+  }
+
+  function handleChallengeCheckIn(challengeId) {
+    const ch = (state.year_data.challenges || []).find(c => c.id === challengeId);
+    if (!ch) return;
+    if (!ch.checkIns) ch.checkIns = {};
+    const today = getTodayISODate();
+    ch.checkIns[today] = true;
+
+    // Update user participant streak & hours
+    const p = (ch.participants || []).find(x => x.name.includes('You') || (state.user && x.email === state.user.email));
+    if (p) {
+      p.streak = (p.streak || 0) + 1;
+      p.completedDays = (p.completedDays || 0) + 1;
+      p.hours = (p.hours || 0) + (ch.targetHoursPerDay || 5);
+    }
+
+    queueAutoSave();
+    renderChallengesStageView('active');
+    showToast(`🔥 Daily proof logged for "${ch.title}"! Streak extended!`, 'success');
+  }
+
+  function renderChallengeLeaderboard(selectedChallengeId = 'all') {
+    if (!dom.leaderboardTableBody) return;
+
+    // Populate filter dropdown
+    if (dom.leaderboardChallengeFilter) {
+      const challenges = state.year_data.challenges || [];
+      const currentVal = selectedChallengeId || dom.leaderboardChallengeFilter.value || 'all';
+      dom.leaderboardChallengeFilter.innerHTML = `<option value="all">All Challenges (Global Arena)</option>` +
+        challenges.map(c => `<option value="${c.id}" ${c.id === currentVal ? 'selected' : ''}>${escapeHtml(c.title)}</option>`).join('');
+    }
+
+    const challenges = state.year_data.challenges || [];
+    let participantsList = [];
+
+    if (selectedChallengeId === 'all' || !selectedChallengeId) {
+      // Aggregate across all joined challenges
+      challenges.forEach(ch => {
+        (ch.participants || []).forEach(p => {
+          participantsList.push({
+            ...p,
+            challengeTitle: ch.title,
+            challengeCategory: ch.category
+          });
+        });
+      });
+    } else {
+      const ch = challenges.find(c => c.id === selectedChallengeId);
+      if (ch) {
+        participantsList = (ch.participants || []).map(p => ({
+          ...p,
+          challengeTitle: ch.title,
+          challengeCategory: ch.category
+        }));
+      }
+    }
+
+    // Sort by streak (descending), then hours (descending)
+    participantsList.sort((a, b) => (b.streak || 0) - (a.streak || 0) || (b.hours || 0) - (a.hours || 0));
+
+    // Render Podium (top 3)
+    if (dom.leaderboardPodium) {
+      if (participantsList.length >= 2) {
+        const first = participantsList[0];
+        const second = participantsList[1];
+        const third = participantsList[2] || { name: 'Empty', streak: 0, hours: 0, avatar: '--' };
+
+        dom.leaderboardPodium.innerHTML = `
+          <!-- 2nd Place -->
+          <div class="podium-card second">
+            <span class="podium-rank-badge">#2 Silver</span>
+            <div class="podium-avatar">${second.avatar || second.name.substring(0, 2).toUpperCase()}</div>
+            <div class="podium-name">${escapeHtml(second.name)}</div>
+            <div class="podium-score">${second.hours || 0}h focus logged</div>
+            <div class="podium-flame">🔥 ${second.streak || 0}d streak</div>
+          </div>
+
+          <!-- 1st Place (Winner) -->
+          <div class="podium-card first">
+            <span class="podium-rank-badge">👑 #1 Champion</span>
+            <div class="podium-avatar" style="border-color: #eab308; background-color: rgba(234, 179, 8, 0.15);">${first.avatar || first.name.substring(0, 2).toUpperCase()}</div>
+            <div class="podium-name">${escapeHtml(first.name)}</div>
+            <div class="podium-score">${first.hours || 0}h focus logged</div>
+            <div class="podium-flame">🔥 ${first.streak || 0}d streak</div>
+          </div>
+
+          <!-- 3rd Place -->
+          <div class="podium-card third">
+            <span class="podium-rank-badge">#3 Bronze</span>
+            <div class="podium-avatar">${third.avatar || third.name.substring(0, 2).toUpperCase()}</div>
+            <div class="podium-name">${escapeHtml(third.name)}</div>
+            <div class="podium-score">${third.hours || 0}h focus logged</div>
+            <div class="podium-flame">🔥 ${third.streak || 0}d streak</div>
+          </div>
+        `;
+      } else {
+        dom.leaderboardPodium.innerHTML = '';
+      }
+    }
+
+    // Render Table Rows
+    dom.leaderboardTableBody.innerHTML = '';
+    participantsList.forEach((p, idx) => {
+      const rankBadge = idx === 0 ? '🥇 #1' : idx === 1 ? '🥈 #2' : idx === 2 ? '🥉 #3' : `#${idx + 1}`;
+      const initials = p.avatar || (p.name || 'U').substring(0, 2).toUpperCase();
+      const statusBadge = p.streak >= 4 ? '<span class="badge-tag status-achieved">🔥 On Fire</span>' : '<span class="badge-tag status-progress">⚡ Active</span>';
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="leaderboard-rank-cell">${rankBadge}</td>
+        <td>
+          <div class="leaderboard-user-cell">
+            <div class="leaderboard-avatar-sm">${initials}</div>
+            <span>${escapeHtml(p.name)}</span>
+          </div>
+        </td>
+        <td><span style="font-size: 0.78rem; color: var(--text-muted);">${escapeHtml(p.challengeTitle || 'Focus Arena')}</span></td>
+        <td><strong style="color: #f97316;">🔥 ${p.streak || 0} days</strong></td>
+        <td><strong>${p.hours || 0} hrs</strong></td>
+        <td>${p.completedDays || 0} days verified</td>
+        <td>${statusBadge}</td>
+      `;
+      dom.leaderboardTableBody.appendChild(tr);
+    });
+  }
+
+  function renderPublicChallengesDirectory() {
+    if (!dom.publicChallengesContainer) return;
+    dom.publicChallengesContainer.innerHTML = '';
+    const challenges = state.year_data.challenges || [];
+    const publicList = challenges.filter(c => c.isPublic && !c.userJoined);
+
+    if (publicList.length === 0) {
+      dom.publicChallengesContainer.innerHTML = `
+        <div class="empty-state-card" style="grid-column: 1 / -1; padding: 2rem; text-align: center;">
+          <p style="font-size: 0.84rem; color: var(--text-muted);">You've joined all currently public community challenges! Create a new one or join with a private code.</p>
+        </div>
+      `;
+      return;
+    }
+
+    publicList.forEach(ch => {
+      const participants = ch.participants || [];
+      const card = document.createElement('div');
+      card.className = 'challenge-card';
+      card.innerHTML = `
+        <div class="challenge-card-header">
+          <div class="challenge-meta-row">
+            <span class="challenge-tag">${escapeHtml(ch.category || 'Deep Work')}</span>
+            <span class="challenge-tag public">🌐 Public</span>
+          </div>
+          <span style="font-size: 0.72rem; color: var(--text-muted);">By ${escapeHtml(ch.creator || 'Community')}</span>
+        </div>
+
+        <div>
+          <h3 class="challenge-card-title">${escapeHtml(ch.title)}</h3>
+          <p class="challenge-card-desc">${escapeHtml(ch.description || '')}</p>
+        </div>
+
+        <div class="challenge-progress-section">
+          <div class="challenge-progress-header">
+            <span>Duration: ${ch.durationDays} Days</span>
+            <span>Target: ${ch.targetHoursPerDay || 5}h/day</span>
+          </div>
+        </div>
+
+        <div class="challenge-card-footer">
+          <span class="participant-count-text">${participants.length} active members</span>
+          <button type="button" class="btn-primary-pill btn-join-public-challenge" data-challenge-id="${ch.id}">
+            <span>Join Challenge</span>
+          </button>
+        </div>
+      `;
+
+      card.querySelector('.btn-join-public-challenge').addEventListener('click', () => {
+        ch.userJoined = true;
+        const profile = getSavedProfile() || { name: 'Prince', email: 'prince@workspace.io' };
+        if (!ch.participants) ch.participants = [];
+        const existing = ch.participants.find(p => p.name.includes('You') || p.email === profile.email);
+        if (!existing) {
+          ch.participants.push({
+            name: `${profile.name} (You)`,
+            email: profile.email,
+            avatar: profile.name.substring(0, 2).toUpperCase(),
+            streak: 1,
+            hours: 0,
+            completedDays: 0,
+            rank: ch.participants.length + 1
+          });
+        }
+        queueAutoSave();
+        showToast(`Joined "${ch.title}"! Welcome to the arena.`, 'success');
+        switchChallengeTab('active');
+      });
+
+      dom.publicChallengesContainer.appendChild(card);
+    });
+  }
+
+  function generateRandomChallengeCode() {
+    const prefixes = ['SPRINT', 'FOCUS', 'ROUT', 'DEEP', 'GRIND', 'HABIT'];
+    const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+    const num = Math.floor(10 + Math.random() * 90);
+    const code = `${prefix}-${num}`;
+    if (dom.newChallengeGeneratedCode) {
+      dom.newChallengeGeneratedCode.textContent = code;
+    }
+    return code;
+  }
+
+  function handleCreateChallengeSubmit(e) {
+    e.preventDefault();
+    const title = (dom.newChallengeTitle?.value || '').trim();
+    const description = (dom.newChallengeDesc?.value || '').trim();
+    const category = dom.newChallengeCategory?.value || 'Deep Work';
+    const durationDays = parseInt(dom.newChallengeDuration?.value || '30', 10);
+    const targetHoursPerDay = parseInt(dom.newChallengeTargetHours?.value || '5', 10);
+    const visibility = dom.newChallengeVisibility?.value || 'private';
+    const code = (dom.newChallengeGeneratedCode?.textContent || generateRandomChallengeCode()).trim();
+
+    if (!title) {
+      showToast('Please enter a challenge name', 'error');
+      return;
+    }
+
+    const profile = getSavedProfile() || { name: 'Prince', email: 'prince@workspace.io' };
+    const initials = profile.name.substring(0, 2).toUpperCase();
+
+    const newChallenge = {
+      id: 'ch_' + Date.now(),
+      title,
+      description,
+      category,
+      isPublic: visibility === 'public',
+      code: code.replace(/[^A-Za-z0-9]/g, '').toUpperCase() || 'CODE88',
+      creator: `${profile.name} (You)`,
+      creatorEmail: profile.email,
+      durationDays,
+      startDate: getTodayISODate(),
+      targetHoursPerDay,
+      participants: [
+        {
+          name: `${profile.name} (You)`,
+          email: profile.email,
+          avatar: initials,
+          streak: 1,
+          hours: 0,
+          completedDays: 0,
+          rank: 1
+        }
+      ],
+      checkIns: {},
+      userJoined: true
+    };
+
+    if (!state.year_data.challenges) state.year_data.challenges = [];
+    state.year_data.challenges.unshift(newChallenge);
+
+    queueAutoSave();
+    showToast(`🚀 Challenge "${title}" created! Code: ${newChallenge.code}`, 'success');
+
+    // Reset form
+    if (dom.newChallengeTitle) dom.newChallengeTitle.value = '';
+    if (dom.newChallengeDesc) dom.newChallengeDesc.value = '';
+    switchChallengeTab('active');
+  }
+
+  function handleJoinChallengeByCode(codeStr) {
+    const raw = (codeStr || '').trim().replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+    if (!raw) {
+      showToast('Please enter an invite code', 'error');
+      return;
+    }
+
+    const challenges = state.year_data.challenges || [];
+    const ch = challenges.find(c => (c.code || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase() === raw);
+
+    if (!ch) {
+      // Create and join the private challenge with this custom code
+      const profile = getSavedProfile() || { name: 'Prince', email: 'prince@workspace.io' };
+      const generated = {
+        id: 'ch_' + Date.now(),
+        title: `${raw} Private Mastermind`,
+        description: 'Private accountability cohort joined via invite code.',
+        category: 'Deep Work',
+        isPublic: false,
+        code: raw,
+        creator: 'Cohort Lead',
+        creatorEmail: 'lead@workspace.io',
+        durationDays: 30,
+        startDate: getTodayISODate(),
+        targetHoursPerDay: 5,
+        participants: [
+          { name: 'Cohort Lead', email: 'lead@workspace.io', avatar: 'CL', streak: 6, hours: 32.0, completedDays: 6, rank: 1 },
+          { name: `${profile.name} (You)`, email: profile.email, avatar: profile.name.substring(0, 2).toUpperCase(), streak: 1, hours: 0, completedDays: 0, rank: 2 }
+        ],
+        checkIns: {},
+        userJoined: true
+      };
+      challenges.unshift(generated);
+      queueAutoSave();
+      showToast(`Joined private challenge with code "${raw}"!`, 'success');
+      switchChallengeTab('active');
+      return;
+    }
+
+    if (ch.userJoined) {
+      showToast(`You are already a member of "${ch.title}"`, 'info');
+      switchChallengeTab('active');
+      return;
+    }
+
+    ch.userJoined = true;
+    const profile = getSavedProfile() || { name: 'Prince', email: 'prince@workspace.io' };
+    if (!ch.participants) ch.participants = [];
+    ch.participants.push({
+      name: `${profile.name} (You)`,
+      email: profile.email,
+      avatar: profile.name.substring(0, 2).toUpperCase(),
+      streak: 1,
+      hours: 0,
+      completedDays: 0,
+      rank: ch.participants.length + 1
+    });
+
+    queueAutoSave();
+    showToast(`Successfully joined "${ch.title}"!`, 'success');
+    switchChallengeTab('active');
+  }
+
+  function copyChallengeInviteCode(code) {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(code).then(() => {
+        showToast(`Copied invite code: ${code}`, 'info');
+      }).catch(() => {
+        showToast(`Invite Code: ${code}`, 'info');
+      });
+    } else {
+      showToast(`Invite Code: ${code}`, 'info');
+    }
+  }
+
+  function toggleChallengeSubMenu(open) {
+    if (!dom.challengeSubMenu) return;
+    const shouldOpen = typeof open === 'boolean' ? open : dom.challengeSubMenu.classList.contains('hidden');
+    dom.challengeSubMenu.classList.toggle('hidden', !shouldOpen);
+    if (dom.btnChallengeDropdownToggle) {
+      dom.btnChallengeDropdownToggle.classList.toggle('rotated', shouldOpen);
+    }
+  }
+
+  // ==========================================================================
   // DASHBOARD METRICS & REAL-TIME STATS
   // ==========================================================================
   function updateAllMetrics() {
@@ -2153,6 +2857,10 @@
     }
     if (dom.sidebarRoutinesBadge) {
       dom.sidebarRoutinesBadge.textContent = String(getAllRoutines().length);
+    }
+    if (dom.sidebarChallengesBadge) {
+      const activeChallengesCount = (state.year_data.challenges || []).filter(c => c.userJoined).length;
+      dom.sidebarChallengesBadge.textContent = String(activeChallengesCount);
     }
 
     const yGoals = state.year_data.yearly_goals || [];
@@ -2187,6 +2895,7 @@
     if (levelKey === 'weekly') renderWeeklyStrategyView();
     if (levelKey === 'monthly') renderFourMonthsHorizon();
     if (levelKey === 'yearly') renderYearlyGoals();
+    if (levelKey === 'challenge') renderChallengesStageView(currentChallengeTab);
 
     renderSubpanel();
     updateAllMetrics();
@@ -2199,6 +2908,7 @@
     renderWeeklyStrategyView();
     renderFourMonthsHorizon();
     renderYearlyGoals();
+    renderChallengesStageView();
   }
 
   // ==========================================================================
@@ -3137,6 +3847,66 @@
     dom.btnImportData.addEventListener('click', () => dom.importFileInput.click());
     dom.importFileInput.addEventListener('change', importBackupJSON);
 
+    // Challenges Listeners
+    if (dom.btnChallengeDropdownToggle) {
+      dom.btnChallengeDropdownToggle.addEventListener('click', (e) => {
+        e.stopPropagation();
+        toggleChallengeSubMenu();
+      });
+    }
+
+    if (dom.challengeSubMenu) {
+      dom.challengeSubMenu.querySelectorAll('.sidebar-sub-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+          e.stopPropagation();
+          const targetTab = link.dataset.challengeTab || 'active';
+          switchToLevel('challenge');
+          switchChallengeTab(targetTab);
+        });
+      });
+    }
+
+    if (dom.challengeViewTabs) {
+      dom.challengeViewTabs.querySelectorAll('.segment-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          switchChallengeTab(btn.dataset.tab);
+        });
+      });
+    }
+
+    if (dom.btnQuickJoinCode) {
+      dom.btnQuickJoinCode.addEventListener('click', () => {
+        switchToLevel('challenge');
+        switchChallengeTab('join');
+        if (dom.inputJoinCode) dom.inputJoinCode.focus();
+      });
+    }
+
+    if (dom.formJoinByCode) {
+      dom.formJoinByCode.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const code = (dom.inputJoinCode?.value || '').trim();
+        handleJoinChallengeByCode(code);
+        if (dom.inputJoinCode) dom.inputJoinCode.value = '';
+      });
+    }
+
+    if (dom.formCreateChallenge) {
+      dom.formCreateChallenge.addEventListener('submit', handleCreateChallengeSubmit);
+    }
+
+    if (dom.btnCancelCreateChallenge) {
+      dom.btnCancelCreateChallenge.addEventListener('click', () => {
+        switchChallengeTab('active');
+      });
+    }
+
+    if (dom.leaderboardChallengeFilter) {
+      dom.leaderboardChallengeFilter.addEventListener('change', () => {
+        renderChallengeLeaderboard(dom.leaderboardChallengeFilter.value);
+      });
+    }
+
     // Auth Gateway Listeners
     if (dom.btnGatewayContinue) {
       dom.btnGatewayContinue.addEventListener('click', () => {
@@ -3151,13 +3921,15 @@
     }
 
     if (dom.btnGatewayTabLogin) {
-      dom.btnGatewayTabLogin.addEventListener('click', () => {
+      dom.btnGatewayTabLogin.addEventListener('click', (e) => {
+        e.preventDefault();
         setGatewayAuthMode('login');
       });
     }
 
     if (dom.btnGatewayTabRegister) {
-      dom.btnGatewayTabRegister.addEventListener('click', () => {
+      dom.btnGatewayTabRegister.addEventListener('click', (e) => {
+        e.preventDefault();
         setGatewayAuthMode('register');
       });
     }
