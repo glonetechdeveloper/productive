@@ -139,6 +139,11 @@ a {
   text-decoration: none;
 }
 
+/* Global Utility: Hidden */
+.hidden {
+  display: none !important;
+}
+
 /* Custom Minimalist Scrollbars */
 ::-webkit-scrollbar {
   width: 6px;

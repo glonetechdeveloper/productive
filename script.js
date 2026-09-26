@@ -2311,6 +2311,22 @@
   // ==========================================================================
   // LEVEL 07: CHALLENGES & ACCOUNTABILITY ARENA
   // ==========================================================================
+  function toggleChallengeSubMenu(forceOpen) {
+    if (!dom.challengeSubMenu) return;
+    const isClosed = dom.challengeSubMenu.classList.contains('hidden');
+    const shouldOpen = forceOpen !== undefined ? forceOpen : isClosed;
+
+    dom.challengeSubMenu.classList.toggle('hidden', !shouldOpen);
+    if (dom.btnChallengeDropdownToggle) {
+      dom.btnChallengeDropdownToggle.classList.toggle('rotated', shouldOpen);
+      dom.btnChallengeDropdownToggle.setAttribute('aria-expanded', String(shouldOpen));
+    }
+  }
+
+  function closeChallengeSubMenu() {
+    toggleChallengeSubMenu(false);
+  }
+
   function switchChallengeTab(tabName) {
     currentChallengeTab = tabName;
 
@@ -2869,14 +2885,7 @@
     }
   }
 
-  function toggleChallengeSubMenu(open) {
-    if (!dom.challengeSubMenu) return;
-    const shouldOpen = typeof open === 'boolean' ? open : dom.challengeSubMenu.classList.contains('hidden');
-    dom.challengeSubMenu.classList.toggle('hidden', !shouldOpen);
-    if (dom.btnChallengeDropdownToggle) {
-      dom.btnChallengeDropdownToggle.classList.toggle('rotated', shouldOpen);
-    }
-  }
+  // (toggleChallengeSubMenu defined above in LEVEL 07 section)
 
   // ==========================================================================
   // DASHBOARD METRICS & REAL-TIME STATS
