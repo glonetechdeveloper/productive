@@ -49,7 +49,7 @@ self.addEventListener('fetch', (event) => {
   const requestUrl = new URL(event.request.url);
 
   // Skip caching for API POST/PUT auth requests or external DB calls
-  if (event.request.method !== 'GET' || requestUrl.pathname.startsWith('/api/')) {
+  if (event.request.method !== 'GET' || requestUrl.pathname.startsWith('/api/') || requestUrl.origin !== self.location.origin) {
     return;
   }
 

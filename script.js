@@ -9,13 +9,21 @@
   'use strict';
 
   // --- Constants & Config ---
+  const API_BASE_URL = window.API_BASE_URL || 'https://lumen-backend-mu.vercel.app';
   const STORAGE_KEY = 'productive_workspace_data_v1';
   const AUTH_TOKEN_KEY = 'productive_jwt_token';
   const AUTH_USER_KEY = 'productive_user_info';
+  const SYNC_VERSION_KEY = 'productive_sync_version';
   const THEME_KEY = 'productive_theme';
   const LAST_ACTIVE_KEY = 'productive_last_active_time';
   const SAVED_PROFILE_KEY = 'productive_saved_profile';
   const INACTIVITY_LIMIT_MS = 48 * 60 * 60 * 1000; // 48 Hours Inactivity Expiry Limit
+
+  function apiUrl(path) {
+    const base = (window.API_BASE_URL || API_BASE_URL).replace(/\/+$/, '');
+    const cleanPath = path.startsWith('/') ? path : '/' + path;
+    return `${base}${cleanPath}`;
+  }
 
   // PWA Service Worker Registration
   if ('serviceWorker' in navigator) {
@@ -204,6 +212,7 @@
     theme: localStorage.getItem(THEME_KEY) || 'dark',
     token: localStorage.getItem(AUTH_TOKEN_KEY) || null,
     user: JSON.parse(localStorage.getItem(AUTH_USER_KEY) || 'null'),
+    syncVersion: parseInt(localStorage.getItem(SYNC_VERSION_KEY) || '0', 10) || 0,
     selectedYear: '2026',
     currentDate: getTodayISODate(),
     currentLevel: 'micro',
@@ -797,7 +806,7 @@
 
     updateSyncStatusUI('saving', 'Syncing...');
     try {
-      const response = await fetch('/api/goals/sync', {
+      const response = await fetch(apiUrl('/api/sync'), {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${state.token}`,
@@ -811,8 +820,19 @@
         return;
       }
 
+      if (!response.ok) {
+        throw new Error(`Sync fetch failed with status: ${response.status}`);
+      }
+
       const result = await response.json();
-      if (result.success && result.data && Object.keys(result.data).length > 0) {
+
+      // Track version from backend
+      if (typeof result.version === 'number') {
+        state.syncVersion = result.version;
+        localStorage.setItem(SYNC_VERSION_KEY, String(result.version));
+      }
+
+      if (result.data && typeof result.data === 'object' && Object.keys(result.data).length > 0) {
         state.year_data = result.data;
         saveDataLocally();
         renderAllViews();
@@ -820,39 +840,94 @@
         renderSubpanel();
         updateSyncStatusUI('synced', 'Synced');
       } else {
+        // Initial sync if cloud data is empty
         saveGoalsToBackend(state.year_data);
       }
     } catch (err) {
+      console.warn('[Sync] Backend load error:', err);
       updateSyncStatusUI('offline', 'Offline Mode');
     }
   }
 
+  let isSyncing = false;
+  let pendingSyncData = null;
+
   async function saveGoalsToBackend(dataPayload) {
     if (!state.token || !navigator.onLine) return;
 
+    if (isSyncing) {
+      pendingSyncData = dataPayload;
+      return;
+    }
+
+    isSyncing = true;
+    updateSyncStatusUI('saving', 'Saving...');
+
     try {
-      const response = await fetch('/api/goals/sync', {
-        method: 'POST',
+      const baseVersion = typeof state.syncVersion === 'number' ? state.syncVersion : 0;
+      const response = await fetch(apiUrl('/api/sync'), {
+        method: 'PUT',
         headers: {
           'Authorization': `Bearer ${state.token}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({ year_data: dataPayload })
+        body: JSON.stringify({
+          data: dataPayload,
+          baseVersion: baseVersion
+        })
       });
 
       if (response.status === 401) {
         handleSignOut(false);
+        showToast('Session expired. Please sign in again.', 'alert');
         return;
       }
 
-      const result = await response.json();
-      if (result.success) {
+      // Handle 409 Conflict: Another device saved first
+      if (response.status === 409) {
+        const conflictRes = await response.json().catch(() => ({}));
+        console.warn('[Sync] Conflict (409) detected:', conflictRes);
+
+        if (conflictRes.server) {
+          if (typeof conflictRes.server.version === 'number') {
+            state.syncVersion = conflictRes.server.version;
+            localStorage.setItem(SYNC_VERSION_KEY, String(conflictRes.server.version));
+          }
+          if (conflictRes.server.data) {
+            state.year_data = conflictRes.server.data;
+            saveDataLocally();
+            renderAllViews();
+            updateAllMetrics();
+            renderSubpanel();
+          }
+        }
+        showToast('Sync conflict resolved: updated with latest server version.', 'info');
         updateSyncStatusUI('synced', 'Synced');
-      } else {
-        updateSyncStatusUI('offline', 'Sync Delayed');
+        return;
       }
+
+      if (!response.ok) {
+        const errData = await response.json().catch(() => ({}));
+        throw new Error(errData.error || `Save failed with status ${response.status}`);
+      }
+
+      const result = await response.json();
+      if (typeof result.version === 'number') {
+        state.syncVersion = result.version;
+        localStorage.setItem(SYNC_VERSION_KEY, String(result.version));
+      }
+
+      updateSyncStatusUI('synced', 'Synced');
     } catch (err) {
-      updateSyncStatusUI('offline', 'Offline');
+      console.warn('[Sync] Backend save error:', err);
+      updateSyncStatusUI('offline', 'Sync Delayed');
+    } finally {
+      isSyncing = false;
+      if (pendingSyncData) {
+        const nextData = pendingSyncData;
+        pendingSyncData = null;
+        saveGoalsToBackend(nextData);
+      }
     }
   }
 
@@ -3124,15 +3199,15 @@
       return;
     }
 
-    if (password.length < 6) {
-      showAuthAlert('Password must be at least 6 characters.');
+    if (password.length < 8) {
+      showAuthAlert('Password must be at least 8 characters.');
       return;
     }
 
     setAuthLoading(true);
     dom.authAlertBox.classList.add('hidden');
 
-    const endpoint = authMode === 'register' ? '/api/auth/register' : '/api/auth/login';
+    const endpoint = authMode === 'register' ? apiUrl('/api/auth/register') : apiUrl('/api/auth/login');
 
     try {
       const response = await fetch(endpoint, {
@@ -3199,8 +3274,10 @@
   function handleSignOut(notify = true) {
     state.token = null;
     state.user = null;
+    state.syncVersion = 0;
     localStorage.removeItem(AUTH_TOKEN_KEY);
     localStorage.removeItem(AUTH_USER_KEY);
+    localStorage.removeItem(SYNC_VERSION_KEY);
     localStorage.removeItem(SAVED_PROFILE_KEY);
     localStorage.removeItem(LAST_ACTIVE_KEY);
     updateUserSessionUI();
@@ -3337,9 +3414,9 @@
       return;
     }
 
-    if (password.length < 6) {
+    if (password.length < 8) {
       if (dom.gatewayAlertBox) {
-        dom.gatewayAlertBox.textContent = 'Password must be at least 6 characters.';
+        dom.gatewayAlertBox.textContent = 'Password must be at least 8 characters.';
         dom.gatewayAlertBox.classList.remove('hidden');
       }
       return;
@@ -3349,7 +3426,7 @@
     if (dom.btnGatewaySubmit) dom.btnGatewaySubmit.disabled = true;
     if (dom.gatewayAlertBox) dom.gatewayAlertBox.classList.add('hidden');
 
-    const endpoint = authMode === 'register' ? '/api/auth/register' : '/api/auth/login';
+    const endpoint = authMode === 'register' ? apiUrl('/api/auth/register') : apiUrl('/api/auth/login');
 
     try {
       const response = await fetch(endpoint, {
