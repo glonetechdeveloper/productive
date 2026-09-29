@@ -25,14 +25,92 @@
     return `${base}${cleanPath}`;
   }
 
-  // PWA Service Worker Registration
-  if ('serviceWorker' in navigator) {
+  // PWA Service Worker Registration & Live Update Handling
+  let swRegistration = null;
+  let newWorkerWaiting = null;
+
+  function initServiceWorker() {
+    if (!('serviceWorker' in navigator)) return;
+
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('/sw.js').then((reg) => {
+        swRegistration = reg;
         console.log('[PWA] ServiceWorker registered with scope:', reg.scope);
+
+        // If a worker is already waiting, prompt for update immediately
+        if (reg.waiting) {
+          showPwaUpdateBanner(reg.waiting);
+        }
+
+        // Listen for new updates
+        reg.addEventListener('updatefound', () => {
+          const newWorker = reg.installing;
+          if (!newWorker) return;
+
+          newWorker.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              // New version is installed and waiting for user activation
+              showPwaUpdateBanner(newWorker);
+            }
+          });
+        });
       }).catch((err) => {
         console.warn('[PWA] ServiceWorker registration failed:', err);
       });
+
+      // Reload window when new service worker takes over control
+      let refreshing = false;
+      navigator.serviceWorker.addEventListener('controllerchange', () => {
+        if (!refreshing) {
+          refreshing = true;
+          window.location.reload();
+        }
+      });
+
+      // Periodically check for updates every 15 minutes
+      setInterval(() => {
+        if (swRegistration) {
+          swRegistration.update().catch(() => {});
+        }
+      }, 15 * 60 * 1000);
+
+      // Check on tab visibility
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && swRegistration) {
+          swRegistration.update().catch(() => {});
+        }
+      });
+    });
+  }
+
+  function showPwaUpdateBanner(worker) {
+    newWorkerWaiting = worker;
+    if (dom.pwaUpdateBanner) {
+      dom.pwaUpdateBanner.classList.remove('hidden');
+    }
+  }
+
+  function applyPwaUpdate() {
+    if (newWorkerWaiting) {
+      newWorkerWaiting.postMessage({ type: 'SKIP_WAITING' });
+    } else if (swRegistration && swRegistration.waiting) {
+      swRegistration.waiting.postMessage({ type: 'SKIP_WAITING' });
+    } else {
+      window.location.reload();
+    }
+  }
+
+  // Loading Splash Screen Engine (Zooming Logo Animation)
+  function showAppLoadingSplash(message = 'Initializing Workspace...', minDurationMs = 1200) {
+    if (!dom.appLoadingSplash) return Promise.resolve();
+    if (dom.splashStatusText) dom.splashStatusText.textContent = message;
+    dom.appLoadingSplash.classList.remove('hidden');
+
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        dom.appLoadingSplash.classList.add('hidden');
+        resolve();
+      }, minDurationMs);
     });
   }
 
@@ -452,10 +530,37 @@
     gatewayNameInput: document.getElementById('gatewayNameInput'),
     gatewayEmailInput: document.getElementById('gatewayEmailInput'),
     gatewayPasswordInput: document.getElementById('gatewayPasswordInput'),
+    toggleGatewayPwdBtn: document.getElementById('toggleGatewayPwdBtn'),
     btnGatewaySubmit: document.getElementById('btnGatewaySubmit'),
     gatewaySubmitText: document.getElementById('gatewaySubmitText'),
     gatewaySpinner: document.getElementById('gatewaySpinner'),
     btnGatewayBackToWelcome: document.getElementById('btnGatewayBackToWelcome'),
+    btnGatewayGuest: document.getElementById('btnGatewayGuest'),
+    btnGatewayGuestResume: document.getElementById('btnGatewayGuestResume'),
+
+    // App Splash Loading & PWA Update Elements
+    appLoadingSplash: document.getElementById('appLoadingSplash'),
+    splashStatusText: document.getElementById('splashStatusText'),
+    splashProgressBar: document.getElementById('splashProgressBar'),
+    pwaUpdateBanner: document.getElementById('pwaUpdateBanner'),
+    btnPwaUpdateReload: document.getElementById('btnPwaUpdateReload'),
+    btnPwaUpdateDismiss: document.getElementById('btnPwaUpdateDismiss'),
+
+    // User Account Popover & Sidebar Profile
+    sidebarProfilePill: document.getElementById('sidebarProfilePill'),
+    sidebarLoginBtn: document.getElementById('sidebarLoginBtn'),
+    userAccountPopover: document.getElementById('userAccountPopover'),
+    popoverAvatar: document.getElementById('popoverAvatar'),
+    popoverUserName: document.getElementById('popoverUserName'),
+    popoverUserEmail: document.getElementById('popoverUserEmail'),
+    popoverSyncDot: document.getElementById('popoverSyncDot'),
+    popoverSyncLabel: document.getElementById('popoverSyncLabel'),
+    popoverSyncVersion: document.getElementById('popoverSyncVersion'),
+    popoverSyncTimestamp: document.getElementById('popoverSyncTimestamp'),
+    btnPopoverSyncNow: document.getElementById('btnPopoverSyncNow'),
+    btnPopoverAuthAction: document.getElementById('btnPopoverAuthAction'),
+    popoverAuthActionText: document.getElementById('popoverAuthActionText'),
+    btnPopoverSignOut: document.getElementById('btnPopoverSignOut'),
 
     // Schedule Hours Configuration
     btnOpenScheduleConfig: document.getElementById('btnOpenScheduleConfig'),
@@ -476,6 +581,7 @@
   // INITIALIZATION
   // ==========================================================================
   function initApp() {
+    initServiceWorker();
     applyTheme(state.theme);
     loadInitialData();
     populateTimeSlotSelects();
@@ -3218,7 +3324,7 @@
 
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.error || 'Authentication failed.');
+        throw new Error(data.error || 'Authentication failed. Please check your credentials.');
       }
 
       state.token = data.token;
@@ -3230,12 +3336,17 @@
         saveSavedProfile(name, email);
       }
 
-      updateUserSessionUI();
       closeAuthModal();
+      await showAppLoadingSplash(authMode === 'register' ? 'Setting Up Cloud Workspace...' : 'Signing In & Loading Cloud Data...', 1200);
+
+      updateUserSessionUI();
       showToast(`Welcome, ${name || data.user.email}!`, 'success');
       await loadGoalsFromBackend();
     } catch (err) {
-      showAuthAlert(err.message);
+      const msg = (err.name === 'TypeError' && err.message.includes('fetch'))
+        ? 'Unable to connect to backend server. Please verify your internet connection.'
+        : err.message;
+      showAuthAlert(msg);
     } finally {
       setAuthLoading(false);
     }
@@ -3253,35 +3364,87 @@
   }
 
   function updateUserSessionUI() {
-    if (state.token && state.user) {
-      const emailInitial = (state.user.email || 'US').substring(0, 2).toUpperCase();
-      dom.userEmailDisplay.textContent = state.user.email.split('@')[0];
-      dom.userAvatarText.textContent = emailInitial;
-      dom.topAvatarInitials.textContent = emailInitial;
-      dom.userStatusSub.textContent = 'Cloud Active';
-      dom.logoutBtn.classList.remove('hidden');
+    const isCloudActive = !!(state.token && state.user);
+
+    if (isCloudActive) {
+      const email = state.user.email || 'prince@workspace.io';
+      const userName = state.user.name || (email ? email.split('@')[0] : 'Prince');
+      const emailInitial = (userName || email || 'US').substring(0, 2).toUpperCase();
+
+      // Sidebar Profile
+      if (dom.userEmailDisplay) dom.userEmailDisplay.textContent = userName;
+      if (dom.userAvatarText) dom.userAvatarText.textContent = emailInitial;
+      if (dom.userStatusSub) dom.userStatusSub.textContent = 'Cloud Active (v' + (state.syncVersion || 0) + ')';
+      if (dom.logoutBtn) dom.logoutBtn.classList.remove('hidden');
+      if (dom.sidebarLoginBtn) dom.sidebarLoginBtn.classList.add('hidden');
+
+      // Topbar Avatar
+      if (dom.topAvatarInitials) dom.topAvatarInitials.textContent = emailInitial;
+
+      // Popover
+      if (dom.popoverAvatar) dom.popoverAvatar.textContent = emailInitial;
+      if (dom.popoverUserName) dom.popoverUserName.textContent = userName;
+      if (dom.popoverUserEmail) dom.popoverUserEmail.textContent = email;
+      if (dom.popoverSyncDot) dom.popoverSyncDot.className = 'popover-status-dot online';
+      if (dom.popoverSyncLabel) dom.popoverSyncLabel.textContent = 'Cloud Sync: Active (PostgreSQL)';
+      if (dom.popoverSyncVersion) dom.popoverSyncVersion.textContent = `v${state.syncVersion || 0}`;
+      if (dom.popoverSyncTimestamp) dom.popoverSyncTimestamp.textContent = 'Connected';
+      if (dom.popoverAuthActionText) dom.popoverAuthActionText.textContent = 'Switch Account';
+      if (dom.btnPopoverSignOut) dom.btnPopoverSignOut.classList.remove('hidden');
+
       updateSyncStatusUI('synced', 'Synced');
     } else {
-      dom.userEmailDisplay.textContent = 'Guest User';
-      dom.userAvatarText.textContent = 'PR';
-      dom.topAvatarInitials.textContent = 'PR';
-      dom.userStatusSub.textContent = 'Local Mode';
-      dom.logoutBtn.classList.add('hidden');
+      // Local Guest Mode
+      if (dom.userEmailDisplay) dom.userEmailDisplay.textContent = 'Guest User';
+      if (dom.userAvatarText) dom.userAvatarText.textContent = 'PR';
+      if (dom.userStatusSub) dom.userStatusSub.textContent = 'Local Mode';
+      if (dom.logoutBtn) dom.logoutBtn.classList.add('hidden');
+      if (dom.sidebarLoginBtn) dom.sidebarLoginBtn.classList.remove('hidden');
+
+      if (dom.topAvatarInitials) dom.topAvatarInitials.textContent = 'PR';
+
+      if (dom.popoverAvatar) dom.popoverAvatar.textContent = 'PR';
+      if (dom.popoverUserName) dom.popoverUserName.textContent = 'Guest User';
+      if (dom.popoverUserEmail) dom.popoverUserEmail.textContent = 'Local Browser Storage';
+      if (dom.popoverSyncDot) dom.popoverSyncDot.className = 'popover-status-dot';
+      if (dom.popoverSyncLabel) dom.popoverSyncLabel.textContent = 'Cloud Sync: Local Mode';
+      if (dom.popoverSyncVersion) dom.popoverSyncVersion.textContent = 'v0';
+      if (dom.popoverSyncTimestamp) dom.popoverSyncTimestamp.textContent = 'Offline';
+      if (dom.popoverAuthActionText) dom.popoverAuthActionText.textContent = 'Sign In / Register Cloud Account';
+      if (dom.btnPopoverSignOut) dom.btnPopoverSignOut.classList.add('hidden');
+
       updateSyncStatusUI('offline', 'Offline (Local)');
     }
   }
 
+  function toggleUserAccountPopover(e) {
+    if (e) e.stopPropagation();
+    if (!dom.userAccountPopover) return;
+    const isHidden = dom.userAccountPopover.classList.contains('hidden');
+    if (isHidden) {
+      updateUserSessionUI();
+      dom.userAccountPopover.classList.remove('hidden');
+    } else {
+      dom.userAccountPopover.classList.add('hidden');
+    }
+  }
+
+  function closeUserAccountPopover() {
+    if (dom.userAccountPopover) {
+      dom.userAccountPopover.classList.add('hidden');
+    }
+  }
+
   function handleSignOut(notify = true) {
+    closeUserAccountPopover();
     state.token = null;
     state.user = null;
     state.syncVersion = 0;
     localStorage.removeItem(AUTH_TOKEN_KEY);
     localStorage.removeItem(AUTH_USER_KEY);
     localStorage.removeItem(SYNC_VERSION_KEY);
-    localStorage.removeItem(SAVED_PROFILE_KEY);
-    localStorage.removeItem(LAST_ACTIVE_KEY);
     updateUserSessionUI();
-    if (notify) showToast('Signed out', 'info');
+    if (notify) showToast('Signed out from cloud session.', 'info');
     showGatewayAuthPane('login');
     if (dom.appAuthGateway) dom.appAuthGateway.classList.remove('hidden');
   }
@@ -3328,11 +3491,11 @@
     const isFirstVisit = !profile || lastActive === 0;
 
     if (isFirstVisit) {
-      // First time user: directly show Create Account mode
+      // First time user: show gateway tabs
       if (dom.gatewayExpiryNotice) {
         dom.gatewayExpiryNotice.classList.add('hidden');
       }
-      showGatewayAuthPane('register');
+      showGatewayAuthPane('login');
       dom.appAuthGateway.classList.remove('hidden');
       return;
     }
@@ -3397,7 +3560,16 @@
     if (dom.appAuthGateway) {
       dom.appAuthGateway.classList.add('hidden');
     }
-    showToast(`Welcome back, ${(profile && profile.name) || (getSavedProfile() && getSavedProfile().name) || 'Prince'}`, 'success');
+    updateUserSessionUI();
+  }
+
+  async function handleContinueGuest() {
+    if (dom.appAuthGateway) dom.appAuthGateway.classList.add('hidden');
+    if (dom.authModalBackdrop) dom.authModalBackdrop.classList.add('hidden');
+    await showAppLoadingSplash('Entering Workspace (Local Mode)...', 1000);
+    recordUserActivity();
+    updateUserSessionUI();
+    showToast('Entered Workspace in Local Storage mode', 'info');
   }
 
   async function handleGatewayAuthSubmit(e) {
@@ -3437,7 +3609,7 @@
 
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.error || 'Authentication failed.');
+        throw new Error(data.error || 'Authentication failed. Please verify credentials.');
       }
 
       state.token = data.token;
@@ -3446,12 +3618,19 @@
       localStorage.setItem(AUTH_USER_KEY, JSON.stringify(data.user));
 
       const profile = saveSavedProfile(name, email);
-      updateUserSessionUI();
+
+      if (dom.appAuthGateway) dom.appAuthGateway.classList.add('hidden');
+      await showAppLoadingSplash(authMode === 'register' ? 'Creating Account & Synchronizing...' : 'Signing In & Loading Cloud Data...', 1200);
+
       unlockAppSession(profile);
+      showToast(`Welcome back, ${name}!`, 'success');
       await loadGoalsFromBackend();
     } catch (err) {
       if (dom.gatewayAlertBox) {
-        dom.gatewayAlertBox.textContent = err.message;
+        const msg = (err.name === 'TypeError' && err.message.includes('fetch'))
+          ? 'Unable to connect to backend server. Please verify your internet connection.'
+          : err.message;
+        dom.gatewayAlertBox.textContent = msg;
         dom.gatewayAlertBox.classList.remove('hidden');
       }
     } finally {
@@ -3942,12 +4121,59 @@
     // Yearly Goals
     dom.btnAddNewYearlyGoal.addEventListener('click', () => addNewYearlyGoal());
 
-    // Auth Modal
-    dom.authTriggerBtn.addEventListener('click', () => {
-      if (state.token) {
-        showToast(`Signed in as ${state.user.email}`, 'info');
-      } else {
+    // User Account Popover & Auth Modal Triggers
+    if (dom.authTriggerBtn) {
+      dom.authTriggerBtn.addEventListener('click', (e) => {
+        toggleUserAccountPopover(e);
+      });
+    }
+
+    if (dom.sidebarProfilePill) {
+      dom.sidebarProfilePill.addEventListener('click', (e) => {
+        if (!state.token) {
+          openAuthModal('login');
+        } else {
+          toggleUserAccountPopover(e);
+        }
+      });
+    }
+
+    if (dom.sidebarLoginBtn) {
+      dom.sidebarLoginBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
         openAuthModal('login');
+      });
+    }
+
+    if (dom.btnPopoverAuthAction) {
+      dom.btnPopoverAuthAction.addEventListener('click', () => {
+        closeUserAccountPopover();
+        openAuthModal(state.token ? 'login' : 'login');
+      });
+    }
+
+    if (dom.btnPopoverSignOut) {
+      dom.btnPopoverSignOut.addEventListener('click', () => {
+        handleSignOut(true);
+      });
+    }
+
+    if (dom.btnPopoverSyncNow) {
+      dom.btnPopoverSyncNow.addEventListener('click', () => {
+        if (state.token) {
+          loadGoalsFromBackend();
+          showToast('Syncing with PostgreSQL cloud...', 'info');
+        } else {
+          closeUserAccountPopover();
+          openAuthModal('login');
+        }
+      });
+    }
+
+    // Dismiss popovers on outside click
+    document.addEventListener('click', (e) => {
+      if (dom.userAccountPopover && !dom.userAccountPopover.contains(e.target) && !dom.authTriggerBtn?.contains(e.target) && !dom.sidebarProfilePill?.contains(e.target)) {
+        closeUserAccountPopover();
       }
     });
 
@@ -3961,13 +4187,24 @@
       updateAuthModalModeUI();
     });
     dom.authForm.addEventListener('submit', handleAuthFormSubmit);
-    dom.logoutBtn.addEventListener('click', () => handleSignOut(true));
-    dom.btnContinueGuest.addEventListener('click', closeAuthModal);
+    dom.logoutBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      handleSignOut(true);
+    });
+    dom.btnContinueGuest.addEventListener('click', handleContinueGuest);
 
     dom.togglePasswordBtn.addEventListener('click', () => {
       const isPwd = dom.authPassword.getAttribute('type') === 'password';
       dom.authPassword.setAttribute('type', isPwd ? 'text' : 'password');
     });
+
+    if (dom.toggleGatewayPwdBtn) {
+      dom.toggleGatewayPwdBtn.addEventListener('click', () => {
+        if (!dom.gatewayPasswordInput) return;
+        const isPwd = dom.gatewayPasswordInput.getAttribute('type') === 'password';
+        dom.gatewayPasswordInput.setAttribute('type', isPwd ? 'text' : 'password');
+      });
+    }
 
     dom.syncStatusBadge.addEventListener('click', () => {
       if (state.token) {
@@ -3976,6 +4213,16 @@
         openAuthModal('login');
       }
     });
+
+    // PWA Update Banner Listeners
+    if (dom.btnPwaUpdateReload) {
+      dom.btnPwaUpdateReload.addEventListener('click', applyPwaUpdate);
+    }
+    if (dom.btnPwaUpdateDismiss) {
+      dom.btnPwaUpdateDismiss.addEventListener('click', () => {
+        if (dom.pwaUpdateBanner) dom.pwaUpdateBanner.classList.add('hidden');
+      });
+    }
 
     // Data Export & Import
     dom.btnExportData.addEventListener('click', exportBackupJSON);
@@ -4044,8 +4291,14 @@
 
     // Auth Gateway Listeners
     if (dom.btnGatewayContinue) {
-      dom.btnGatewayContinue.addEventListener('click', () => {
-        unlockAppSession(getSavedProfile());
+      dom.btnGatewayContinue.addEventListener('click', async () => {
+        const profile = getSavedProfile();
+        if (dom.appAuthGateway) dom.appAuthGateway.classList.add('hidden');
+        await showAppLoadingSplash(`Entering Workspace as ${(profile && profile.name) || 'Prince'}...`, 1100);
+        unlockAppSession(profile);
+        if (state.token) {
+          loadGoalsFromBackend();
+        }
       });
     }
 
@@ -4053,6 +4306,14 @@
       dom.btnGatewaySwitchAccount.addEventListener('click', () => {
         showGatewayAuthPane('login');
       });
+    }
+
+    if (dom.btnGatewayGuestResume) {
+      dom.btnGatewayGuestResume.addEventListener('click', handleContinueGuest);
+    }
+
+    if (dom.btnGatewayGuest) {
+      dom.btnGatewayGuest.addEventListener('click', handleContinueGuest);
     }
 
     if (dom.btnGatewayTabLogin) {

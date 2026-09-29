@@ -104,7 +104,7 @@ const server = http.createServer(async (req, res) => {
     if (pathname === '/api/auth/login') {
       return await loginHandler(req, res);
     }
-    if (pathname === '/api/goals/sync') {
+    if (pathname === '/api/sync' || pathname === '/api/goals/sync') {
       return await syncHandler(req, res);
     }
   } catch (err) {

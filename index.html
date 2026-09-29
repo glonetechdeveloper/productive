@@ -26,6 +26,48 @@
 </head>
 <body>
   <!-- ========================================================================== -->
+  <!-- APP LOADING SPLASH SCREEN (ZOOMING LOGO ANIMATION) -->
+  <!-- ========================================================================== -->
+  <div class="app-loading-splash hidden" id="appLoadingSplash" aria-live="polite">
+    <div class="splash-content">
+      <div class="splash-logo-wrapper">
+        <div class="splash-logo-aura"></div>
+        <div class="splash-logo-box">
+          <svg class="splash-logo-icon" width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+      </div>
+      <div class="splash-brand-title">Productive</div>
+      <div class="splash-status-text" id="splashStatusText">Initializing Workspace...</div>
+      <div class="splash-progress-track">
+        <div class="splash-progress-bar" id="splashProgressBar"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================== -->
+  <!-- PWA INSTANT UPDATE FLOATING NOTIFICATION BANNER -->
+  <!-- ========================================================================== -->
+  <div class="pwa-update-banner hidden" id="pwaUpdateBanner" role="alert">
+    <div class="pwa-update-content">
+      <div class="pwa-update-icon">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+        </svg>
+      </div>
+      <div class="pwa-update-text">
+        <strong class="pwa-update-title">New Update Available</strong>
+        <span class="pwa-update-desc">A new version of Productive is ready with fresh improvements.</span>
+      </div>
+      <div class="pwa-update-actions">
+        <button type="button" class="btn-pwa-update" id="btnPwaUpdateReload">Update Now</button>
+        <button type="button" class="btn-pwa-dismiss" id="btnPwaUpdateDismiss" title="Dismiss">&times;</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================================================== -->
   <!-- AUTH & LANDING GATEWAY SCREEN (PWA / Welcome / 48h Inactivity Expiry) -->
   <!-- ========================================================================== -->
   <div class="auth-gateway-overlay" id="appAuthGateway">
@@ -69,6 +111,7 @@
 
           <div class="gateway-links-row">
             <button type="button" class="gateway-text-btn" id="btnGatewaySwitchAccount">Switch account / Sign in &rarr;</button>
+            <button type="button" class="gateway-text-btn gateway-guest-btn" id="btnGatewayGuestResume">Continue as Guest</button>
           </div>
         </div>
       </div>
@@ -106,7 +149,15 @@
 
           <div class="form-group">
             <label class="form-label" for="gatewayPasswordInput">Password</label>
-            <input type="password" id="gatewayPasswordInput" class="form-input" placeholder="Password (Min 8 chars)" required minlength="8" autocomplete="current-password" />
+            <div class="input-password-wrapper">
+              <input type="password" id="gatewayPasswordInput" class="form-input" placeholder="Password (Min 8 chars)" required minlength="8" autocomplete="current-password" />
+              <button type="button" class="toggle-pwd-btn" id="toggleGatewayPwdBtn" title="Toggle password visibility">
+                <svg class="pwd-eye-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </button>
+            </div>
           </div>
 
           <button type="submit" class="btn-gateway-primary" id="btnGatewaySubmit">
@@ -114,9 +165,14 @@
             <span id="gatewaySpinner" class="spinner-small hidden"></span>
           </button>
 
-          <button type="button" class="gateway-text-btn hidden" id="btnGatewayBackToWelcome">
-            &larr; Back to quick resume
-          </button>
+          <div class="gateway-alt-actions">
+            <button type="button" class="gateway-text-btn" id="btnGatewayGuest">
+              Continue with Local Storage (Guest Mode)
+            </button>
+            <button type="button" class="gateway-text-btn hidden" id="btnGatewayBackToWelcome">
+              &larr; Back to quick resume
+            </button>
+          </div>
         </form>
       </div>
 
@@ -287,17 +343,24 @@
 
       <!-- Sidebar Footer User Profile -->
       <div class="sidebar-footer">
-        <div class="user-profile-pill" id="sidebarProfilePill">
+        <div class="user-profile-pill" id="sidebarProfilePill" title="View Account & Cloud Sync details">
           <div class="user-avatar-badge" id="userAvatarText">PR</div>
           <div class="user-meta-info">
             <span class="user-display-name" id="userEmailDisplay">Guest User</span>
             <span class="user-status-text" id="userStatusSub">Local Mode</span>
           </div>
-          <button class="logout-icon-btn hidden" id="logoutBtn" title="Sign Out">
+          <button class="logout-icon-btn hidden" id="logoutBtn" title="Sign Out from Cloud">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
               <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
               <polyline points="16 17 21 12 16 7"></polyline>
               <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+          </button>
+          <button class="sidebar-login-icon-btn" id="sidebarLoginBtn" title="Sign In / Sync Cloud">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+              <polyline points="10 17 15 12 10 7"></polyline>
+              <line x1="15" y1="12" x2="3" y2="12"></line>
             </svg>
           </button>
         </div>
@@ -373,10 +436,60 @@
             </svg>
           </button>
 
-          <!-- Auth / Profile Trigger -->
-          <button class="user-avatar-btn" id="authTriggerBtn" title="Account & Sync">
-            <span class="avatar-initials" id="topAvatarInitials">PR</span>
-          </button>
+          <!-- Auth / Profile Trigger Wrapper -->
+          <div class="user-account-wrapper">
+            <button class="user-avatar-btn" id="authTriggerBtn" title="Account & Sync Settings">
+              <span class="avatar-initials" id="topAvatarInitials">PR</span>
+            </button>
+
+            <!-- User Account Popover Dropdown -->
+            <div class="user-account-popover hidden" id="userAccountPopover">
+              <div class="popover-header">
+                <div class="popover-avatar" id="popoverAvatar">PR</div>
+                <div class="popover-user-info">
+                  <strong class="popover-user-name" id="popoverUserName">Prince</strong>
+                  <span class="popover-user-email" id="popoverUserEmail">Local Guest</span>
+                </div>
+              </div>
+
+              <div class="popover-sync-card">
+                <div class="popover-sync-status-row">
+                  <span class="popover-status-dot online" id="popoverSyncDot"></span>
+                  <span class="popover-status-label" id="popoverSyncLabel">Cloud Sync: Local Mode</span>
+                </div>
+                <div class="popover-sync-details" id="popoverSyncDetails">
+                  Version: <span id="popoverSyncVersion">v0</span> &bull; <span id="popoverSyncTimestamp">Not synced yet</span>
+                </div>
+                <button type="button" class="btn-popover-sync-action" id="btnPopoverSyncNow">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"></path>
+                  </svg>
+                  <span>Sync Now</span>
+                </button>
+              </div>
+
+              <div class="popover-menu-items">
+                <button type="button" class="popover-menu-btn" id="btnPopoverAuthAction">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="8.5" cy="7" r="4"></circle>
+                    <line x1="20" y1="8" x2="20" y2="14"></line>
+                    <line x1="23" y1="11" x2="17" y2="11"></line>
+                  </svg>
+                  <span id="popoverAuthActionText">Sign In / Switch Account</span>
+                </button>
+
+                <button type="button" class="popover-menu-btn popover-logout-btn hidden" id="btnPopoverSignOut">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                  </svg>
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -1089,6 +1202,62 @@
                       </div>
                     </div>
                   </div>
+                </div>
+              </div>
+
+              <!-- Chapter 8: Multi-Device Sync & Conflict Resolution -->
+              <div class="guide-feature-box" id="guide-sec-sync-engine">
+                <div class="guide-box-header">
+                  <div class="guide-num-badge">08</div>
+                  <div>
+                    <h4 class="guide-box-title">Multi-Device Cloud Sync &amp; Automatic Versioning</h4>
+                    <span class="guide-box-subtitle">Optimistic concurrency control with seamless 409 conflict reconciliation</span>
+                  </div>
+                </div>
+                <div class="guide-box-body">
+                  <p>When working across your phone, laptop, and tablet, Productive maintains real-time data integrity through strict version tracking:</p>
+                  <ul class="guide-bullet-list">
+                    <li><strong>JWT Cloud Authentication:</strong> Securely stores your session token in local storage and authorizes requests with Bearer tokens.</li>
+                    <li><strong>Versioned PUT Requests:</strong> Every save operation attaches the local <code>baseVersion</code>. If multiple devices edit simultaneously, the cloud gracefully returns a 409 conflict payload with the latest server state.</li>
+                    <li><strong>Automatic Conflict Resolution:</strong> The client synchronizes version numbers smoothly, preventing overwrite collisions without disrupting your workflow.</li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- Chapter 9: PWA Standalone & Instant Updates -->
+              <div class="guide-feature-box" id="guide-sec-pwa-updates">
+                <div class="guide-box-header">
+                  <div class="guide-num-badge">09</div>
+                  <div>
+                    <h4 class="guide-box-title">Progressive Web App (PWA) &amp; Live Update Alert System</h4>
+                    <span class="guide-box-subtitle">Install as a standalone native-like app with automatic background update alerts</span>
+                  </div>
+                </div>
+                <div class="guide-box-body">
+                  <div class="guide-split-info">
+                    <div class="info-half">
+                      <strong>Standalone Installation</strong>
+                      <p>Install Productive directly to your Home Screen or Desktop as a lightweight, fast Progressive Web App with full offline capabilities.</p>
+                    </div>
+                    <div class="info-half">
+                      <strong>Instant Version Updates</strong>
+                      <p>Whenever an update is deployed, the Service Worker detects the new build in the background and surfaces an <strong>Update Available</strong> notification. One click immediately reloads with the fresh code.</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Chapter 10: Customizable Daily Schedule Hours -->
+              <div class="guide-feature-box" id="guide-sec-custom-hours">
+                <div class="guide-box-header">
+                  <div class="guide-num-badge">10</div>
+                  <div>
+                    <h4 class="guide-box-title">Custom Daily Schedule Window (3 AM - 11 PM)</h4>
+                    <span class="guide-box-subtitle">Tailor your active operating hours to your natural circadian rhythm</span>
+                  </div>
+                </div>
+                <div class="guide-box-body">
+                  <p>Whether you're an extreme early riser following the <strong>03:00 AM Dawn Sprint</strong> or prefer a classic <strong>07:00 AM gentle start</strong>, click the <strong>Schedule Hours</strong> icon in the Time Blocks toolbar to select your preferred start and end hours. All 1-hour slots recalculate instantly across your entire workspace.</p>
                 </div>
               </div>
 
