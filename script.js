@@ -4244,6 +4244,9 @@
           const targetTab = link.dataset.challengeTab || 'active';
           switchToLevel('challenge');
           switchChallengeTab(targetTab);
+          if (isMobileView()) {
+            closeMobileSidebar();
+          }
         });
       });
     }
@@ -4260,6 +4263,9 @@
       dom.btnQuickJoinCode.addEventListener('click', () => {
         switchToLevel('challenge');
         switchChallengeTab('join');
+        if (isMobileView()) {
+          closeMobileSidebar();
+        }
         if (dom.inputJoinCode) dom.inputJoinCode.focus();
       });
     }
