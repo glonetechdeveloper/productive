@@ -272,6 +272,18 @@
           <span class="nav-label">Annual Goals</span>
         </button>
 
+        <button class="nav-item-btn" data-level="custom" id="tabCustom">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+            <circle cx="12" cy="15" r="2"></circle>
+          </svg>
+          <span class="nav-label">Custom Goals</span>
+          <span class="nav-badge" id="sidebarCustomGoalsBadge">0</span>
+        </button>
+
         <!-- CHALLENGES SECTION WITH DROPDOWN -->
         <div class="sidebar-nav-dropdown-group" id="challengesNavGroup">
           <div class="sidebar-dropdown-row">
@@ -322,6 +334,14 @@
         </button>
 
         <div class="nav-section-title">System</div>
+
+        <button class="nav-item-btn" id="btnSidebarSettings">
+          <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+          <span class="nav-label">Settings</span>
+        </button>
 
         <button class="nav-item-btn" id="btnSidebarSync">
           <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -726,17 +746,46 @@
                 </div>
                 <div>
                   <h2 class="stage-heading" id="weeklyStrategyTitle">Pre-Week Strategic Intentions</h2>
-                  <span class="stage-sub-status">Strategy, constraints, and top priority deliverables</span>
+                  <span class="stage-sub-status" id="weeklyStrategySubtitle">Strategy, constraints, and top priority deliverables</span>
                 </div>
               </div>
 
-              <!-- Week selector pills -->
-              <div class="stage-header-actions">
-                <div class="segmented-control" id="monthWeekSelector">
-                  <button class="segment-btn sub-week-btn active" data-weeknum="1">Week 1</button>
-                  <button class="segment-btn sub-week-btn" data-weeknum="2">Week 2</button>
-                  <button class="segment-btn sub-week-btn" data-weeknum="3">Week 3</button>
-                  <button class="segment-btn sub-week-btn" data-weeknum="4">Week 4</button>
+              <!-- 4-Week Cycle Navigator & Week Selector Pills -->
+              <div class="stage-header-actions weekly-header-actions">
+                <div class="weekly-cycle-nav">
+                  <button type="button" class="nav-icon-btn weekly-arrow-btn" id="btnPrev4Weeks" title="Previous 4 Weeks">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                  </button>
+                  <div class="weekly-cycle-badge" id="weekly4WeeksSpanLabel">
+                    4-Week Sprint · Oct 5 – Nov 1, 2026
+                  </div>
+                  <button type="button" class="nav-icon-btn weekly-arrow-btn" id="btnNext4Weeks" title="Next 4 Weeks">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                  </button>
+                  <button type="button" class="btn-subtle-pill hidden" id="btnReset4Weeks">Current 4 Weeks</button>
+                </div>
+
+                <div class="segmented-control segmented-control-weeks" id="monthWeekSelector">
+                  <button class="segment-btn sub-week-btn active" data-weeknum="1">
+                    <span class="week-title-short">Week 1</span>
+                    <span class="week-range-short" id="weekRangeLabel1">7 Days</span>
+                  </button>
+                  <button class="segment-btn sub-week-btn" data-weeknum="2">
+                    <span class="week-title-short">Week 2</span>
+                    <span class="week-range-short" id="weekRangeLabel2">7 Days</span>
+                  </button>
+                  <button class="segment-btn sub-week-btn" data-weeknum="3">
+                    <span class="week-title-short">Week 3</span>
+                    <span class="week-range-short" id="weekRangeLabel3">7 Days</span>
+                  </button>
+                  <button class="segment-btn sub-week-btn" data-weeknum="4">
+                    <span class="week-title-short">Week 4</span>
+                    <span class="week-range-short" id="weekRangeLabel4">7 Days</span>
+                  </button>
                 </div>
               </div>
             </div>
@@ -745,7 +794,10 @@
               <!-- Strategy Notepad -->
               <div class="detail-card-panel">
                 <div class="panel-card-header">
-                  <h3 class="panel-card-title">Strategic Intentions & Constraints</h3>
+                  <div>
+                    <h3 class="panel-card-title" id="strategyCardTitle">Strategic Intentions &amp; Constraints</h3>
+                    <span class="stage-sub-status" id="strategyCardDateRange">Week 1 Range</span>
+                  </div>
                   <span class="badge-tag">Auto-Saved</span>
                 </div>
                 <textarea id="weeklyStrategyText" class="strategy-clean-textarea" placeholder="Write your strategy notes here...&#10;&#10;1. Key Focus:&#10;2. Potential Bottlenecks:&#10;3. Non-negotiables:"></textarea>
@@ -754,7 +806,10 @@
               <!-- Big Rocks Deliverables -->
               <div class="detail-card-panel">
                 <div class="panel-card-header">
-                  <h3 class="panel-card-title">Weekly High-Impact Deliverables</h3>
+                  <div>
+                    <h3 class="panel-card-title">Weekly High-Impact Deliverables</h3>
+                    <span class="stage-sub-status" id="strategyRocksSubtitle">Top key deliverables for this 7-day sprint</span>
+                  </div>
                   <button id="btnAddWeeklyRock" class="btn-secondary-sm">+ Add Deliverable</button>
                 </div>
                 <div class="rocks-clean-feed" id="weeklyRocksList">
@@ -803,7 +858,7 @@
                   <span class="stage-avatar-txt">AG</span>
                 </div>
                 <div>
-                  <h2 class="stage-heading" id="yearlyMainTitle">Master Vision & Annual Goals</h2>
+                  <h2 class="stage-heading" id="yearlyMainTitle">Master Vision &amp; Annual Goals</h2>
                   <span class="stage-sub-status" id="yearlyVisionStatusText">Active Strategic Horizons</span>
                 </div>
               </div>
@@ -833,9 +888,70 @@
               </div>
             </div>
 
+            <!-- Category Filter Strip for Annual Goals -->
+            <div class="category-filter-strip">
+              <div class="category-filter-header">
+                <span class="category-filter-label">Filter by Category:</span>
+                <span class="category-filter-count" id="yearlyFilteredCountBadge">All Categories</span>
+              </div>
+              <div class="category-filter-pills" id="yearlyCategoryPills">
+                <!-- Dynamically populated category tags -->
+              </div>
+            </div>
+
             <!-- Goals Cards Feed -->
             <div class="yearly-goals-grid" id="yearlyGoalsContainer">
               <!-- Populated dynamically -->
+            </div>
+          </section>
+
+          <!-- ========================================================== -->
+          <!-- VIEW: CUSTOM PERIOD GOALS (Flexible Duration Challenges) -->
+          <!-- ========================================================== -->
+          <section class="stage-view-pane" id="view-custom">
+            <div class="stage-pane-header">
+              <div class="stage-title-wrap">
+                <div class="stage-avatar-pill">
+                  <span class="stage-avatar-txt">CG</span>
+                </div>
+                <div>
+                  <h2 class="stage-heading" id="customGoalsHeading">Custom Period Goals</h2>
+                  <span class="stage-sub-status" id="customGoalsSub">Set goals for any duration: 34 days, 2.5 months, 57 days, or calendar date ranges</span>
+                </div>
+              </div>
+
+              <div class="stage-header-actions">
+                <button id="btnOpenCreateCustomGoalModal" class="btn-primary-pill">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  <span>+ New Custom Goal</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Custom Goals Hero Banner -->
+            <div class="routines-hero-banner custom-goals-hero-banner">
+              <div class="routines-hero-content">
+                <h3 class="routines-hero-title">Arbitrary Duration Architecture</h3>
+                <p class="routines-hero-desc">High-leverage objectives often don't match standard 1-week or 1-year boundaries. Launch custom sprints for 34 days, 57 days, 2.5 months, or custom date spans with built-in checkpoint checklists and progress analytics.</p>
+              </div>
+              <div class="routines-hero-stats">
+                <div class="routine-hero-stat-box">
+                  <span class="routine-stat-num" id="heroActiveCustomGoalsCount">0</span>
+                  <span class="routine-stat-lbl">Active Campaigns</span>
+                </div>
+                <div class="routine-hero-stat-box">
+                  <span class="routine-stat-num" id="heroCustomMilestonesCount">0</span>
+                  <span class="routine-stat-lbl">Checkpoints Done</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Custom Goals Cards Grid -->
+            <div class="custom-goals-grid" id="customGoalsContainer">
+              <!-- Dynamically populated with custom goal cards -->
             </div>
           </section>
 
@@ -1530,12 +1646,13 @@
         <p class="modal-subtitle">Quickly add a task, weekly deliverable, checkpoint, or annual goal.</p>
       </div>
 
-      <!-- Tabs: Time Block | Weekly Rock | Horizon Checkpoint | Annual Goal -->
+      <!-- Tabs: Time Block | Weekly Rock | Horizon Checkpoint | Annual Goal | Custom Goal -->
       <div class="modal-tabs" id="newItemTabs">
         <button class="modal-tab-btn active" data-type="block">Time Block</button>
         <button class="modal-tab-btn" data-type="rock">Weekly Rock</button>
         <button class="modal-tab-btn" data-type="milestone">Checkpoint</button>
         <button class="modal-tab-btn" data-type="goal">Annual Goal</button>
+        <button class="modal-tab-btn" data-type="custom">Custom Goal</button>
       </div>
 
       <!-- Form for Creation -->
@@ -1616,8 +1733,8 @@
             <input type="text" id="newGoalTitle" class="form-input" placeholder="e.g. Reach $250k ARR on SaaS" />
           </div>
           <div class="form-group">
-            <label class="form-label" for="newGoalPillar">Strategic Pillar</label>
-            <input type="text" id="newGoalPillar" class="form-input" placeholder="e.g. Career & Growth" value="Career & Growth" />
+            <label class="form-label" for="newGoalPillar">Custom Category / Pillar</label>
+            <input type="text" id="newGoalPillar" class="form-input" placeholder="e.g. Career & Growth, Fitness, Mastery, Custom..." value="Career & Growth" />
           </div>
           <div class="form-group">
             <label class="form-label" for="newGoalMetric">Target Metric</label>
@@ -1625,10 +1742,193 @@
           </div>
         </div>
 
+        <!-- Tab 5: Custom Period Goal Fields -->
+        <div class="new-item-section hidden" id="formSecCustom">
+          <div class="form-group">
+            <label class="form-label" for="newCustomGoalTitle">Custom Goal Title</label>
+            <input type="text" id="newCustomGoalTitle" class="form-input" placeholder="e.g. 34-Day SaaS Launch Sprint" />
+          </div>
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label class="form-label" for="newCustomGoalStartDate">Start Date (Calendar)</label>
+              <input type="date" id="newCustomGoalStartDate" class="form-input" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="newCustomGoalEndDate">End Date (Calendar)</label>
+              <input type="date" id="newCustomGoalEndDate" class="form-input" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="newCustomGoalPillar">Category / Focus</label>
+            <input type="text" id="newCustomGoalPillar" class="form-input" placeholder="e.g. Sprint, Deep Work, Endurance, Launch" value="Sprint" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="newCustomGoalMetric">Target Deliverable / Metric</label>
+            <input type="text" id="newCustomGoalMetric" class="form-input" placeholder="e.g. 100 Active Users, 34 Workouts, $10k MRR" />
+          </div>
+        </div>
+
         <button type="submit" id="btnSubmitNewItem" class="btn-primary-block" style="margin-top: 0.5rem;">
           Create Item
         </button>
       </form>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- DEDICATED CUSTOM GOAL CREATION / EDIT MODAL -->
+  <!-- ============================================================== -->
+  <div class="modal-backdrop hidden" id="customGoalModalBackdrop">
+    <div class="modal-card custom-goal-modal-card">
+      <button class="modal-close-btn" id="btnCloseCustomGoalModal" aria-label="Close modal">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+
+      <div class="modal-header">
+        <div class="modal-badge-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+            <line x1="16" y1="2" x2="16" y2="6"></line>
+            <line x1="8" y1="2" x2="8" y2="6"></line>
+            <line x1="3" y1="10" x2="21" y2="10"></line>
+          </svg>
+        </div>
+        <h2 class="modal-title" id="customGoalModalTitle">Create Custom Period Goal</h2>
+        <p class="modal-subtitle">Launch a campaign for any duration: 34 days, 2.5 months, 57 days, or calendar date range.</p>
+      </div>
+
+      <form id="formCustomGoalModal" class="auth-form">
+        <div class="form-group">
+          <label class="form-label" for="cgModalTitle">Campaign / Goal Title *</label>
+          <input type="text" id="cgModalTitle" class="form-input" placeholder="e.g. 57-Day High-Velocity Engine Launch" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="cgModalPillar">Category / Pillar</label>
+          <input type="text" id="cgModalPillar" class="form-input" placeholder="e.g. Engineering, Fitness &amp; Body, Business Sprint, Mastery" value="Execution Sprint" />
+        </div>
+
+        <!-- Quick Duration Presets -->
+        <div class="form-group">
+          <label class="form-label">Quick Duration Presets:</label>
+          <div class="cg-duration-presets" id="cgDurationPresets">
+            <button type="button" class="cg-preset-btn" data-days="14">14 Days (Sprint)</button>
+            <button type="button" class="cg-preset-btn" data-days="30">30 Days</button>
+            <button type="button" class="cg-preset-btn active" data-days="34">34 Days</button>
+            <button type="button" class="cg-preset-btn" data-days="45">45 Days</button>
+            <button type="button" class="cg-preset-btn" data-days="57">57 Days</button>
+            <button type="button" class="cg-preset-btn" data-days="75">2.5 Months (75d)</button>
+            <button type="button" class="cg-preset-btn" data-days="90">90 Days (Quarter)</button>
+          </div>
+        </div>
+
+        <!-- Calendar Start & End Date Inputs -->
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label" for="cgModalStartDate">Start Date (Calendar) *</label>
+            <input type="date" id="cgModalStartDate" class="form-input" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="cgModalEndDate">End Date (Calendar) *</label>
+            <input type="date" id="cgModalEndDate" class="form-input" required />
+          </div>
+        </div>
+
+        <!-- Live Duration Calculation Card -->
+        <div class="schedule-hours-summary-card" id="cgDurationSummaryCard">
+          <div class="summary-card-inner">
+            <span class="stat-mini-label">Calculated Period Duration:</span>
+            <strong class="stat-highlight" id="cgDurationSummaryText">34 Total Days (4.9 Weeks)</strong>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="cgModalMetric">Target Metric / Deliverable *</label>
+          <input type="text" id="cgModalMetric" class="form-input" placeholder="e.g. 50 Customers, 100km Run, Launch v2.0" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="cgModalCheckpoints">Initial Checkpoints (One per line)</label>
+          <textarea id="cgModalCheckpoints" class="form-input form-textarea" rows="3" placeholder="Core architecture finalized&#10;Staging MVP deployed&#10;Public launch &amp; announcement"></textarea>
+        </div>
+
+        <div class="modal-actions-row">
+          <button type="button" class="btn-secondary-sm" id="btnCancelCustomGoalModal">Cancel</button>
+          <button type="submit" class="btn-primary-pill" id="btnSubmitCustomGoalModal">Launch Custom Goal</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- SETTINGS MODAL -->
+  <!-- ============================================================== -->
+  <div class="modal-backdrop hidden" id="settingsModalBackdrop">
+    <div class="modal-card settings-modal-card">
+      <button class="modal-close-btn" id="btnCloseSettingsModal" aria-label="Close modal">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+
+      <div class="modal-header">
+        <div class="modal-badge-icon">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+        </div>
+        <h2 class="modal-title">Workspace Settings</h2>
+        <p class="modal-subtitle">Configure execution rules, time blocks behaviors, and operating hours.</p>
+      </div>
+
+      <div class="settings-sections-list">
+        <!-- Setting 1: Allow editing past time blocks -->
+        <div class="settings-card-row">
+          <div class="settings-row-text">
+            <strong class="settings-row-title">Allow Editing Past Time Blocks</strong>
+            <p class="settings-row-desc">By default, previous days are automatically concluded and locked. Future days are always locked. Enable this if you need to adjust or check off previous days' blocks.</p>
+          </div>
+          <div class="settings-row-action">
+            <label class="switch-toggle" for="settingAllowPastTimeblocks">
+              <input type="checkbox" id="settingAllowPastTimeblocks" />
+              <span class="switch-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Setting 2: Schedule Active Window -->
+        <div class="settings-card-row">
+          <div class="settings-row-text">
+            <strong class="settings-row-title">Daily Operating Hours</strong>
+            <p class="settings-row-desc">Customize your active day window (e.g. 05:00 AM – 11:00 PM) for all time blocks and routine blueprints.</p>
+          </div>
+          <div class="settings-row-action">
+            <button type="button" class="btn-secondary-sm" id="btnSettingsOpenHours">
+              Configure Hours &rarr;
+            </button>
+          </div>
+        </div>
+
+        <!-- Setting 3: Cloud & Storage Status -->
+        <div class="settings-card-row">
+          <div class="settings-row-text">
+            <strong class="settings-row-title">Database Storage &amp; Sync</strong>
+            <p class="settings-row-desc" id="settingsDbStatusDesc">PostgreSQL Serverless Sync active with local offline persistence.</p>
+          </div>
+          <div class="settings-row-action">
+            <span class="badge-tag status-achieved" id="settingsDbStatusBadge">PostgreSQL</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-actions-row" style="margin-top: 1.5rem;">
+        <button type="button" class="btn-primary-pill" id="btnSaveCloseSettings">Done</button>
+      </div>
     </div>
   </div>
 
@@ -1651,6 +1951,23 @@
         </div>
         <h2 class="modal-title" id="authModalHeading">Sign In</h2>
         <p class="modal-subtitle" id="authModalSubtitle">Sign in to sync your productivity data across devices via PostgreSQL.</p>
+      </div>
+
+      <!-- Quick Continue as Last Logged In User Card (if within 48h) -->
+      <div class="auth-modal-quick-resume hidden" id="authModalQuickResume">
+        <div class="quick-resume-card">
+          <div class="quick-resume-avatar" id="authModalQuickAvatar">PR</div>
+          <div class="quick-resume-info">
+            <span class="quick-resume-label">Last account on this browser (< 48h):</span>
+            <strong class="quick-resume-name" id="authModalQuickName">Prince</strong>
+          </div>
+          <button type="button" class="btn-primary-pill btn-quick-resume" id="btnAuthModalQuickContinue">
+            Continue &rarr;
+          </button>
+        </div>
+        <div class="modal-divider">
+          <span>OR SIGN IN WITH ANOTHER ACCOUNT</span>
+        </div>
       </div>
 
       <!-- Tab Switcher: Login / Register -->

@@ -17,6 +17,7 @@
   const THEME_KEY = 'productive_theme';
   const LAST_ACTIVE_KEY = 'productive_last_active_time';
   const SAVED_PROFILE_KEY = 'productive_saved_profile';
+  const LAST_LOGGED_IN_ACCOUNT_KEY = 'productive_last_logged_in_account';
   const INACTIVITY_LIMIT_MS = 48 * 60 * 60 * 1000; // 48 Hours Inactivity Expiry Limit
 
   function apiUrl(path) {
@@ -162,7 +163,8 @@
     trash: `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`,
     info: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>`,
     success: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`,
-    alert: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`
+    alert: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`,
+    lock: `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>`
   };
 
   // --- Built-in Default Routine Blueprints ---
@@ -172,6 +174,7 @@
       name: 'Standard High-Performance Day',
       description: 'Balanced precision blueprint with deep work, health, learning, and wind-down',
       isBuiltin: true,
+      updatedAt: 1000,
       hours: {
         '03:00': { task: 'Early wake-up, cold hydration & meditation', category: 'Health & Fitness' },
         '04:00': { task: 'Dawn silent focus: Highest-leverage creative sprint', category: 'Deep Work' },
@@ -201,6 +204,7 @@
       name: 'Deep Work & Engineering Sprint',
       description: 'Heavy focus protocol for heads-down coding, problem solving, and zero distractions',
       isBuiltin: true,
+      updatedAt: 900,
       hours: {
         '03:00': { task: 'Dawn wake-up & pure silent focus', category: 'Deep Work' },
         '04:00': { task: 'Algorithmic design & math modeling', category: 'Deep Work' },
@@ -230,6 +234,7 @@
       name: 'Executive & Strategy Cadence',
       description: 'Operational rhythm for leadership, team syncs, sprint planning, and client reviews',
       isBuiltin: true,
+      updatedAt: 800,
       hours: {
         '03:00': { task: 'Early meditation & peaceful reflection', category: 'Rest & Recharge' },
         '04:00': { task: 'Long-range vision journaling & market research', category: 'Core Focus' },
@@ -259,6 +264,7 @@
       name: 'Weekend Mastery & Recovery',
       description: 'Restorative weekend rhythm balancing mastery, endurance, side projects, and recovery',
       isBuiltin: true,
+      updatedAt: 700,
       hours: {
         '03:00': { task: 'Peaceful deep sleep', category: 'Rest & Recharge' },
         '04:00': { task: 'Quiet morning awakening & meditation', category: 'Rest & Recharge' },
@@ -297,11 +303,20 @@
     hourlyFilter: 'all',
     currentHorizon: 'h1',
     selectedMonthWeek: 1,
+    weekly4WeekOffset: 0,
+    yearlyCategoryFilter: 'all',
     searchQuery: '',
     weekOffset: 0,
     activeEditingRoutineId: null,
+    activeEditingCustomGoalId: null,
     year_data: {
+      settings: {
+        schedule_start_hour: '05:00',
+        schedule_end_hour: '23:00',
+        allow_past_timeblock_edit: false
+      },
       yearly_goals: [],
+      custom_goals: [],
       four_months: {},
       weekly_plans: {},
       daily_logs: {},
@@ -344,6 +359,7 @@
     sidebarSyncDot: document.getElementById('sidebarSyncDot'),
     btnSidebarSync: document.getElementById('btnSidebarSync'),
     btnSidebarBackup: document.getElementById('btnSidebarBackup'),
+    btnSidebarSettings: document.getElementById('btnSidebarSettings'),
     authTriggerBtn: document.getElementById('authTriggerBtn'),
     userEmailDisplay: document.getElementById('userEmailDisplay'),
     userAvatarText: document.getElementById('userAvatarText'),
@@ -354,6 +370,7 @@
     sidebarTodayPendingBadge: document.getElementById('sidebarTodayPendingBadge'),
     sidebarRoutinesBadge: document.getElementById('sidebarRoutinesBadge'),
     sidebarChallengesBadge: document.getElementById('sidebarChallengesBadge'),
+    sidebarCustomGoalsBadge: document.getElementById('sidebarCustomGoalsBadge'),
 
     // Challenges Sidebar Dropdown
     challengesNavGroup: document.getElementById('challengesNavGroup'),
@@ -419,9 +436,21 @@
     // Level 03: Weekly Strategy
     monthWeekSelector: document.getElementById('monthWeekSelector'),
     weeklyStrategyTitle: document.getElementById('weeklyStrategyTitle'),
+    weeklyStrategySubtitle: document.getElementById('weeklyStrategySubtitle'),
     weeklyStrategyText: document.getElementById('weeklyStrategyText'),
     weeklyRocksList: document.getElementById('weeklyRocksList'),
     btnAddWeeklyRock: document.getElementById('btnAddWeeklyRock'),
+    btnPrev4Weeks: document.getElementById('btnPrev4Weeks'),
+    btnNext4Weeks: document.getElementById('btnNext4Weeks'),
+    btnReset4Weeks: document.getElementById('btnReset4Weeks'),
+    weekly4WeeksSpanLabel: document.getElementById('weekly4WeeksSpanLabel'),
+    weekRangeLabel1: document.getElementById('weekRangeLabel1'),
+    weekRangeLabel2: document.getElementById('weekRangeLabel2'),
+    weekRangeLabel3: document.getElementById('weekRangeLabel3'),
+    weekRangeLabel4: document.getElementById('weekRangeLabel4'),
+    strategyCardTitle: document.getElementById('strategyCardTitle'),
+    strategyCardDateRange: document.getElementById('strategyCardDateRange'),
+    strategyRocksSubtitle: document.getElementById('strategyRocksSubtitle'),
 
     // Level 02: 4-Month Horizon
     fourMonthsContainer: document.getElementById('fourMonthsContainer'),
@@ -435,6 +464,42 @@
     yearlyVisionStatusText: document.getElementById('yearlyVisionStatusText'),
     yearlyGoalsContainer: document.getElementById('yearlyGoalsContainer'),
     btnAddNewYearlyGoal: document.getElementById('btnAddNewYearlyGoal'),
+    yearlyCategoryPills: document.getElementById('yearlyCategoryPills'),
+    yearlyFilteredCountBadge: document.getElementById('yearlyFilteredCountBadge'),
+
+    // Custom Goals Stage View & Modals
+    viewCustom: document.getElementById('view-custom'),
+    customGoalsHeading: document.getElementById('customGoalsHeading'),
+    customGoalsSub: document.getElementById('customGoalsSub'),
+    btnOpenCreateCustomGoalModal: document.getElementById('btnOpenCreateCustomGoalModal'),
+    heroActiveCustomGoalsCount: document.getElementById('heroActiveCustomGoalsCount'),
+    heroCustomMilestonesCount: document.getElementById('heroCustomMilestonesCount'),
+    customGoalsContainer: document.getElementById('customGoalsContainer'),
+
+    customGoalModalBackdrop: document.getElementById('customGoalModalBackdrop'),
+    btnCloseCustomGoalModal: document.getElementById('btnCloseCustomGoalModal'),
+    customGoalModalTitle: document.getElementById('customGoalModalTitle'),
+    formCustomGoalModal: document.getElementById('formCustomGoalModal'),
+    cgModalTitle: document.getElementById('cgModalTitle'),
+    cgModalPillar: document.getElementById('cgModalPillar'),
+    cgDurationPresets: document.getElementById('cgDurationPresets'),
+    cgModalStartDate: document.getElementById('cgModalStartDate'),
+    cgModalEndDate: document.getElementById('cgModalEndDate'),
+    cgDurationSummaryCard: document.getElementById('cgDurationSummaryCard'),
+    cgDurationSummaryText: document.getElementById('cgDurationSummaryText'),
+    cgModalMetric: document.getElementById('cgModalMetric'),
+    cgModalCheckpoints: document.getElementById('cgModalCheckpoints'),
+    btnCancelCustomGoalModal: document.getElementById('btnCancelCustomGoalModal'),
+    btnSubmitCustomGoalModal: document.getElementById('btnSubmitCustomGoalModal'),
+
+    // Settings Modal
+    settingsModalBackdrop: document.getElementById('settingsModalBackdrop'),
+    btnCloseSettingsModal: document.getElementById('btnCloseSettingsModal'),
+    settingAllowPastTimeblocks: document.getElementById('settingAllowPastTimeblocks'),
+    btnSettingsOpenHours: document.getElementById('btnSettingsOpenHours'),
+    settingsDbStatusDesc: document.getElementById('settingsDbStatusDesc'),
+    settingsDbStatusBadge: document.getElementById('settingsDbStatusBadge'),
+    btnSaveCloseSettings: document.getElementById('btnSaveCloseSettings'),
 
     // Challenges Stage View Elements
     viewChallenge: document.getElementById('view-challenge'),
@@ -485,10 +550,19 @@
     newGoalTitle: document.getElementById('newGoalTitle'),
     newGoalPillar: document.getElementById('newGoalPillar'),
     newGoalMetric: document.getElementById('newGoalMetric'),
+    newCustomGoalTitle: document.getElementById('newCustomGoalTitle'),
+    newCustomGoalStartDate: document.getElementById('newCustomGoalStartDate'),
+    newCustomGoalEndDate: document.getElementById('newCustomGoalEndDate'),
+    newCustomGoalPillar: document.getElementById('newCustomGoalPillar'),
+    newCustomGoalMetric: document.getElementById('newCustomGoalMetric'),
 
     // Auth Modal
     authModalBackdrop: document.getElementById('authModalBackdrop'),
     closeAuthModalBtn: document.getElementById('closeAuthModalBtn'),
+    authModalQuickResume: document.getElementById('authModalQuickResume'),
+    authModalQuickAvatar: document.getElementById('authModalQuickAvatar'),
+    authModalQuickName: document.getElementById('authModalQuickName'),
+    btnAuthModalQuickContinue: document.getElementById('btnAuthModalQuickContinue'),
     tabSwitchLogin: document.getElementById('tabSwitchLogin'),
     tabSwitchRegister: document.getElementById('tabSwitchRegister'),
     authModalHeading: document.getElementById('authModalHeading'),
@@ -666,9 +740,114 @@
     return new Date(y, m - 1, d);
   }
 
+  function isPastDate(dateStr) {
+    const today = getTodayISODate();
+    return dateStr < today;
+  }
+
   function isFutureDate(dateStr) {
     const today = getTodayISODate();
     return dateStr > today;
+  }
+
+  // --- Dynamic 48-Hour Session Account Persistence ---
+  function saveLastLoggedInAccount(user, token) {
+    if (!user) return;
+    const email = user.email || '';
+    const name = user.name || (email ? email.split('@')[0] : 'User');
+    const record = {
+      email,
+      name,
+      user,
+      token: token || null,
+      timestamp: Date.now()
+    };
+    try {
+      localStorage.setItem(LAST_LOGGED_IN_ACCOUNT_KEY, JSON.stringify(record));
+    } catch (e) {
+      console.warn('Failed to save last logged in account:', e);
+    }
+    return record;
+  }
+
+  function getLastLoggedInAccount() {
+    try {
+      const stored = localStorage.getItem(LAST_LOGGED_IN_ACCOUNT_KEY);
+      if (!stored) return null;
+      const data = JSON.parse(stored);
+      if (data && data.timestamp && (Date.now() - data.timestamp < INACTIVITY_LIMIT_MS)) {
+        return data;
+      }
+    } catch (e) {}
+    return null;
+  }
+
+  // --- 4-Week Cycle Navigation Engine ---
+  function get4WeekCycleInfo(offset = 0) {
+    const today = parseISODate(getTodayISODate());
+    const dayOfWeek = today.getDay(); // 0 = Sunday
+    const currentWeekSunday = new Date(today);
+    // Base Sunday adjusted for 4-week blocks (28 days per cycle)
+    currentWeekSunday.setDate(today.getDate() - dayOfWeek + (offset * 28));
+
+    const weeks = [];
+    for (let w = 0; w < 4; w++) {
+      const wStart = new Date(currentWeekSunday);
+      wStart.setDate(currentWeekSunday.getDate() + (w * 7));
+      const wEnd = new Date(wStart);
+      wEnd.setDate(wStart.getDate() + 6);
+
+      const startStr = formatISODate(wStart);
+      const endStr = formatISODate(wEnd);
+      const startFmt = wStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+      const endFmt = wEnd.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+      weeks.push({
+        weekNum: w + 1,
+        startDate: wStart,
+        endDate: wEnd,
+        startDateStr: startStr,
+        endDateStr: endStr,
+        rangeLabel: `${startFmt} – ${endFmt}`,
+        shortRange: `${startFmt} - ${endFmt}`
+      });
+    }
+
+    const overallStart = weeks[0].startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const overallEnd = weeks[3].endDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+    let offsetLabel = 'Current 4-Week Cycle';
+    if (offset === -1) offsetLabel = 'Previous 4 Weeks';
+    else if (offset < -1) offsetLabel = `${Math.abs(offset)} Cycles Ago`;
+    else if (offset === 1) offsetLabel = 'Next 4 Weeks';
+    else if (offset > 1) offsetLabel = `In ${offset} Cycles`;
+
+    return {
+      weeks,
+      spanLabel: `${overallStart} – ${overallEnd}`,
+      offsetLabel
+    };
+  }
+
+  // Calculate duration between two ISO dates in human readable form
+  function calculateDateDuration(startDateStr, endDateStr) {
+    if (!startDateStr || !endDateStr) return { days: 0, label: '0 days' };
+    const start = parseISODate(startDateStr);
+    const end = parseISODate(endDateStr);
+    const diffMs = end - start;
+    if (diffMs < 0) return { days: 0, label: 'Invalid range' };
+
+    const days = Math.round(diffMs / (1000 * 60 * 60 * 24)) + 1;
+    let label = `${days} days`;
+    if (days >= 30) {
+      const months = (days / 30.4375).toFixed(1);
+      const weeks = Math.round(days / 7);
+      label = `${days} days (${months} mo · ${weeks} wks)`;
+    } else if (days >= 7) {
+      const weeks = (days / 7).toFixed(1);
+      label = `${days} days (${weeks} wks)`;
+    }
+    return { days, label };
   }
 
   function updateDateDisplay() {
@@ -797,8 +976,13 @@
         if (!state.year_data.custom_routines) {
           state.year_data.custom_routines = [];
         }
+        if (!state.year_data.custom_goals) {
+          state.year_data.custom_goals = [];
+        }
         if (!state.year_data.settings) {
-          state.year_data.settings = { schedule_start_hour: '05:00', schedule_end_hour: '23:00' };
+          state.year_data.settings = { schedule_start_hour: '05:00', schedule_end_hour: '23:00', allow_past_timeblock_edit: false };
+        } else if (state.year_data.settings.allow_past_timeblock_edit === undefined) {
+          state.year_data.settings.allow_past_timeblock_edit = false;
         }
         if (!state.year_data.challenges || state.year_data.challenges.length === 0) {
           state.year_data.challenges = getDefaultChallenges();
@@ -814,16 +998,39 @@
   }
 
   function createDefaultYearData() {
+    const today = getTodayISODate();
+    const d34End = new Date(parseISODate(today));
+    d34End.setDate(d34End.getDate() + 34);
+
     return {
       settings: {
         schedule_start_hour: '05:00',
-        schedule_end_hour: '23:00'
+        schedule_end_hour: '23:00',
+        allow_past_timeblock_edit: false
       },
       yearly_goals: [
         { id: 'g1', title: 'Scale Enterprise SaaS Revenue to $250k ARR', pillar: 'Career & Growth', targetMetric: '$250,000 ARR', status: 'In Progress' },
         { id: 'g2', title: 'Complete Sub-4 Hour Marathon Championship', pillar: 'Health & Endurance', targetMetric: '42.2 km @ 5:35/km', status: 'In Progress' },
         { id: 'g3', title: 'Read 24 Non-Fiction Core Architecture Books', pillar: 'Mastery', targetMetric: '24 Books', status: 'In Progress' },
         { id: 'g4', title: 'Launch Production Cloud Developer Suite', pillar: 'Engineering', targetMetric: '3 Production Apps', status: 'Achieved' }
+      ],
+      custom_goals: [
+        {
+          id: 'cg_sample_34d',
+          title: '34-Day High-Velocity Product Launch',
+          pillar: 'Engineering',
+          startDate: today,
+          endDate: formatISODate(d34End),
+          durationDays: 34,
+          targetMetric: '1,000 Active Users',
+          status: 'In Progress',
+          milestones: [
+            { id: 'cm1', text: 'Finalize schema & PostgreSQL migration', completed: true },
+            { id: 'cm2', text: 'Build real-time websocket sync & auth gateway', completed: true },
+            { id: 'cm3', text: 'Execute beta user onboarding & analytics audit', completed: false },
+            { id: 'cm4', text: 'Public Launch Day & press rollout', completed: false }
+          ]
+        }
       ],
       four_months: {
         h1: {
@@ -863,10 +1070,9 @@
   }
 
   function getWeeklyPlanKey() {
-    const d = parseISODate(state.currentDate);
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    return `${year}-M${month}-W${state.selectedMonthWeek}`;
+    const cycle = get4WeekCycleInfo(state.weekly4WeekOffset);
+    const activeWeek = cycle.weeks[state.selectedMonthWeek - 1] || cycle.weeks[0];
+    return `WPLAN_${activeWeek.startDateStr}_${activeWeek.endDateStr}`;
   }
 
   function getWeeklyPlan() {
@@ -875,9 +1081,9 @@
       state.year_data.weekly_plans[key] = {
         strategy: '',
         rocks: [
-          { id: 'r1', title: 'Complete high-priority client architectural deliverables', completed: true },
-          { id: 'r2', title: '5x Morning 6:00 AM Deep Work sprint execution', completed: false },
-          { id: 'r3', title: 'Conduct weekly financial and time audit', completed: false }
+          { id: 'r1', title: 'Complete high-priority architectural deliverables', completed: true },
+          { id: 'r2', title: '5x Morning Deep Work sprint execution', completed: false },
+          { id: 'r3', title: 'Conduct weekly retrospective and metrics audit', completed: false }
         ]
       };
     }
@@ -1456,6 +1662,51 @@
         });
         dom.subpanelItemsContainer.appendChild(card);
       });
+    } else if (state.currentLevel === 'custom') {
+      const customGoals = state.year_data.custom_goals || [];
+      customGoals.forEach(cg => {
+        if (q) {
+          const matchTitle = (cg.title || '').toLowerCase().includes(q);
+          const matchPillar = (cg.pillar || '').toLowerCase().includes(q);
+          if (!matchTitle && !matchPillar) return;
+        }
+
+        const durationInfo = calculateDateDuration(cg.startDate, cg.endDate);
+        const card = document.createElement('div');
+        card.className = `subpanel-item-card ${state.activeEditingCustomGoalId === cg.id ? 'active' : ''}`;
+        const initials = (cg.pillar || 'CS').substring(0, 2).toUpperCase();
+
+        const mTotal = (cg.milestones || []).length;
+        const mDone = (cg.milestones || []).filter(m => m.completed).length;
+
+        card.innerHTML = `
+          <div class="subpanel-item-avatar">${initials}</div>
+          <div class="subpanel-item-content">
+            <div class="subpanel-item-row-top">
+              <span class="subpanel-item-title">${escapeHtml(cg.title)}</span>
+              <span class="subpanel-item-time">${durationInfo.days}d</span>
+            </div>
+            <div class="subpanel-item-row-sub">
+              <span class="subpanel-item-snippet">${escapeHtml(cg.pillar || 'Sprint')} &bull; ${mDone}/${mTotal} done</span>
+            </div>
+          </div>
+        `;
+
+        card.addEventListener('click', () => {
+          const cardEl = document.getElementById(`custom-goal-${cg.id}`);
+          if (cardEl) {
+            cardEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            cardEl.classList.remove('goal-card-bouncing');
+            void cardEl.offsetWidth;
+            cardEl.classList.add('goal-card-bouncing');
+            setTimeout(() => cardEl.classList.remove('goal-card-bouncing'), 1000);
+          } else {
+            openCustomGoalModal(cg.id);
+          }
+        });
+
+        dom.subpanelItemsContainer.appendChild(card);
+      });
     }
   }
 
@@ -1470,7 +1721,10 @@
     const now = new Date();
     const currentHour = now.getHours();
     const isToday = state.currentDate === getTodayISODate();
+    const isPast = isPastDate(state.currentDate);
     const isFuture = isFutureDate(state.currentDate);
+    const allowPastEdit = !!(state.year_data?.settings?.allow_past_timeblock_edit);
+    const isLocked = isFuture || (isPast && !allowPastEdit);
     const searchFilter = (state.searchQuery || '').toLowerCase();
 
     let scheduledCount = 0;
@@ -1502,7 +1756,7 @@
       }
 
       const bubbleCard = document.createElement('div');
-      bubbleCard.className = `hour-card-bubble status-${hourData.status}`;
+      bubbleCard.className = `hour-card-bubble status-${hourData.status} ${isLocked ? 'is-date-locked' : ''}`;
 
       const slotHourNum = parseInt(slot.key.split(':')[0], 10);
       if (isToday && slotHourNum === currentHour) {
@@ -1519,10 +1773,15 @@
       const taskInput = document.createElement('input');
       taskInput.type = 'text';
       taskInput.className = `hour-task-input ${hourData.status === 'completed' ? 'completed-task' : ''}`;
-      taskInput.placeholder = 'Plan focus deliverable for this hour...';
+      taskInput.placeholder = isLocked ? 'Concluded timeline slot...' : 'Plan focus deliverable for this hour...';
       taskInput.value = hourData.task || '';
+      if (isLocked) {
+        taskInput.readOnly = true;
+        taskInput.style.cursor = 'default';
+      }
 
       taskInput.addEventListener('input', (e) => {
+        if (isLocked) return;
         hourData.task = e.target.value;
         dailyData.hours[slot.key] = hourData;
         queueAutoSave();
@@ -1533,6 +1792,9 @@
 
       const catSelect = document.createElement('select');
       catSelect.className = 'category-select';
+      if (isLocked) {
+        catSelect.disabled = true;
+      }
       DEFAULT_CATEGORIES.forEach(cat => {
         const opt = document.createElement('option');
         opt.value = cat;
@@ -1542,6 +1804,7 @@
       });
 
       catSelect.addEventListener('change', (e) => {
+        if (isLocked) return;
         hourData.category = e.target.value;
         dailyData.hours[slot.key] = hourData;
         queueAutoSave();
@@ -1557,9 +1820,13 @@
       const doneBtn = document.createElement('button');
       doneBtn.type = 'button';
       doneBtn.className = `action-toggle-btn ${hourData.status === 'completed' ? 'active-done' : ''}`;
-      doneBtn.title = isFuture ? 'Cannot complete a future day task' : 'Mark Complete';
+      doneBtn.title = isFuture
+        ? 'Future day time blocks cannot be completed'
+        : isPast && !allowPastEdit
+        ? 'Previous day is concluded (locked). You can enable past editing in Settings.'
+        : 'Mark Complete';
       doneBtn.innerHTML = ICONS.check;
-      if (isFuture) {
+      if (isLocked) {
         doneBtn.style.opacity = '0.35';
         doneBtn.style.cursor = 'not-allowed';
       }
@@ -1567,16 +1834,24 @@
       const missedBtn = document.createElement('button');
       missedBtn.type = 'button';
       missedBtn.className = `action-toggle-btn ${hourData.status === 'missed' ? 'active-missed' : ''}`;
-      missedBtn.title = isFuture ? 'Cannot mark future day task as missed' : 'Mark Missed';
+      missedBtn.title = isFuture
+        ? 'Future day time blocks cannot be marked missed'
+        : isPast && !allowPastEdit
+        ? 'Previous day is concluded (locked). You can enable past editing in Settings.'
+        : 'Mark Missed';
       missedBtn.innerHTML = ICONS.cross;
-      if (isFuture) {
+      if (isLocked) {
         missedBtn.style.opacity = '0.35';
         missedBtn.style.cursor = 'not-allowed';
       }
 
       doneBtn.addEventListener('click', () => {
         if (isFuture) {
-          showToast("Future days cannot be marked as completed yet", 'alert');
+          showToast('Future day time blocks cannot be marked as completed yet.', 'alert');
+          return;
+        }
+        if (isPast && !allowPastEdit) {
+          showToast('Previous day time blocks are concluded. Enable "Allow editing past days" in Settings if needed.', 'alert');
           return;
         }
         hourData.status = hourData.status === 'completed' ? 'pending' : 'completed';
@@ -1588,7 +1863,11 @@
 
       missedBtn.addEventListener('click', () => {
         if (isFuture) {
-          showToast("Future days cannot be marked as missed yet", 'alert');
+          showToast('Future day time blocks cannot be marked as missed yet.', 'alert');
+          return;
+        }
+        if (isPast && !allowPastEdit) {
+          showToast('Previous day time blocks are concluded. Enable "Allow editing past days" in Settings if needed.', 'alert');
           return;
         }
         hourData.status = hourData.status === 'missed' ? 'pending' : 'missed';
@@ -1609,7 +1888,17 @@
     });
 
     if (dom.hourlyStatusSub) {
-      dom.hourlyStatusSub.textContent = `Active Timeline &bull; ${completedCount}/${scheduledCount} Done`;
+      let lockBadgeHtml = '';
+      if (isFuture) {
+        lockBadgeHtml = `<span class="timeline-lock-badge future">${ICONS.lock} Future Date (Locked)</span>`;
+      } else if (isPast && !allowPastEdit) {
+        lockBadgeHtml = `<span class="timeline-lock-badge concluded">${ICONS.lock} Concluded (Locked)</span>`;
+      } else if (isPast && allowPastEdit) {
+        lockBadgeHtml = `<span class="timeline-lock-badge editable">Past Day (Editing Enabled)</span>`;
+      } else {
+        lockBadgeHtml = `<span class="timeline-lock-badge editable">Active Today</span>`;
+      }
+      dom.hourlyStatusSub.innerHTML = `<span>Active Timeline &bull; ${completedCount}/${scheduledCount} Done</span> ${lockBadgeHtml}`;
     }
   }
 
@@ -1618,7 +1907,13 @@
   // ==========================================================================
   function getAllRoutines() {
     const custom = (state.year_data && state.year_data.custom_routines) || [];
-    return [...BUILTIN_ROUTINES, ...custom];
+    const all = [...BUILTIN_ROUTINES, ...custom];
+    // Sort descending by updatedAt / createdAt so latest routine is ALWAYS on TOP
+    return all.sort((a, b) => {
+      const timeA = a.updatedAt || a.createdAt || 0;
+      const timeB = b.updatedAt || b.createdAt || 0;
+      return timeB - timeA;
+    });
   }
 
   function getRoutineById(id) {
@@ -1646,6 +1941,7 @@
     if (!dom.routineDropdownList) return;
     dom.routineDropdownList.innerHTML = '';
 
+    // Latest routines are sorted first by getAllRoutines()
     const allRoutines = getAllRoutines();
     const d = parseISODate(state.currentDate);
     const todayISO = getTodayISODate();
@@ -1740,6 +2036,19 @@
     const routine = getRoutineById(routineId);
     if (!routine) {
       showToast('Routine not found', 'alert');
+      return;
+    }
+
+    const isPast = isPastDate(dateStr);
+    const isFuture = isFutureDate(dateStr);
+    const allowPastEdit = !!(state.year_data?.settings?.allow_past_timeblock_edit);
+
+    if (isFuture) {
+      showToast('Cannot apply routine to a future date.', 'alert');
+      return;
+    }
+    if (isPast && !allowPastEdit) {
+      showToast('Previous day is concluded and locked. Enable editing in Settings if needed.', 'alert');
       return;
     }
 
@@ -2000,6 +2309,7 @@
 
     const desc = (dom.routineDescInput?.value || '').trim();
     const hours = collectRoutineEditorHours();
+    const now = Date.now();
 
     if (!state.year_data.custom_routines) {
       state.year_data.custom_routines = [];
@@ -2016,26 +2326,31 @@
           name,
           description: desc,
           isBuiltin: false,
-          hours
+          hours,
+          updatedAt: now
         };
       } else {
-        savedId = 'rt_' + Date.now();
-        state.year_data.custom_routines.push({
+        savedId = 'rt_' + now;
+        state.year_data.custom_routines.unshift({
           id: savedId,
           name,
           description: desc,
           isBuiltin: false,
-          hours
+          hours,
+          createdAt: now,
+          updatedAt: now
         });
       }
     } else {
-      savedId = 'rt_' + Date.now();
-      state.year_data.custom_routines.push({
+      savedId = 'rt_' + now;
+      state.year_data.custom_routines.unshift({
         id: savedId,
         name,
         description: desc,
         isBuiltin: false,
-        hours
+        hours,
+        createdAt: now,
+        updatedAt: now
       });
     }
 
@@ -2207,10 +2522,38 @@
   // LEVEL 03: WEEKLY PLANNING & PRE-WEEK STRATEGY
   // ==========================================================================
   function renderWeeklyStrategyView() {
+    const cycle = get4WeekCycleInfo(state.weekly4WeekOffset);
+    const activeWeek = cycle.weeks[state.selectedMonthWeek - 1] || cycle.weeks[0];
     const weeklyPlan = getWeeklyPlan();
-    dom.weeklyStrategyTitle.textContent = `Week ${state.selectedMonthWeek} Strategic Intentions`;
-    dom.weeklyStrategyText.value = weeklyPlan.strategy || '';
 
+    if (dom.weekly4WeeksSpanLabel) {
+      dom.weekly4WeeksSpanLabel.textContent = `${cycle.spanLabel} (${cycle.offsetLabel})`;
+    }
+
+    // Update 7-day range sub-labels for each of the 4 weeks
+    if (dom.weekRangeLabel1) dom.weekRangeLabel1.textContent = cycle.weeks[0]?.rangeLabel || '';
+    if (dom.weekRangeLabel2) dom.weekRangeLabel2.textContent = cycle.weeks[1]?.rangeLabel || '';
+    if (dom.weekRangeLabel3) dom.weekRangeLabel3.textContent = cycle.weeks[2]?.rangeLabel || '';
+    if (dom.weekRangeLabel4) dom.weekRangeLabel4.textContent = cycle.weeks[3]?.rangeLabel || '';
+
+    // Update active strategy card headers
+    if (dom.strategyCardTitle) {
+      dom.strategyCardTitle.textContent = `Week ${state.selectedMonthWeek} Strategic Focus`;
+    }
+    if (dom.strategyCardDateRange) {
+      dom.strategyCardDateRange.textContent = activeWeek.rangeLabel;
+    }
+    if (dom.strategyRocksSubtitle) {
+      dom.strategyRocksSubtitle.textContent = `High-impact deliverables for ${activeWeek.rangeLabel}`;
+    }
+    if (dom.weeklyStrategyTitle) {
+      dom.weeklyStrategyTitle.textContent = `Week ${state.selectedMonthWeek} Strategic Intentions`;
+    }
+    if (dom.weeklyStrategySubtitle) {
+      dom.weeklyStrategySubtitle.textContent = `Define core thesis and non-negotiables for ${activeWeek.rangeLabel}.`;
+    }
+
+    dom.weeklyStrategyText.value = weeklyPlan.strategy || '';
     dom.weeklyRocksList.innerHTML = '';
     const q = (state.searchQuery || '').toLowerCase();
 
@@ -2392,14 +2735,72 @@
   // ==========================================================================
   // LEVEL 01: YEARLY VISION & ANNUAL GOALS
   // ==========================================================================
+  function getAllYearlyCategories() {
+    const defaultCats = ['Career & Growth', 'Health & Endurance', 'Mastery', 'Engineering', 'Strategic Growth'];
+    const goals = state.year_data.yearly_goals || [];
+    const customCats = goals.map(g => g.pillar).filter(Boolean);
+    const combined = Array.from(new Set([...defaultCats, ...customCats]));
+    return combined;
+  }
+
+  function renderYearlyCategoryFilterBar() {
+    if (!dom.yearlyCategoryPills) return;
+    dom.yearlyCategoryPills.innerHTML = '';
+
+    const allCats = getAllYearlyCategories();
+    const goals = state.year_data.yearly_goals || [];
+    const activeFilter = state.yearlyCategoryFilter || 'all';
+
+    // "All" filter pill
+    const allPill = document.createElement('button');
+    allPill.type = 'button';
+    allPill.className = `category-filter-pill ${activeFilter === 'all' ? 'active' : ''}`;
+    allPill.innerHTML = `<span>All Pillars</span><span class="pill-count-badge">${goals.length}</span>`;
+    allPill.addEventListener('click', () => {
+      state.yearlyCategoryFilter = 'all';
+      renderYearlyGoals();
+    });
+    dom.yearlyCategoryPills.appendChild(allPill);
+
+    allCats.forEach(cat => {
+      const count = goals.filter(g => (g.pillar || '').trim().toLowerCase() === cat.trim().toLowerCase()).length;
+      if (count === 0 && !['Career & Growth', 'Health & Endurance', 'Mastery', 'Engineering'].includes(cat)) {
+        return;
+      }
+      const pill = document.createElement('button');
+      pill.type = 'button';
+      pill.className = `category-filter-pill ${activeFilter.toLowerCase() === cat.toLowerCase() ? 'active' : ''}`;
+      pill.innerHTML = `<span>${escapeHtml(cat)}</span><span class="pill-count-badge">${count}</span>`;
+      pill.addEventListener('click', () => {
+        state.yearlyCategoryFilter = state.yearlyCategoryFilter.toLowerCase() === cat.toLowerCase() ? 'all' : cat;
+        renderYearlyGoals();
+      });
+      dom.yearlyCategoryPills.appendChild(pill);
+    });
+  }
+
   function renderYearlyGoals() {
     dom.yearlyMainTitle.textContent = `${state.selectedYear} Master Vision & Annual Goals`;
     dom.yearlyGoalsContainer.innerHTML = '';
     const q = (state.searchQuery || '').toLowerCase();
+    const activeCatFilter = (state.yearlyCategoryFilter || 'all').toLowerCase();
 
-    const goals = state.year_data.yearly_goals || [];
+    renderYearlyCategoryFilterBar();
 
-    goals.forEach((goal, idx) => {
+    const allGoals = state.year_data.yearly_goals || [];
+    let filteredGoals = allGoals;
+
+    if (activeCatFilter !== 'all') {
+      filteredGoals = filteredGoals.filter(g => (g.pillar || '').trim().toLowerCase() === activeCatFilter);
+    }
+
+    if (dom.yearlyFilteredCountBadge) {
+      dom.yearlyFilteredCountBadge.textContent = activeCatFilter === 'all'
+        ? `${allGoals.length} Total Goals`
+        : `${filteredGoals.length} in ${state.yearlyCategoryFilter}`;
+    }
+
+    filteredGoals.forEach((goal, idx) => {
       if (q) {
         const matchTitle = (goal.title || '').toLowerCase().includes(q);
         const matchPillar = (goal.pillar || '').toLowerCase().includes(q);
@@ -2413,7 +2814,10 @@
 
       card.innerHTML = `
         <div class="yearly-goal-top">
-          <span class="pillar-badge">${escapeHtml(goal.pillar || 'Strategic Pillar')}</span>
+          <div class="yearly-pillar-edit-wrap">
+            <input type="text" class="pillar-input-editable" value="${escapeHtml(goal.pillar || 'Strategic Growth')}" placeholder="Category / Pillar" title="Click to edit category" />
+            <button type="button" class="pillar-filter-quick-btn" title="Filter by ${escapeHtml(goal.pillar || 'category')}">Filter</button>
+          </div>
           <button class="goal-delete-btn" title="Delete Goal">${ICONS.trash}</button>
         </div>
         <input type="text" class="yearly-goal-title-input" value="${escapeHtml(goal.title || '')}" placeholder="Goal Title" />
@@ -2430,6 +2834,20 @@
           </select>
         </div>
       `;
+
+      const pillarInput = card.querySelector('.pillar-input-editable');
+      pillarInput.addEventListener('input', (e) => {
+        goal.pillar = e.target.value.trim() || 'Strategic Pillar';
+        queueAutoSave();
+        renderYearlyCategoryFilterBar();
+      });
+
+      const filterQuickBtn = card.querySelector('.pillar-filter-quick-btn');
+      filterQuickBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        state.yearlyCategoryFilter = goal.pillar || 'all';
+        renderYearlyGoals();
+      });
 
       card.querySelector('.yearly-goal-title-input').addEventListener('input', (e) => {
         goal.title = e.target.value;
@@ -2448,10 +2866,13 @@
       });
 
       card.querySelector('.goal-delete-btn').addEventListener('click', () => {
-        goals.splice(idx, 1);
-        queueAutoSave();
-        renderYearlyGoals();
-        updateAllMetrics();
+        const origIdx = allGoals.findIndex(g => g.id === goal.id);
+        if (origIdx !== -1) {
+          allGoals.splice(origIdx, 1);
+          queueAutoSave();
+          renderYearlyGoals();
+          updateAllMetrics();
+        }
       });
 
       dom.yearlyGoalsContainer.appendChild(card);
@@ -2463,10 +2884,12 @@
       state.year_data.yearly_goals = [];
     }
     const newId = 'yg_' + Date.now();
+    const defaultPillar = customPillar || (state.yearlyCategoryFilter && state.yearlyCategoryFilter !== 'all' ? state.yearlyCategoryFilter : 'Strategic Growth');
+
     state.year_data.yearly_goals.push({
       id: newId,
       title: customTitle || 'New High-Level Annual Target',
-      pillar: customPillar || 'Strategic Growth',
+      pillar: defaultPillar,
       targetMetric: customMetric || '100% Target Met',
       status: 'In Progress'
     });
@@ -2487,6 +2910,367 @@
         setTimeout(() => cardEl.classList.remove('goal-card-bouncing'), 1200);
       }
     }, 80);
+  }
+
+  // ==========================================================================
+  // LEVEL 06: CUSTOM PERIOD GOALS (34 DAYS, 2.5 MONTHS, 57 DAYS, ETC.)
+  // ==========================================================================
+  function renderCustomGoalsStageView() {
+    const goals = state.year_data.custom_goals || [];
+    const q = (state.searchQuery || '').toLowerCase();
+
+    let totalMilestones = 0;
+    let completedMilestones = 0;
+
+    goals.forEach(g => {
+      (g.milestones || []).forEach(m => {
+        totalMilestones++;
+        if (m.completed) completedMilestones++;
+      });
+    });
+
+    if (dom.heroActiveCustomGoalsCount) {
+      dom.heroActiveCustomGoalsCount.textContent = String(goals.length);
+    }
+    if (dom.heroCustomMilestonesCount) {
+      dom.heroCustomMilestonesCount.textContent = `${completedMilestones} / ${totalMilestones}`;
+    }
+    if (dom.sidebarCustomGoalsBadge) {
+      dom.sidebarCustomGoalsBadge.textContent = String(goals.length);
+    }
+
+    if (!dom.customGoalsContainer) return;
+    dom.customGoalsContainer.innerHTML = '';
+
+    if (goals.length === 0) {
+      dom.customGoalsContainer.innerHTML = `
+        <div class="empty-state-card" style="grid-column: 1 / -1; padding: 2.5rem 1rem; text-align: center;">
+          <div class="empty-state-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+          </div>
+          <h4 style="font-size: 1rem; font-weight: 600; margin: 0.5rem 0 0.25rem;">No Custom Duration Goals Set</h4>
+          <p style="font-size: 0.82rem; color: var(--text-muted); max-width: 420px; margin: 0 auto 1.25rem;">Set high-leverage goals for non-standard horizons such as 34 days, 57 days, 2.5 months, or any customized sprint window.</p>
+          <button class="btn-primary-pill" id="btnEmptyCreateCustomGoal">+ Set Custom Goal</button>
+        </div>
+      `;
+      const btn = dom.customGoalsContainer.querySelector('#btnEmptyCreateCustomGoal');
+      if (btn) btn.addEventListener('click', () => openCustomGoalModal(null));
+      return;
+    }
+
+    const todayISO = getTodayISODate();
+
+    goals.forEach(cg => {
+      if (q) {
+        const matchTitle = (cg.title || '').toLowerCase().includes(q);
+        const matchPillar = (cg.pillar || '').toLowerCase().includes(q);
+        const matchMetric = (cg.targetMetric || '').toLowerCase().includes(q);
+        if (!matchTitle && !matchPillar && !matchMetric) return;
+      }
+
+      const durationInfo = calculateDateDuration(cg.startDate, cg.endDate);
+      const startD = parseISODate(cg.startDate || todayISO);
+      const endD = parseISODate(cg.endDate || todayISO);
+      const currD = parseISODate(todayISO);
+
+      // Calculate time progress %
+      const totalTime = Math.max(1, endD - startD);
+      const elapsedTime = Math.max(0, currD - startD);
+      const timePct = Math.min(100, Math.round((elapsedTime / totalTime) * 100));
+
+      const milestones = cg.milestones || [];
+      const mTotal = milestones.length;
+      const mDone = milestones.filter(m => m.completed).length;
+      const milestonePct = mTotal > 0 ? Math.round((mDone / mTotal) * 100) : 0;
+
+      const card = document.createElement('div');
+      card.className = 'custom-goal-card';
+      card.id = `custom-goal-${cg.id}`;
+
+      const startLabel = startD.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const endLabel = endD.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+      // Milestones checklist HTML
+      const milestonesListHtml = milestones.map((m, mIdx) => `
+        <div class="cg-milestone-item" data-midx="${mIdx}">
+          <input type="checkbox" class="cg-milestone-cb" ${m.completed ? 'checked' : ''} />
+          <span class="cg-milestone-text ${m.completed ? 'completed' : ''}">${escapeHtml(m.text || '')}</span>
+          <button type="button" class="cg-milestone-del" title="Remove checkpoint">${ICONS.cross}</button>
+        </div>
+      `).join('');
+
+      card.innerHTML = `
+        <div class="custom-goal-header">
+          <div class="custom-goal-meta">
+            <span class="pillar-badge">${escapeHtml(cg.pillar || 'Custom Sprint')}</span>
+            <span class="custom-goal-period-chip">${durationInfo.label}</span>
+          </div>
+          <div style="display: flex; gap: 0.35rem; align-items: center;">
+            <button type="button" class="btn-secondary-sm btn-edit-cg" title="Edit goal parameters">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
+            </button>
+            <button type="button" class="goal-delete-btn btn-delete-cg" title="Delete custom goal">${ICONS.trash}</button>
+          </div>
+        </div>
+
+        <h3 class="custom-goal-title">${escapeHtml(cg.title)}</h3>
+        <div class="custom-goal-metric-row">
+          <span>Target Metric:</span>
+          <strong>${escapeHtml(cg.targetMetric || '100% Deliverable Complete')}</strong>
+        </div>
+
+        <div class="custom-goal-dates-grid">
+          <div class="cg-date-col">
+            <span class="cg-date-lbl">Start Date</span>
+            <span class="cg-date-val">${startLabel}</span>
+          </div>
+          <div class="cg-date-col">
+            <span class="cg-date-lbl">End Date</span>
+            <span class="cg-date-val">${endLabel}</span>
+          </div>
+          <div class="cg-date-col">
+            <span class="cg-date-lbl">Time Elapsed</span>
+            <span class="cg-date-val">${timePct}% (${Math.min(durationInfo.days, Math.round(elapsedTime / (1000 * 60 * 60 * 24)))}d)</span>
+          </div>
+        </div>
+
+        <div class="custom-goal-progress-box">
+          <div class="custom-goal-progress-hdr">
+            <span>Milestone Completion</span>
+            <strong>${mDone}/${mTotal} Checkpoints (${milestonePct}%)</strong>
+          </div>
+          <div class="custom-goal-progress-bar">
+            <div class="custom-goal-progress-fill" style="width: ${milestonePct}%"></div>
+          </div>
+        </div>
+
+        <div class="custom-goal-milestones-section">
+          <span class="cg-milestones-title">Sprint Deliverables</span>
+          <div class="cg-milestones-list">${milestonesListHtml}</div>
+          <div class="cg-add-milestone-row">
+            <input type="text" class="cg-new-milestone-input" placeholder="+ Add sprint deliverable..." />
+            <button type="button" class="btn-secondary-sm btn-add-cg-milestone">Add</button>
+          </div>
+        </div>
+      `;
+
+      // Checkbox event listeners
+      card.querySelectorAll('.cg-milestone-item').forEach(mItem => {
+        const mIdx = parseInt(mItem.dataset.midx, 10);
+        const cb = mItem.querySelector('.cg-milestone-cb');
+        const textSpan = mItem.querySelector('.cg-milestone-text');
+        const delBtn = mItem.querySelector('.cg-milestone-del');
+
+        cb.addEventListener('change', () => {
+          cg.milestones[mIdx].completed = cb.checked;
+          textSpan.classList.toggle('completed', cb.checked);
+          queueAutoSave();
+          renderCustomGoalsStageView();
+        });
+
+        delBtn.addEventListener('click', () => {
+          cg.milestones.splice(mIdx, 1);
+          queueAutoSave();
+          renderCustomGoalsStageView();
+        });
+      });
+
+      // Add new milestone input handler
+      const newMInput = card.querySelector('.cg-new-milestone-input');
+      const addMBtn = card.querySelector('.btn-add-cg-milestone');
+      const submitNewMilestone = () => {
+        const val = (newMInput.value || '').trim();
+        if (!val) return;
+        if (!cg.milestones) cg.milestones = [];
+        cg.milestones.push({ id: 'cm_' + Date.now(), text: val, completed: false });
+        queueAutoSave();
+        renderCustomGoalsStageView();
+      };
+
+      addMBtn.addEventListener('click', submitNewMilestone);
+      newMInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          submitNewMilestone();
+        }
+      });
+
+      // Edit Goal handler
+      card.querySelector('.btn-edit-cg').addEventListener('click', () => {
+        openCustomGoalModal(cg.id);
+      });
+
+      // Delete Goal handler
+      card.querySelector('.btn-delete-cg').addEventListener('click', () => {
+        if (!confirm(`Delete custom sprint "${cg.title}"?`)) return;
+        const gIdx = (state.year_data.custom_goals || []).findIndex(g => g.id === cg.id);
+        if (gIdx !== -1) {
+          state.year_data.custom_goals.splice(gIdx, 1);
+          queueAutoSave();
+          renderCustomGoalsStageView();
+          showToast(`Deleted "${cg.title}"`, 'info');
+        }
+      });
+
+      dom.customGoalsContainer.appendChild(card);
+    });
+  }
+
+  function openCustomGoalModal(goalId = null) {
+    state.activeEditingCustomGoalId = goalId;
+    const today = getTodayISODate();
+    const goal = goalId ? (state.year_data.custom_goals || []).find(g => g.id === goalId) : null;
+
+    if (dom.customGoalModalTitle) {
+      dom.customGoalModalTitle.textContent = goal ? 'Edit Custom Sprint Goal' : 'Create Custom Period Goal';
+    }
+
+    if (dom.cgModalTitle) dom.cgModalTitle.value = goal ? goal.title : '';
+    if (dom.cgModalPillar) dom.cgModalPillar.value = goal ? goal.pillar : 'Strategic Growth';
+    if (dom.cgModalStartDate) dom.cgModalStartDate.value = goal ? goal.startDate : today;
+
+    if (dom.cgModalEndDate) {
+      if (goal) {
+        dom.cgModalEndDate.value = goal.endDate;
+      } else {
+        const defaultEnd = new Date(parseISODate(today));
+        defaultEnd.setDate(defaultEnd.getDate() + 34);
+        dom.cgModalEndDate.value = formatISODate(defaultEnd);
+      }
+    }
+
+    if (dom.cgModalMetric) dom.cgModalMetric.value = goal ? goal.targetMetric : '';
+    if (dom.cgModalCheckpoints) {
+      if (goal && goal.milestones) {
+        dom.cgModalCheckpoints.value = goal.milestones.map(m => m.text).join('\n');
+      } else {
+        dom.cgModalCheckpoints.value = '';
+      }
+    }
+
+    updateCustomGoalModalSummary();
+
+    if (dom.customGoalModalBackdrop) {
+      dom.customGoalModalBackdrop.classList.remove('hidden');
+    }
+  }
+
+  function closeCustomGoalModal() {
+    state.activeEditingCustomGoalId = null;
+    if (dom.customGoalModalBackdrop) {
+      dom.customGoalModalBackdrop.classList.add('hidden');
+    }
+  }
+
+  function updateCustomGoalModalSummary() {
+    const sDate = dom.cgModalStartDate?.value;
+    const eDate = dom.cgModalEndDate?.value;
+    if (!sDate || !eDate || !dom.cgDurationSummaryText) return;
+
+    const durationInfo = calculateDateDuration(sDate, eDate);
+    dom.cgDurationSummaryText.textContent = `${durationInfo.label} duration (from ${sDate} to ${eDate})`;
+  }
+
+  function setCustomGoalModalPresetDuration(days) {
+    const sDate = dom.cgModalStartDate?.value || getTodayISODate();
+    const d = new Date(parseISODate(sDate));
+    d.setDate(d.getDate() + days);
+    if (dom.cgModalEndDate) {
+      dom.cgModalEndDate.value = formatISODate(d);
+    }
+    updateCustomGoalModalSummary();
+  }
+
+  function saveCustomGoalFromModal(e) {
+    e.preventDefault();
+    const title = (dom.cgModalTitle?.value || '').trim();
+    const pillar = (dom.cgModalPillar?.value || '').trim() || 'Custom Sprint';
+    const startDate = dom.cgModalStartDate?.value || getTodayISODate();
+    const endDate = dom.cgModalEndDate?.value || getTodayISODate();
+    const targetMetric = (dom.cgModalMetric?.value || '').trim() || '100% Complete';
+    const rawCheckpoints = (dom.cgModalCheckpoints?.value || '').trim();
+
+    if (!title) {
+      showToast('Please enter a goal title', 'alert');
+      return;
+    }
+
+    const durationInfo = calculateDateDuration(startDate, endDate);
+    if (durationInfo.days <= 0) {
+      showToast('End date must be on or after start date', 'alert');
+      return;
+    }
+
+    const milestones = rawCheckpoints.split('\n')
+      .map(line => line.trim())
+      .filter(Boolean)
+      .map(text => ({ id: 'cm_' + Math.random().toString(36).substr(2, 9), text, completed: false }));
+
+    if (!state.year_data.custom_goals) {
+      state.year_data.custom_goals = [];
+    }
+
+    if (state.activeEditingCustomGoalId) {
+      const idx = state.year_data.custom_goals.findIndex(g => g.id === state.activeEditingCustomGoalId);
+      if (idx !== -1) {
+        const existing = state.year_data.custom_goals[idx];
+        state.year_data.custom_goals[idx] = {
+          ...existing,
+          title,
+          pillar,
+          startDate,
+          endDate,
+          durationDays: durationInfo.days,
+          targetMetric,
+          milestones: milestones.length > 0 ? milestones : existing.milestones || []
+        };
+      }
+    } else {
+      const newGoal = {
+        id: 'cg_' + Date.now(),
+        title,
+        pillar,
+        startDate,
+        endDate,
+        durationDays: durationInfo.days,
+        targetMetric,
+        status: 'In Progress',
+        milestones
+      };
+      state.year_data.custom_goals.unshift(newGoal);
+    }
+
+    queueAutoSave();
+    closeCustomGoalModal();
+    renderCustomGoalsStageView();
+    showToast(`Custom goal "${title}" saved (${durationInfo.label})`, 'success');
+  }
+
+  // ==========================================================================
+  // SETTINGS MODAL ENGINE
+  // ==========================================================================
+  function openSettingsModal() {
+    const settings = (state.year_data && state.year_data.settings) || {};
+    if (dom.settingAllowPastTimeblocks) {
+      dom.settingAllowPastTimeblocks.checked = !!settings.allow_past_timeblock_edit;
+    }
+    if (dom.settingsDbStatusBadge) {
+      dom.settingsDbStatusBadge.textContent = state.token ? 'PostgreSQL Active' : 'Local Browser';
+    }
+    if (dom.settingsDbStatusDesc) {
+      dom.settingsDbStatusDesc.textContent = state.token
+        ? `Authenticated user: ${state.user?.email || 'Cloud user'} (version v${state.syncVersion || 0})`
+        : 'Running offline with browser localStorage storage.';
+    }
+    if (dom.settingsModalBackdrop) {
+      dom.settingsModalBackdrop.classList.remove('hidden');
+    }
+  }
+
+  function closeSettingsModal() {
+    if (dom.settingsModalBackdrop) {
+      dom.settingsModalBackdrop.classList.add('hidden');
+    }
   }
 
   // ==========================================================================
@@ -3126,6 +3910,7 @@
     if (levelKey === 'weekly') renderWeeklyStrategyView();
     if (levelKey === 'monthly') renderFourMonthsHorizon();
     if (levelKey === 'yearly') renderYearlyGoals();
+    if (levelKey === 'custom') renderCustomGoalsStageView();
     if (levelKey === 'challenge') renderChallengesStageView(currentChallengeTab);
 
     renderSubpanel();
@@ -3139,6 +3924,7 @@
     renderWeeklyStrategyView();
     renderFourMonthsHorizon();
     renderYearlyGoals();
+    renderCustomGoalsStageView();
     renderChallengesStageView();
   }
 
@@ -3154,6 +3940,8 @@
       switchNewItemTab('milestone');
     } else if (state.currentLevel === 'yearly') {
       switchNewItemTab('goal');
+    } else if (state.currentLevel === 'custom') {
+      switchNewItemTab('custom_goal');
     } else {
       switchNewItemTab('block');
     }
@@ -3169,10 +3957,17 @@
       btn.classList.toggle('active', btn.dataset.type === tabType);
     });
 
-    document.getElementById('formSecBlock').classList.toggle('hidden', tabType !== 'block');
-    document.getElementById('formSecRock').classList.toggle('hidden', tabType !== 'rock');
-    document.getElementById('formSecMilestone').classList.toggle('hidden', tabType !== 'milestone');
-    document.getElementById('formSecGoal').classList.toggle('hidden', tabType !== 'goal');
+    const secBlock = document.getElementById('formSecBlock');
+    const secRock = document.getElementById('formSecRock');
+    const secMilestone = document.getElementById('formSecMilestone');
+    const secGoal = document.getElementById('formSecGoal');
+    const secCustomGoal = document.getElementById('formSecCustomGoal');
+
+    if (secBlock) secBlock.classList.toggle('hidden', tabType !== 'block');
+    if (secRock) secRock.classList.toggle('hidden', tabType !== 'rock');
+    if (secMilestone) secMilestone.classList.toggle('hidden', tabType !== 'milestone');
+    if (secGoal) secGoal.classList.toggle('hidden', tabType !== 'goal');
+    if (secCustomGoal) secCustomGoal.classList.toggle('hidden', tabType !== 'custom_goal');
   }
 
   function handleNewItemSubmit(e) {
@@ -3256,6 +4051,45 @@
       dom.newGoalTitle.value = '';
       switchToLevel('yearly');
       showToast('Annual goal created', 'success');
+    } else if (newItemType === 'custom_goal') {
+      const title = (dom.newCustomGoalTitle?.value || '').trim();
+      const startDate = dom.newCustomGoalStartDate?.value || getTodayISODate();
+      const endDate = dom.newCustomGoalEndDate?.value || getTodayISODate();
+      const pillar = (dom.newCustomGoalPillar?.value || '').trim() || 'Custom Sprint';
+      const metric = (dom.newCustomGoalMetric?.value || '').trim() || '100% Target Met';
+
+      if (!title) {
+        showToast('Please enter a custom goal title', 'alert');
+        return;
+      }
+
+      const durationInfo = calculateDateDuration(startDate, endDate);
+      if (durationInfo.days <= 0) {
+        showToast('End date must be on or after start date', 'alert');
+        return;
+      }
+
+      if (!state.year_data.custom_goals) state.year_data.custom_goals = [];
+      state.year_data.custom_goals.unshift({
+        id: 'cg_' + Date.now(),
+        title,
+        pillar,
+        startDate,
+        endDate,
+        durationDays: durationInfo.days,
+        targetMetric: metric,
+        status: 'In Progress',
+        milestones: [
+          { id: 'cm_1', text: 'Define execution roadmap & metrics', completed: false },
+          { id: 'cm_2', text: 'Initial delivery sprint checkpoint', completed: false }
+        ]
+      });
+
+      queueAutoSave();
+      closeNewItemModal();
+      if (dom.newCustomGoalTitle) dom.newCustomGoalTitle.value = '';
+      switchToLevel('custom');
+      showToast(`Custom goal "${title}" set for ${durationInfo.label}`, 'success');
     }
   }
 
@@ -3269,6 +4103,18 @@
     if (dom.authName) dom.authName.value = '';
     dom.authEmail.value = '';
     dom.authPassword.value = '';
+
+    // Check for last logged in account within 48h to show quick resume button
+    const lastAcc = getLastLoggedInAccount();
+    if (lastAcc && mode === 'login' && dom.authModalQuickResume) {
+      const initials = (lastAcc.name || 'US').substring(0, 2).toUpperCase();
+      if (dom.authModalQuickAvatar) dom.authModalQuickAvatar.textContent = initials;
+      if (dom.authModalQuickName) dom.authModalQuickName.textContent = `Resume as ${lastAcc.name} (${lastAcc.email})`;
+      dom.authModalQuickResume.classList.remove('hidden');
+    } else if (dom.authModalQuickResume) {
+      dom.authModalQuickResume.classList.add('hidden');
+    }
+
     dom.authModalBackdrop.classList.remove('hidden');
   }
 
@@ -3291,6 +4137,7 @@
       dom.authModalSubtitle.textContent = 'Provision your cloud storage on PostgreSQL.';
       dom.authSubmitBtnText.textContent = 'Create Account';
       if (dom.authNameGroup) dom.authNameGroup.classList.remove('hidden');
+      if (dom.authModalQuickResume) dom.authModalQuickResume.classList.add('hidden');
     }
   }
 
@@ -3298,7 +4145,7 @@
     e.preventDefault();
     const email = dom.authEmail.value.trim();
     const password = dom.authPassword.value;
-    const name = (dom.authName?.value || '').trim() || (email ? email.split('@')[0] : 'Prince');
+    const name = (dom.authName?.value || '').trim() || (email ? email.split('@')[0] : 'User');
 
     if (!email || !password) {
       showAuthAlert('Please fill in both email and password.');
@@ -3332,15 +4179,15 @@
       localStorage.setItem(AUTH_TOKEN_KEY, data.token);
       localStorage.setItem(AUTH_USER_KEY, JSON.stringify(data.user));
 
-      if (authMode === 'register' || name) {
-        saveSavedProfile(name, email);
-      }
+      // Persist as the last logged in account on this browser (48h valid)
+      saveLastLoggedInAccount(data.user, data.token);
+      saveSavedProfile(name, email);
 
       closeAuthModal();
       await showAppLoadingSplash(authMode === 'register' ? 'Setting Up Cloud Workspace...' : 'Signing In & Loading Cloud Data...', 1200);
 
       updateUserSessionUI();
-      showToast(`Welcome, ${name || data.user.email}!`, 'success');
+      showToast(`Welcome back, ${name || data.user.email}!`, 'success');
       await loadGoalsFromBackend();
     } catch (err) {
       const msg = (err.name === 'TypeError' && err.message.includes('fetch'))
@@ -3367,8 +4214,8 @@
     const isCloudActive = !!(state.token && state.user);
 
     if (isCloudActive) {
-      const email = state.user.email || 'prince@workspace.io';
-      const userName = state.user.name || (email ? email.split('@')[0] : 'Prince');
+      const email = state.user.email || 'user@workspace.io';
+      const userName = state.user.name || (email ? email.split('@')[0] : 'User');
       const emailInitial = (userName || email || 'US').substring(0, 2).toUpperCase();
 
       // Sidebar Profile
@@ -3458,13 +4305,13 @@
       if (stored) return JSON.parse(stored);
     } catch (e) {}
     if (state.user && state.user.name) {
-      return { name: state.user.name, email: state.user.email || 'prince@workspace.io' };
+      return { name: state.user.name, email: state.user.email || 'user@workspace.io' };
     }
     return null;
   }
 
   function saveSavedProfile(name, email) {
-    const profile = { name: name || 'Prince', email: email || 'prince@workspace.io' };
+    const profile = { name: name || 'User', email: email || 'user@workspace.io' };
     localStorage.setItem(SAVED_PROFILE_KEY, JSON.stringify(profile));
     return profile;
   }
@@ -3483,15 +4330,15 @@
   function checkGatewaySessionState() {
     if (!dom.appAuthGateway) return;
 
-    const profile = getSavedProfile();
+    // Check for last account logged in on THIS browser within 48 hours
+    const lastAcc = getLastLoggedInAccount();
     const lastActive = getLastActiveTime();
     const now = Date.now();
-    const elapsed = now - lastActive;
-    const isExpired = lastActive > 0 && elapsed >= INACTIVITY_LIMIT_MS;
-    const isFirstVisit = !profile || lastActive === 0;
+    const elapsed = lastAcc ? (now - lastAcc.timestamp) : (now - lastActive);
+    const isExpired = elapsed >= INACTIVITY_LIMIT_MS;
 
-    if (isFirstVisit) {
-      // First time user: show gateway tabs
+    if (!lastAcc) {
+      // No saved account on this browser: show gateway sign-in pane
       if (dom.gatewayExpiryNotice) {
         dom.gatewayExpiryNotice.classList.add('hidden');
       }
@@ -3509,13 +4356,13 @@
       return;
     }
 
-    // Active session (< 48h): Show quick resume card
-    if (dom.gatewayUserName) dom.gatewayUserName.textContent = profile.name || 'Prince';
-    if (dom.btnGatewayContinueText) dom.btnGatewayContinueText.textContent = `Continue as ${profile.name || 'Prince'}`;
-    if (dom.gatewayUserAvatar) {
-      const initials = (profile.name || 'Prince').substring(0, 2).toUpperCase();
-      dom.gatewayUserAvatar.textContent = initials;
-    }
+    // Dynamic 48-Hour Session Active: Show "Continue as [Last User]"
+    const dynamicName = lastAcc.name || (lastAcc.email ? lastAcc.email.split('@')[0] : 'User');
+    const initials = dynamicName.substring(0, 2).toUpperCase();
+
+    if (dom.gatewayUserName) dom.gatewayUserName.textContent = dynamicName;
+    if (dom.btnGatewayContinueText) dom.btnGatewayContinueText.textContent = `Continue as ${dynamicName}`;
+    if (dom.gatewayUserAvatar) dom.gatewayUserAvatar.textContent = initials;
 
     if (dom.gatewaySessionStatus) {
       const hoursAgo = Math.floor(elapsed / (1000 * 60 * 60));
@@ -3526,8 +4373,9 @@
       } else if (minsAgo > 0) {
         timeStr = `${minsAgo}m ago`;
       }
-      dom.gatewaySessionStatus.textContent = `Last active: ${timeStr} · Active Session (< 48h)`;
+      dom.gatewaySessionStatus.textContent = `Last active: ${timeStr} · 48h Session Active (${lastAcc.email})`;
     }
+
     showGatewayWelcomePane();
     dom.appAuthGateway.classList.remove('hidden');
   }
@@ -3576,7 +4424,7 @@
     e.preventDefault();
     const email = (dom.gatewayEmailInput?.value || '').trim();
     const password = (dom.gatewayPasswordInput?.value || '').trim();
-    const name = (dom.gatewayNameInput?.value || '').trim() || (email ? email.split('@')[0] : 'Prince');
+    const name = (dom.gatewayNameInput?.value || '').trim() || (email ? email.split('@')[0] : 'User');
 
     if (!email || !password) {
       if (dom.gatewayAlertBox) {
@@ -3617,6 +4465,8 @@
       localStorage.setItem(AUTH_TOKEN_KEY, data.token);
       localStorage.setItem(AUTH_USER_KEY, JSON.stringify(data.user));
 
+      // Save as the latest logged-in account on this browser (48h expiration)
+      saveLastLoggedInAccount(data.user, data.token);
       const profile = saveSavedProfile(name, email);
 
       if (dom.appAuthGateway) dom.appAuthGateway.classList.add('hidden');
@@ -4295,17 +5145,141 @@
       });
     }
 
-    // Auth Gateway Listeners
-    if (dom.btnGatewayContinue) {
-      dom.btnGatewayContinue.addEventListener('click', async () => {
-        const profile = getSavedProfile();
-        if (dom.appAuthGateway) dom.appAuthGateway.classList.add('hidden');
-        await showAppLoadingSplash(`Entering Workspace as ${(profile && profile.name) || 'Prince'}...`, 1100);
-        unlockAppSession(profile);
-        if (state.token) {
-          loadGoalsFromBackend();
+    // Auth Quick Resume Buttons (Gateway & Sign-in Modal)
+    if (dom.btnAuthModalQuickContinue) {
+      dom.btnAuthModalQuickContinue.addEventListener('click', async () => {
+        const lastAcc = getLastLoggedInAccount();
+        if (lastAcc) {
+          state.token = lastAcc.token;
+          state.user = lastAcc.user;
+          if (lastAcc.token) {
+            localStorage.setItem(AUTH_TOKEN_KEY, lastAcc.token);
+            localStorage.setItem(AUTH_USER_KEY, JSON.stringify(lastAcc.user));
+          }
+          closeAuthModal();
+          await showAppLoadingSplash(`Resuming session as ${lastAcc.name}...`, 1000);
+          unlockAppSession(lastAcc);
+          showToast(`Welcome back, ${lastAcc.name}!`, 'success');
+          if (state.token) loadGoalsFromBackend();
         }
       });
+    }
+
+    if (dom.btnGatewayContinue) {
+      dom.btnGatewayContinue.addEventListener('click', async () => {
+        const lastAcc = getLastLoggedInAccount();
+        if (lastAcc) {
+          state.token = lastAcc.token;
+          state.user = lastAcc.user;
+          if (lastAcc.token) {
+            localStorage.setItem(AUTH_TOKEN_KEY, lastAcc.token);
+            localStorage.setItem(AUTH_USER_KEY, JSON.stringify(lastAcc.user));
+          }
+          if (dom.appAuthGateway) dom.appAuthGateway.classList.add('hidden');
+          await showAppLoadingSplash(`Entering Workspace as ${lastAcc.name}...`, 1100);
+          unlockAppSession(lastAcc);
+          if (state.token) loadGoalsFromBackend();
+        } else {
+          const profile = getSavedProfile();
+          if (dom.appAuthGateway) dom.appAuthGateway.classList.add('hidden');
+          await showAppLoadingSplash(`Entering Workspace...`, 1100);
+          unlockAppSession(profile);
+          if (state.token) loadGoalsFromBackend();
+        }
+      });
+    }
+
+    // Weekly 4-Week Cycle Navigation Listeners
+    if (dom.btnPrev4Weeks) {
+      dom.btnPrev4Weeks.addEventListener('click', () => {
+        state.weekly4WeekOffset--;
+        renderWeeklyStrategyView();
+        renderSubpanel();
+      });
+    }
+
+    if (dom.btnNext4Weeks) {
+      dom.btnNext4Weeks.addEventListener('click', () => {
+        state.weekly4WeekOffset++;
+        renderWeeklyStrategyView();
+        renderSubpanel();
+      });
+    }
+
+    if (dom.btnReset4Weeks) {
+      dom.btnReset4Weeks.addEventListener('click', () => {
+        state.weekly4WeekOffset = 0;
+        renderWeeklyStrategyView();
+        renderSubpanel();
+      });
+    }
+
+    // Settings Modal Listeners
+    if (dom.btnSidebarSettings) {
+      dom.btnSidebarSettings.addEventListener('click', openSettingsModal);
+    }
+
+    if (dom.btnCloseSettingsModal) {
+      dom.btnCloseSettingsModal.addEventListener('click', closeSettingsModal);
+    }
+
+    if (dom.btnSaveCloseSettings) {
+      dom.btnSaveCloseSettings.addEventListener('click', closeSettingsModal);
+    }
+
+    if (dom.btnSettingsOpenHours) {
+      dom.btnSettingsOpenHours.addEventListener('click', () => {
+        closeSettingsModal();
+        openScheduleHoursModal();
+      });
+    }
+
+    if (dom.settingAllowPastTimeblocks) {
+      dom.settingAllowPastTimeblocks.addEventListener('change', (e) => {
+        if (!state.year_data.settings) state.year_data.settings = {};
+        state.year_data.settings.allow_past_timeblock_edit = e.target.checked;
+        queueAutoSave();
+        renderHourlySchedule();
+        showToast(e.target.checked ? 'Enabled past time blocks editing' : 'Past time blocks concluded & locked', 'info');
+      });
+    }
+
+    // Custom Goal Modal Listeners
+    if (dom.btnOpenCreateCustomGoalModal) {
+      dom.btnOpenCreateCustomGoalModal.addEventListener('click', () => openCustomGoalModal(null));
+    }
+
+    if (dom.btnCloseCustomGoalModal) {
+      dom.btnCloseCustomGoalModal.addEventListener('click', closeCustomGoalModal);
+    }
+
+    if (dom.btnCancelCustomGoalModal) {
+      dom.btnCancelCustomGoalModal.addEventListener('click', closeCustomGoalModal);
+    }
+
+    if (dom.formCustomGoalModal) {
+      dom.formCustomGoalModal.addEventListener('submit', saveCustomGoalFromModal);
+    }
+
+    if (dom.cgDurationPresets) {
+      dom.cgDurationPresets.querySelectorAll('.cg-preset-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const days = parseInt(btn.dataset.days, 10);
+          if (!isNaN(days)) {
+            setCustomGoalModalPresetDuration(days);
+          }
+        });
+      });
+    }
+
+    if (dom.cgModalStartDate) {
+      dom.cgModalStartDate.addEventListener('change', updateCustomGoalModalSummary);
+      dom.cgModalStartDate.addEventListener('input', updateCustomGoalModalSummary);
+    }
+
+    if (dom.cgModalEndDate) {
+      dom.cgModalEndDate.addEventListener('change', updateCustomGoalModalSummary);
+      dom.cgModalEndDate.addEventListener('input', updateCustomGoalModalSummary);
     }
 
     if (dom.btnGatewaySwitchAccount) {
