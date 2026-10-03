@@ -1800,28 +1800,35 @@
         <p class="modal-subtitle">Launch a campaign for any duration: 34 days, 2.5 months, 57 days, or calendar date range.</p>
       </div>
 
-      <form id="formCustomGoalModal" class="auth-form">
+      <form id="formCustomGoalModal" class="auth-form cg-modal-form">
         <div class="form-group">
           <label class="form-label" for="cgModalTitle">Campaign / Goal Title *</label>
           <input type="text" id="cgModalTitle" class="form-input" placeholder="e.g. 57-Day High-Velocity Engine Launch" required />
         </div>
 
-        <div class="form-group">
-          <label class="form-label" for="cgModalPillar">Category / Pillar</label>
-          <input type="text" id="cgModalPillar" class="form-input" placeholder="e.g. Engineering, Fitness &amp; Body, Business Sprint, Mastery" value="Execution Sprint" />
+        <!-- 2-Column: Category/Pillar & Target Metric -->
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label class="form-label" for="cgModalPillar">Category / Pillar</label>
+            <input type="text" id="cgModalPillar" class="form-input" placeholder="e.g. Engineering, Mastery" value="Execution Sprint" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="cgModalMetric">Target Metric / Deliverable *</label>
+            <input type="text" id="cgModalMetric" class="form-input" placeholder="e.g. 50 Customers, Launch v2.0" required />
+          </div>
         </div>
 
         <!-- Quick Duration Presets -->
         <div class="form-group">
           <label class="form-label">Quick Duration Presets:</label>
           <div class="cg-duration-presets" id="cgDurationPresets">
-            <button type="button" class="cg-preset-btn" data-days="14">14 Days (Sprint)</button>
-            <button type="button" class="cg-preset-btn" data-days="30">30 Days</button>
-            <button type="button" class="cg-preset-btn active" data-days="34">34 Days</button>
-            <button type="button" class="cg-preset-btn" data-days="45">45 Days</button>
-            <button type="button" class="cg-preset-btn" data-days="57">57 Days</button>
-            <button type="button" class="cg-preset-btn" data-days="75">2.5 Months (75d)</button>
-            <button type="button" class="cg-preset-btn" data-days="90">90 Days (Quarter)</button>
+            <button type="button" class="cg-preset-btn" data-days="14">14d</button>
+            <button type="button" class="cg-preset-btn" data-days="30">30d</button>
+            <button type="button" class="cg-preset-btn active" data-days="34">34d</button>
+            <button type="button" class="cg-preset-btn" data-days="45">45d</button>
+            <button type="button" class="cg-preset-btn" data-days="57">57d</button>
+            <button type="button" class="cg-preset-btn" data-days="75">2.5 Mo (75d)</button>
+            <button type="button" class="cg-preset-btn" data-days="90">90d (Qtr)</button>
           </div>
         </div>
 
@@ -1838,7 +1845,7 @@
         </div>
 
         <!-- Live Duration Calculation Card -->
-        <div class="schedule-hours-summary-card" id="cgDurationSummaryCard">
+        <div class="schedule-hours-summary-card cg-compact-summary" id="cgDurationSummaryCard">
           <div class="summary-card-inner">
             <span class="stat-mini-label">Calculated Period Duration:</span>
             <strong class="stat-highlight" id="cgDurationSummaryText">34 Total Days (4.9 Weeks)</strong>
@@ -1846,13 +1853,8 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label" for="cgModalMetric">Target Metric / Deliverable *</label>
-          <input type="text" id="cgModalMetric" class="form-input" placeholder="e.g. 50 Customers, 100km Run, Launch v2.0" required />
-        </div>
-
-        <div class="form-group">
           <label class="form-label" for="cgModalCheckpoints">Initial Checkpoints (One per line)</label>
-          <textarea id="cgModalCheckpoints" class="form-input form-textarea" rows="3" placeholder="Core architecture finalized&#10;Staging MVP deployed&#10;Public launch &amp; announcement"></textarea>
+          <textarea id="cgModalCheckpoints" class="form-input form-textarea" rows="2" placeholder="Core architecture finalized&#10;Staging MVP deployed"></textarea>
         </div>
 
         <div class="modal-actions-row">

@@ -6488,30 +6488,78 @@ a {
 }
 
 /* --------------------------------------------------------------------------
-   Custom Goal & Duration Modal Setup
+   Custom Goal & Duration Modal Setup (Compact Desktop Sizing)
    -------------------------------------------------------------------------- */
 .custom-goal-modal-card {
-  max-width: 560px;
+  max-width: 580px;
   width: 94vw;
-  max-height: calc(100vh - 2.5rem);
+  max-height: min(88vh, 560px);
+  padding: 1.15rem 1.35rem;
+  gap: 0.55rem;
   overflow-y: auto;
+}
+
+.custom-goal-modal-card .modal-header {
+  margin-bottom: 0.15rem;
+  gap: 0.65rem;
+}
+
+.custom-goal-modal-card .modal-title {
+  font-size: 1.02rem;
+}
+
+.custom-goal-modal-card .modal-subtitle {
+  font-size: 0.72rem;
+  margin-top: 0.1rem;
+}
+
+.cg-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.cg-modal-form .form-group {
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.18rem;
+}
+
+.cg-modal-form .form-label {
+  font-size: 0.72rem;
+  margin-bottom: 0;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.cg-modal-form .form-input {
+  padding: 0.35rem 0.65rem;
+  font-size: 0.8rem;
+}
+
+.cg-modal-form .form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.55rem;
 }
 
 .cg-duration-presets {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.35rem;
-  margin-top: 0.25rem;
+  gap: 0.25rem;
+  margin-top: 0.15rem;
 }
 
 .cg-preset-btn {
   background-color: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   color: var(--text-secondary);
-  font-size: 0.72rem;
-  padding: 0.3rem 0.65rem;
+  font-size: 0.68rem;
+  padding: 0.18rem 0.55rem;
   border-radius: var(--radius-pill);
   transition: all var(--transition-fast);
+  cursor: pointer;
 }
 
 .cg-preset-btn:hover {
@@ -6524,6 +6572,44 @@ a {
   color: var(--bg-app);
   border-color: var(--text-primary);
   font-weight: 600;
+}
+
+.cg-compact-summary {
+  padding: 0.35rem 0.75rem;
+  margin: 0.1rem 0;
+  border-radius: var(--radius-sm);
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+}
+
+.cg-compact-summary .stat-mini-label {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+
+.cg-compact-summary .stat-highlight {
+  font-size: 0.78rem;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+}
+
+.cg-modal-form .form-textarea {
+  min-height: 42px;
+  resize: vertical;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.78rem;
+}
+
+.cg-modal-form .modal-actions-row {
+  margin-top: 0.35rem;
+  padding-top: 0.35rem;
+  gap: 0.5rem;
+}
+
+@media (max-width: 540px) {
+  .cg-modal-form .form-grid-2 {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* --------------------------------------------------------------------------
