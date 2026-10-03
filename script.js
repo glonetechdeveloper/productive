@@ -685,6 +685,31 @@
       }
     });
 
+    // Browser History Security Guard: Block Forward navigation into account after Back is pressed
+    window.addEventListener('popstate', (e) => {
+      const isGatewayVisible = dom.appAuthGateway && !dom.appAuthGateway.classList.contains('hidden');
+      const hasValidAuth = !!(state.token && state.user);
+
+      // If user is on the auth gateway / sign-in screen OR unauthenticated:
+      if (window.location.hash === '#auth' || isGatewayVisible || !hasValidAuth) {
+        if (dom.appAuthGateway) {
+          dom.appAuthGateway.classList.remove('hidden');
+          showGatewayAuthPane('login');
+        }
+        // Invalidate active session tokens
+        state.token = null;
+        state.user = null;
+        localStorage.removeItem(AUTH_TOKEN_KEY);
+        localStorage.removeItem(AUTH_USER_KEY);
+        updateUserSessionUI();
+
+        // Trap forward navigation by pushing auth locked state
+        try {
+          window.history.pushState({ authLocked: true }, '', '#auth');
+        } catch (err) {}
+      }
+    });
+
     checkGatewaySessionState();
 
     if (state.token) {
@@ -4184,6 +4209,12 @@
     }
   }
 
+  function isValidAllowedEmail(email) {
+    if (!email) return false;
+    const clean = email.trim().toLowerCase();
+    return /^[a-zA-Z0-9._%+-]+@(gmail\.com|yahoo\.com)$/.test(clean);
+  }
+
   async function handleAuthFormSubmit(e) {
     e.preventDefault();
     const email = dom.authEmail.value.trim();
@@ -4192,6 +4223,11 @@
 
     if (!email || !password) {
       showAuthAlert('Please fill in both email and password.');
+      return;
+    }
+
+    if (!isValidAllowedEmail(email)) {
+      showAuthAlert('Only @gmail.com and @yahoo.com email addresses are allowed.');
       return;
     }
 
@@ -4337,6 +4373,9 @@
     if (notify) showToast('Signed out from cloud session.', 'info');
     showGatewayAuthPane('login');
     if (dom.appAuthGateway) dom.appAuthGateway.classList.remove('hidden');
+    try {
+      window.history.pushState({ authLocked: true }, '', '#auth');
+    } catch (e) {}
   }
 
   // ==========================================================================
@@ -4387,6 +4426,9 @@
       }
       showGatewayAuthPane('login');
       dom.appAuthGateway.classList.remove('hidden');
+      try {
+        window.history.pushState({ authLocked: true }, '', '#auth');
+      } catch (e) {}
       return;
     }
 
@@ -4396,6 +4438,9 @@
       }
       showGatewayAuthPane('login');
       dom.appAuthGateway.classList.remove('hidden');
+      try {
+        window.history.pushState({ authLocked: true }, '', '#auth');
+      } catch (e) {}
       return;
     }
 
@@ -4421,6 +4466,9 @@
 
     showGatewayWelcomePane();
     dom.appAuthGateway.classList.remove('hidden');
+    try {
+      window.history.pushState({ authLocked: true }, '', '#auth');
+    } catch (e) {}
   }
 
   function showGatewayWelcomePane() {
@@ -4452,6 +4500,9 @@
       dom.appAuthGateway.classList.add('hidden');
     }
     updateUserSessionUI();
+    try {
+      window.history.pushState({ authLocked: false }, '', '#workspace');
+    } catch (e) {}
   }
 
   async function handleContinueGuest() {
@@ -4461,6 +4512,9 @@
     recordUserActivity();
     updateUserSessionUI();
     showToast('Entered Workspace in Local Storage mode', 'info');
+    try {
+      window.history.pushState({ authLocked: false }, '', '#workspace');
+    } catch (e) {}
   }
 
   async function handleGatewayAuthSubmit(e) {
@@ -4472,6 +4526,14 @@
     if (!email || !password) {
       if (dom.gatewayAlertBox) {
         dom.gatewayAlertBox.textContent = 'Please enter both email and password';
+        dom.gatewayAlertBox.classList.remove('hidden');
+      }
+      return;
+    }
+
+    if (!isValidAllowedEmail(email)) {
+      if (dom.gatewayAlertBox) {
+        dom.gatewayAlertBox.textContent = 'Only @gmail.com and @yahoo.com email addresses are allowed.';
         dom.gatewayAlertBox.classList.remove('hidden');
       }
       return;

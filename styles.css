@@ -2625,13 +2625,15 @@ a {
 .modal-backdrop {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(4px);
+  background-color: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 100;
-  padding: 1.5rem;
+  z-index: 1000;
+  padding: 1.5rem 1rem;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .modal-backdrop.hidden {
@@ -2640,16 +2642,21 @@ a {
 
 .modal-card {
   width: 100%;
-  max-width: 440px;
+  max-width: 480px;
+  max-height: calc(100vh - 3rem);
   background-color: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  padding: 1.75rem;
+  padding: 1.5rem;
   position: relative;
   box-shadow: var(--shadow-lg);
   display: flex;
   flex-direction: column;
-  gap: 1.1rem;
+  gap: 1rem;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  margin: auto;
 }
 
 .modal-close-btn {
@@ -6484,8 +6491,10 @@ a {
    Custom Goal & Duration Modal Setup
    -------------------------------------------------------------------------- */
 .custom-goal-modal-card {
-  max-width: 540px;
-  width: 92vw;
+  max-width: 560px;
+  width: 94vw;
+  max-height: calc(100vh - 2.5rem);
+  overflow-y: auto;
 }
 
 .cg-duration-presets {
@@ -6522,7 +6531,9 @@ a {
    -------------------------------------------------------------------------- */
 .settings-modal-card {
   max-width: 520px;
-  width: 92vw;
+  width: 94vw;
+  max-height: calc(100vh - 2.5rem);
+  overflow-y: auto;
 }
 
 .settings-sections-list {
