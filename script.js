@@ -1516,28 +1516,45 @@
       });
     } else if (state.currentLevel === 'yearly') {
       const goals = state.year_data.yearly_goals || [];
-      const pillars = ['All Goals', 'Career & Growth', 'Health & Endurance', 'Mastery', 'Engineering'];
+      const allPillars = ['All Goals', ...getAllYearlyCategories()];
+      const activeCat = (state.yearlyCategoryFilter || 'all').toLowerCase();
 
-      pillars.forEach((p, idx) => {
-        const count = p === 'All Goals' ? goals.length : goals.filter(g => g.pillar === p).length;
+      allPillars.forEach(p => {
+        const isAll = p === 'All Goals';
+        const count = isAll ? goals.length : goals.filter(g => (g.pillar || '').trim().toLowerCase() === p.trim().toLowerCase()).length;
         if (q && !p.toLowerCase().includes(q)) {
           return;
         }
 
+        const isActive = isAll ? activeCat === 'all' : activeCat === p.trim().toLowerCase();
         const card = document.createElement('div');
-        card.className = `subpanel-item-card ${idx === 0 ? 'active' : ''}`;
+        card.className = `subpanel-item-card ${isActive ? 'active' : ''}`;
+        card.style.cursor = 'pointer';
         card.innerHTML = `
           <div class="subpanel-item-avatar">${p.substring(0, 2).toUpperCase()}</div>
           <div class="subpanel-item-content">
             <div class="subpanel-item-row-top">
-              <span class="subpanel-item-title">${p}</span>
+              <span class="subpanel-item-title">${escapeHtml(p)}</span>
               <span class="subpanel-item-time">${count}</span>
             </div>
             <div class="subpanel-item-row-sub">
-              <span class="subpanel-item-snippet">${p === 'All Goals' ? 'Complete Vision' : 'Strategic Pillar'}</span>
+              <span class="subpanel-item-snippet">${isAll ? 'Complete Vision' : 'Strategic Pillar'}</span>
             </div>
           </div>
         `;
+
+        card.addEventListener('click', () => {
+          if (isAll) {
+            state.yearlyCategoryFilter = 'all';
+          } else if (state.yearlyCategoryFilter.toLowerCase() === p.toLowerCase()) {
+            state.yearlyCategoryFilter = 'all'; // Toggle off / unfilter
+          } else {
+            state.yearlyCategoryFilter = p;
+          }
+          renderYearlyGoals();
+          renderSubpanelContent();
+        });
+
         dom.subpanelItemsContainer.appendChild(card);
       });
     } else if (state.currentLevel === 'routines') {
@@ -2759,6 +2776,7 @@
     allPill.addEventListener('click', () => {
       state.yearlyCategoryFilter = 'all';
       renderYearlyGoals();
+      renderSubpanelContent();
     });
     dom.yearlyCategoryPills.appendChild(allPill);
 
@@ -2767,13 +2785,16 @@
       if (count === 0 && !['Career & Growth', 'Health & Endurance', 'Mastery', 'Engineering'].includes(cat)) {
         return;
       }
+      const isActive = activeFilter.toLowerCase() === cat.toLowerCase();
       const pill = document.createElement('button');
       pill.type = 'button';
-      pill.className = `category-filter-pill ${activeFilter.toLowerCase() === cat.toLowerCase() ? 'active' : ''}`;
-      pill.innerHTML = `<span>${escapeHtml(cat)}</span><span class="pill-count-badge">${count}</span>`;
+      pill.className = `category-filter-pill ${isActive ? 'active' : ''}`;
+      pill.innerHTML = `<span>${escapeHtml(cat)}</span><span class="pill-count-badge">${count}</span>${isActive ? '<span style="font-size: 0.75rem; line-height: 1;">&times;</span>' : ''}`;
+      pill.title = isActive ? `Click to clear filter on ${cat}` : `Filter by ${cat}`;
       pill.addEventListener('click', () => {
-        state.yearlyCategoryFilter = state.yearlyCategoryFilter.toLowerCase() === cat.toLowerCase() ? 'all' : cat;
+        state.yearlyCategoryFilter = isActive ? 'all' : cat;
         renderYearlyGoals();
+        renderSubpanelContent();
       });
       dom.yearlyCategoryPills.appendChild(pill);
     });
@@ -2795,9 +2816,23 @@
     }
 
     if (dom.yearlyFilteredCountBadge) {
-      dom.yearlyFilteredCountBadge.textContent = activeCatFilter === 'all'
-        ? `${allGoals.length} Total Goals`
-        : `${filteredGoals.length} in ${state.yearlyCategoryFilter}`;
+      if (activeCatFilter === 'all') {
+        dom.yearlyFilteredCountBadge.textContent = `${allGoals.length} Total Goals`;
+      } else {
+        dom.yearlyFilteredCountBadge.innerHTML = `
+          <span>${filteredGoals.length} in <strong>${escapeHtml(state.yearlyCategoryFilter)}</strong></span>
+          <button type="button" class="btn-clear-cat-filter" id="btnResetYearlyCatFilter">Clear Filter &times;</button>
+        `;
+        const resetBtn = dom.yearlyFilteredCountBadge.querySelector('#btnResetYearlyCatFilter');
+        if (resetBtn) {
+          resetBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            state.yearlyCategoryFilter = 'all';
+            renderYearlyGoals();
+            renderSubpanelContent();
+          });
+        }
+      }
     }
 
     filteredGoals.forEach((goal, idx) => {
@@ -2808,15 +2843,17 @@
         if (!matchTitle && !matchPillar && !matchMetric) return;
       }
 
+      const isThisPillarFiltered = activeCatFilter !== 'all' && (goal.pillar || '').trim().toLowerCase() === activeCatFilter;
+
       const card = document.createElement('div');
       card.className = 'yearly-goal-card';
       card.id = `goal-card-${goal.id}`;
 
       card.innerHTML = `
         <div class="yearly-goal-top">
-          <div class="yearly-pillar-edit-wrap">
+          <div class="yearly-pillar-edit-wrap ${isThisPillarFiltered ? 'is-filtered' : ''}">
             <input type="text" class="pillar-input-editable" value="${escapeHtml(goal.pillar || 'Strategic Growth')}" placeholder="Category / Pillar" title="Click to edit category" />
-            <button type="button" class="pillar-filter-quick-btn" title="Filter by ${escapeHtml(goal.pillar || 'category')}">Filter</button>
+            <button type="button" class="pillar-filter-quick-btn ${isThisPillarFiltered ? 'active' : ''}" title="${isThisPillarFiltered ? 'Clear filter' : 'Filter by ' + escapeHtml(goal.pillar || 'category')}">${isThisPillarFiltered ? 'Filtered &times;' : 'Filter'}</button>
           </div>
           <button class="goal-delete-btn" title="Delete Goal">${ICONS.trash}</button>
         </div>
@@ -2840,13 +2877,19 @@
         goal.pillar = e.target.value.trim() || 'Strategic Pillar';
         queueAutoSave();
         renderYearlyCategoryFilterBar();
+        renderSubpanelContent();
       });
 
       const filterQuickBtn = card.querySelector('.pillar-filter-quick-btn');
       filterQuickBtn.addEventListener('click', (e) => {
         e.stopPropagation();
-        state.yearlyCategoryFilter = goal.pillar || 'all';
+        if (isThisPillarFiltered) {
+          state.yearlyCategoryFilter = 'all'; // Unfilter
+        } else {
+          state.yearlyCategoryFilter = goal.pillar || 'all';
+        }
         renderYearlyGoals();
+        renderSubpanelContent();
       });
 
       card.querySelector('.yearly-goal-title-input').addEventListener('input', (e) => {

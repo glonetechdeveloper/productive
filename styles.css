@@ -5977,33 +5977,71 @@ a {
   white-space: nowrap;
 }
 
+/* --------------------------------------------------------------------------
+   Weekly Strategy 4-Week Cycle & Segmented Control
+   -------------------------------------------------------------------------- */
 .segmented-control-weeks {
-  display: flex;
-  gap: 0.25rem;
+  display: inline-flex;
+  align-items: stretch;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 0.25rem;
+  gap: 0.35rem;
+  max-width: 100%;
 }
 
 .segmented-control-weeks .sub-week-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0.35rem 0.75rem;
-  gap: 0.1rem;
+  justify-content: center;
+  padding: 0.45rem 0.85rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  background: transparent;
+  gap: 0.2rem;
+  min-width: 105px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  text-align: center;
 }
 
-.week-title-short {
-  font-weight: 600;
-  font-size: 0.78rem;
+.segmented-control-weeks .sub-week-btn:hover {
+  background-color: var(--bg-surface-hover);
+  color: var(--text-primary);
 }
 
-.week-range-short {
-  font-size: 0.66rem;
-  color: var(--text-muted);
+.segmented-control-weeks .sub-week-btn.active {
+  background-color: var(--text-primary);
+  color: var(--bg-app);
+  border-color: var(--text-primary);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.25);
+}
+
+.segmented-control-weeks .sub-week-btn .week-title-short {
+  font-weight: 700;
+  font-size: 0.82rem;
+  line-height: 1.1;
+  color: var(--text-primary);
+}
+
+.segmented-control-weeks .sub-week-btn .week-range-short {
+  font-size: 0.68rem;
   font-family: var(--font-mono);
+  color: var(--text-muted);
+  line-height: 1.1;
+  white-space: nowrap;
 }
 
-.sub-week-btn.active .week-range-short {
-  color: var(--text-pill-active);
-  opacity: 0.85;
+.segmented-control-weeks .sub-week-btn.active .week-title-short {
+  color: var(--bg-app);
+}
+
+.segmented-control-weeks .sub-week-btn.active .week-range-short {
+  color: var(--bg-app);
+  opacity: 0.92;
+  font-weight: 500;
 }
 
 /* --------------------------------------------------------------------------
@@ -6012,12 +6050,12 @@ a {
 .category-filter-strip {
   background-color: var(--bg-card);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  padding: 0.75rem 1rem;
+  border-radius: var(--radius-lg);
+  padding: 0.85rem 1.1rem;
   margin-bottom: 1.25rem;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.65rem;
 }
 
 .category-filter-header {
@@ -6027,68 +6065,163 @@ a {
 }
 
 .category-filter-label {
-  font-size: 0.76rem;
-  font-weight: 600;
-  color: var(--text-secondary);
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
 }
 
 .category-filter-count {
-  font-size: 0.72rem;
-  color: var(--text-muted);
+  font-size: 0.74rem;
+  color: var(--text-secondary);
   font-family: var(--font-mono);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.btn-clear-cat-filter {
+  background: transparent;
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-pill);
+  color: var(--text-secondary);
+  font-size: 0.68rem;
+  padding: 0.15rem 0.55rem;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.btn-clear-cat-filter:hover {
+  background-color: var(--bg-surface-hover);
+  color: var(--text-primary);
+  border-color: var(--text-primary);
 }
 
 .category-filter-pills {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem;
+  align-items: center;
+  gap: 0.45rem;
 }
 
-.category-pill-btn {
+.category-pill-btn,
+.category-filter-pill {
   background-color: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   color: var(--text-secondary);
-  font-size: 0.75rem;
+  font-size: 0.76rem;
   font-weight: 500;
-  padding: 0.3rem 0.75rem;
+  padding: 0.35rem 0.8rem;
   border-radius: var(--radius-pill);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.45rem;
   transition: all var(--transition-fast);
+  user-select: none;
 }
 
-.category-pill-btn:hover {
+.category-pill-btn:hover,
+.category-filter-pill:hover {
   background-color: var(--bg-surface-hover);
   color: var(--text-primary);
   border-color: var(--border-medium);
 }
 
-.category-pill-btn.active {
+.category-pill-btn.active,
+.category-filter-pill.active {
+  background-color: var(--text-primary);
+  color: var(--bg-app);
+  border-color: var(--text-primary);
+  font-weight: 600;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.category-pill-count,
+.pill-count-badge {
+  background-color: rgba(128, 128, 128, 0.18);
+  padding: 0.1rem 0.4rem;
+  border-radius: var(--radius-pill);
+  font-size: 0.65rem;
+  font-family: var(--font-mono);
+}
+
+.category-pill-btn.active .category-pill-count,
+.category-filter-pill.active .pill-count-badge {
+  background-color: rgba(0, 0, 0, 0.25);
+  color: var(--bg-app);
+}
+
+/* --------------------------------------------------------------------------
+   Annual Goals Card - Pillar Tag & Quick Filter Button
+   -------------------------------------------------------------------------- */
+.yearly-pillar-edit-wrap {
+  display: inline-flex;
+  align-items: center;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  padding: 0.15rem 0.25rem 0.15rem 0.65rem;
+  gap: 0.35rem;
+  transition: border-color var(--transition-fast);
+}
+
+.yearly-pillar-edit-wrap:focus-within {
+  border-color: var(--border-medium);
+}
+
+.yearly-pillar-edit-wrap.is-filtered {
+  border-color: var(--text-primary);
+  background-color: var(--bg-surface-hover);
+}
+
+.pillar-input-editable {
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 0.74rem;
+  font-weight: 600;
+  padding: 0.15rem 0;
+  width: 110px;
+  outline: none;
+  font-family: inherit;
+}
+
+.pillar-input-editable::placeholder {
+  color: var(--text-muted);
+}
+
+.pillar-filter-quick-btn {
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  color: var(--text-secondary);
+  font-size: 0.68rem;
+  font-weight: 500;
+  padding: 0.2rem 0.55rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  transition: all var(--transition-fast);
+}
+
+.pillar-filter-quick-btn:hover {
+  background-color: var(--bg-surface-hover);
+  color: var(--text-primary);
+  border-color: var(--border-medium);
+}
+
+.pillar-filter-quick-btn.active {
   background-color: var(--text-primary);
   color: var(--bg-app);
   border-color: var(--text-primary);
   font-weight: 600;
 }
 
-.category-pill-count {
-  background-color: rgba(128, 128, 128, 0.2);
-  padding: 0.1rem 0.35rem;
-  border-radius: var(--radius-pill);
-  font-size: 0.65rem;
-  font-family: var(--font-mono);
-}
-
-.category-pill-btn.active .category-pill-count {
-  background-color: rgba(0, 0, 0, 0.2);
-  color: inherit;
-}
-
 /* --------------------------------------------------------------------------
-   Custom Goals Stage View & Cards
+   Custom Goals Stage View & Cards (SaaS-Grade Redesign)
    -------------------------------------------------------------------------- */
 .custom-goals-hero-banner {
   margin-bottom: 1.5rem;
@@ -6096,19 +6229,19 @@ a {
 
 .custom-goals-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 1.25rem;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 1.35rem;
 }
 
 .custom-goal-card {
-  background-color: var(--bg-card);
+  background-color: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
-  padding: 1.25rem;
+  padding: 1.35rem;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
   gap: 1rem;
+  box-shadow: var(--shadow-sm);
   transition: transform var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
@@ -6118,20 +6251,26 @@ a {
   transform: translateY(-2px);
 }
 
-.custom-goal-top-row {
+.custom-goal-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 0.75rem;
 }
 
-.custom-period-chip {
+.custom-goal-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.custom-goal-period-chip {
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
-  background-color: var(--bg-surface);
+  background-color: var(--bg-card);
   border: 1px solid var(--border-subtle);
-  padding: 0.25rem 0.6rem;
+  padding: 0.2rem 0.6rem;
   border-radius: var(--radius-pill);
   font-size: 0.72rem;
   font-weight: 600;
@@ -6139,70 +6278,92 @@ a {
   font-family: var(--font-mono);
 }
 
-.custom-goal-category-tag {
-  font-size: 0.7rem;
-  color: var(--text-secondary);
-  background-color: rgba(255, 255, 255, 0.05);
-  padding: 0.2rem 0.5rem;
-  border-radius: var(--radius-xs);
-  border: 1px solid var(--border-subtle);
-}
-
 .custom-goal-title {
-  font-size: 1.05rem;
+  font-size: 1.12rem;
   font-weight: 700;
   color: var(--text-primary);
-  margin-top: 0.4rem;
   line-height: 1.35;
+  margin: 0;
 }
 
-.custom-goal-date-range {
-  font-size: 0.74rem;
-  color: var(--text-muted);
-  font-family: var(--font-mono);
-  margin-top: 0.2rem;
-}
-
-.custom-goal-metric-box {
-  background-color: var(--bg-surface);
+.custom-goal-metric-row {
+  background-color: var(--bg-card);
   border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  padding: 0.55rem 0.75rem;
-  font-size: 0.78rem;
+  border-radius: var(--radius-md);
+  padding: 0.65rem 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  gap: 0.5rem;
 }
 
-.custom-goal-metric-label {
+.custom-goal-metric-row span {
   color: var(--text-muted);
-  font-size: 0.7rem;
-  display: block;
-  margin-bottom: 0.15rem;
+  font-size: 0.75rem;
 }
 
-.custom-goal-metric-val {
-  font-weight: 600;
+.custom-goal-metric-row strong {
   color: var(--text-primary);
+  font-weight: 600;
 }
 
-/* Progress Section */
-.custom-goal-progress-wrap {
+.custom-goal-dates-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 0.85rem;
+  text-align: center;
+}
+
+.cg-date-col {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
+  gap: 0.2rem;
 }
 
-.custom-goal-progress-header {
+.cg-date-lbl {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.cg-date-val {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+}
+
+.custom-goal-progress-box {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.custom-goal-progress-hdr {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   color: var(--text-secondary);
+}
+
+.custom-goal-progress-hdr strong {
+  color: var(--text-primary);
+  font-family: var(--font-mono);
 }
 
 .custom-goal-progress-bar {
   height: 6px;
-  background-color: var(--bg-surface);
+  background-color: var(--bg-card);
   border-radius: var(--radius-pill);
   overflow: hidden;
+  border: 1px solid var(--border-subtle);
 }
 
 .custom-goal-progress-fill {
@@ -6212,45 +6373,111 @@ a {
   transition: width var(--transition-normal);
 }
 
-/* Milestones Sub-List in Card */
-.custom-milestones-feed {
+.custom-goal-milestones-section {
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  border-top: 1px dashed var(--border-subtle);
-  padding-top: 0.65rem;
+  gap: 0.5rem;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 0.85rem;
 }
 
-.custom-milestone-row {
+.cg-milestones-title {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.cg-milestones-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 180px;
+  overflow-y: auto;
+  padding-right: 0.2rem;
+}
+
+.cg-milestone-item {
   display: flex;
   align-items: center;
-  gap: 0.45rem;
-  font-size: 0.76rem;
+  gap: 0.55rem;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 0.45rem 0.65rem;
+  transition: border-color var(--transition-fast);
 }
 
-.custom-milestone-text {
+.cg-milestone-item:hover {
+  border-color: var(--border-medium);
+}
+
+.cg-milestone-cb {
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  accent-color: var(--text-primary);
+}
+
+.cg-milestone-text {
   flex: 1;
-  color: var(--text-secondary);
+  font-size: 0.78rem;
+  color: var(--text-primary);
+  transition: all var(--transition-fast);
+  word-break: break-word;
 }
 
-.custom-milestone-text.done {
+.cg-milestone-text.completed {
   text-decoration: line-through;
   color: var(--text-muted);
 }
 
-.custom-goal-card-footer {
+.cg-milestone-del {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.1rem 0.25rem;
+  border-radius: var(--radius-xs);
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  border-top: 1px solid var(--border-subtle);
-  padding-top: 0.75rem;
+  justify-content: center;
+  transition: color var(--transition-fast);
+}
+
+.cg-milestone-del:hover {
+  color: var(--text-primary);
+}
+
+.cg-add-milestone-row {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
   margin-top: 0.25rem;
 }
 
-.custom-goal-actions {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
+.cg-new-milestone-input {
+  flex: 1;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  padding: 0.4rem 0.8rem;
+  font-size: 0.78rem;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+
+.cg-new-milestone-input:focus {
+  border-color: var(--border-medium);
+}
+
+.btn-add-cg-milestone {
+  padding: 0.4rem 0.85rem;
+  font-size: 0.76rem;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
 }
 
 /* --------------------------------------------------------------------------
@@ -6438,9 +6665,11 @@ a {
 /* --------------------------------------------------------------------------
    Responsive Media Queries for New Features
    -------------------------------------------------------------------------- */
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .weekly-header-actions {
+    flex-direction: column;
     align-items: stretch;
+    gap: 0.75rem;
     width: 100%;
   }
 
@@ -6453,16 +6682,31 @@ a {
     width: 100%;
     overflow-x: auto;
     justify-content: flex-start;
+    -webkit-overflow-scrolling: touch;
+    padding: 0.3rem;
   }
 
   .segmented-control-weeks .sub-week-btn {
     flex: 1;
-    min-width: 70px;
-    padding: 0.3rem 0.4rem;
+    min-width: 85px;
+    padding: 0.4rem 0.5rem;
   }
+}
 
+@media (max-width: 768px) {
   .custom-goals-grid {
     grid-template-columns: 1fr;
+  }
+
+  .custom-goal-dates-grid {
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
+    text-align: left;
+  }
+
+  .cg-date-col {
+    flex-direction: row;
+    justify-content: space-between;
   }
 
   .settings-card-row {
