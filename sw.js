@@ -1,10 +1,10 @@
 /**
  * Productive Workspace - Progressive Web App Service Worker
- * Version: 2.2.0
+ * Version: 2.2.1
  * Enables offline caching, background sync & instant update notifications
  */
 
-const CACHE_NAME = 'productive-pwa-v2.2.0';
+const CACHE_NAME = 'productive-pwa-v2.2.1';
 const ASSETS_TO_CACHE = [
   '/',
   '/index.html',

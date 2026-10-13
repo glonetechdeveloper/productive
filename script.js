@@ -10,15 +10,28 @@
 
   // --- Constants & Config ---
   const API_BASE_URL = window.API_BASE_URL || 'https://lumen-backend-mu.vercel.app';
-  const STORAGE_KEY = 'productive_workspace_data_v1';
+  const STORAGE_KEY = 'productive_workspace_data_v1'; // Legacy fallback
   const AUTH_TOKEN_KEY = 'productive_jwt_token';
   const AUTH_USER_KEY = 'productive_user_info';
-  const SYNC_VERSION_KEY = 'productive_sync_version';
+  const SYNC_VERSION_KEY = 'productive_sync_version'; // Legacy fallback
   const THEME_KEY = 'productive_theme';
   const LAST_ACTIVE_KEY = 'productive_last_active_time';
   const SAVED_PROFILE_KEY = 'productive_saved_profile';
   const LAST_LOGGED_IN_ACCOUNT_KEY = 'productive_last_logged_in_account';
   const INACTIVITY_LIMIT_MS = 48 * 60 * 60 * 1000; // 48 Hours Inactivity Expiry Limit
+
+  // Scoped Storage Key Helpers: strictly isolates state per authenticated user
+  function getUserStorageKey(user) {
+    const u = user !== undefined ? user : (typeof state !== 'undefined' ? state?.user : null);
+    const uid = u?.id || u?.user_id || u?.email;
+    return uid ? `productive_workspace_data_${uid}` : 'productive_workspace_data_guest';
+  }
+
+  function getUserSyncVersionKey(user) {
+    const u = user !== undefined ? user : (typeof state !== 'undefined' ? state?.user : null);
+    const uid = u?.id || u?.user_id || u?.email;
+    return uid ? `productive_sync_version_${uid}` : 'productive_sync_version_guest';
+  }
 
   function apiUrl(path) {
     const base = (window.API_BASE_URL || API_BASE_URL).replace(/\/+$/, '');
@@ -291,12 +304,20 @@
     }
   ];
 
+  const initialUser = (() => {
+    try {
+      return JSON.parse(localStorage.getItem(AUTH_USER_KEY) || 'null');
+    } catch (e) {
+      return null;
+    }
+  })();
+
   // --- Application State ---
   const state = {
     theme: localStorage.getItem(THEME_KEY) || 'dark',
     token: localStorage.getItem(AUTH_TOKEN_KEY) || null,
-    user: JSON.parse(localStorage.getItem(AUTH_USER_KEY) || 'null'),
-    syncVersion: parseInt(localStorage.getItem(SYNC_VERSION_KEY) || '0', 10) || 0,
+    user: initialUser,
+    syncVersion: parseInt(localStorage.getItem(getUserSyncVersionKey(initialUser)) || '0', 10) || 0,
     selectedYear: '2026',
     currentDate: getTodayISODate(),
     currentLevel: 'micro',
@@ -692,16 +713,7 @@
 
       // If user is on the auth gateway / sign-in screen OR unauthenticated:
       if (window.location.hash === '#auth' || isGatewayVisible || !hasValidAuth) {
-        if (dom.appAuthGateway) {
-          dom.appAuthGateway.classList.remove('hidden');
-          showGatewayAuthPane('login');
-        }
-        // Invalidate active session tokens
-        state.token = null;
-        state.user = null;
-        localStorage.removeItem(AUTH_TOKEN_KEY);
-        localStorage.removeItem(AUTH_USER_KEY);
-        updateUserSessionUI();
+        handleSignOut(false);
 
         // Trap forward navigation by pushing auth locked state
         try {
@@ -994,7 +1006,12 @@
   }
 
   function loadInitialData() {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const key = getUserStorageKey(state.user);
+    let stored = localStorage.getItem(key);
+    // Backward compatibility for un-namespaced legacy storage ONLY in guest mode
+    if (!stored && !state.user) {
+      stored = localStorage.getItem(STORAGE_KEY);
+    }
     if (stored) {
       try {
         state.year_data = JSON.parse(stored);
@@ -1116,7 +1133,8 @@
   }
 
   function saveDataLocally() {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.year_data));
+    const key = getUserStorageKey(state.user);
+    localStorage.setItem(key, JSON.stringify(state.year_data));
   }
 
   function queueAutoSave() {
@@ -1166,7 +1184,7 @@
       // Track version from backend
       if (typeof result.version === 'number') {
         state.syncVersion = result.version;
-        localStorage.setItem(SYNC_VERSION_KEY, String(result.version));
+        localStorage.setItem(getUserSyncVersionKey(state.user), String(result.version));
       }
 
       if (result.data && typeof result.data === 'object' && Object.keys(result.data).length > 0) {
@@ -1177,7 +1195,13 @@
         renderSubpanel();
         updateSyncStatusUI('synced', 'Synced');
       } else {
-        // Initial sync if cloud data is empty
+        // Initial sync if cloud data is empty (fresh account)
+        // Ensure state is clean default template for this user - NEVER leak another user's data!
+        state.year_data = createDefaultYearData();
+        saveDataLocally();
+        renderAllViews();
+        updateAllMetrics();
+        renderSubpanel();
         saveGoalsToBackend(state.year_data);
       }
     } catch (err) {
@@ -1228,7 +1252,7 @@
         if (conflictRes.server) {
           if (typeof conflictRes.server.version === 'number') {
             state.syncVersion = conflictRes.server.version;
-            localStorage.setItem(SYNC_VERSION_KEY, String(conflictRes.server.version));
+            localStorage.setItem(getUserSyncVersionKey(state.user), String(conflictRes.server.version));
           }
           if (conflictRes.server.data) {
             state.year_data = conflictRes.server.data;
@@ -1251,7 +1275,7 @@
       const result = await response.json();
       if (typeof result.version === 'number') {
         state.syncVersion = result.version;
-        localStorage.setItem(SYNC_VERSION_KEY, String(result.version));
+        localStorage.setItem(getUserSyncVersionKey(state.user), String(result.version));
       }
 
       updateSyncStatusUI('synced', 'Synced');
@@ -4253,8 +4277,17 @@
         throw new Error(data.error || 'Authentication failed. Please check your credentials.');
       }
 
+      // Cancel pending autosaves
+      if (debounceSaveTimeout) {
+        clearTimeout(debounceSaveTimeout);
+        debounceSaveTimeout = null;
+      }
+      isSyncing = false;
+      pendingSyncData = null;
+
       state.token = data.token;
       state.user = data.user;
+      state.syncVersion = parseInt(localStorage.getItem(getUserSyncVersionKey(data.user)) || '0', 10) || 0;
       localStorage.setItem(AUTH_TOKEN_KEY, data.token);
       localStorage.setItem(AUTH_USER_KEY, JSON.stringify(data.user));
 
@@ -4262,8 +4295,14 @@
       saveLastLoggedInAccount(data.user, data.token);
       saveSavedProfile(name, email);
 
+      // Immediately switch in-memory state to this user's data before any render or sync
+      loadInitialData();
+      renderAllViews();
+      updateAllMetrics();
+      renderSubpanel();
+
       closeAuthModal();
-      await showAppLoadingSplash(authMode === 'register' ? 'Setting Up Cloud Workspace...' : 'Signing In & Loading Cloud Data...', 1200);
+      await showAppLoadingSplash(authMode === 'register' ? 'Setting Up Cloud Workspace...' : 'Signing In & Loading Cloud Data...', 800);
 
       updateUserSessionUI();
       showToast(`Welcome back, ${name || data.user.email}!`, 'success');
@@ -4363,13 +4402,33 @@
 
   function handleSignOut(notify = true) {
     closeUserAccountPopover();
+
+    // Cancel pending auto-save timers
+    if (debounceSaveTimeout) {
+      clearTimeout(debounceSaveTimeout);
+      debounceSaveTimeout = null;
+    }
+    isSyncing = false;
+    pendingSyncData = null;
+
+    // Reset authentication and session state
     state.token = null;
     state.user = null;
     state.syncVersion = 0;
     localStorage.removeItem(AUTH_TOKEN_KEY);
     localStorage.removeItem(AUTH_USER_KEY);
     localStorage.removeItem(SYNC_VERSION_KEY);
+    localStorage.removeItem(LAST_LOGGED_IN_ACCOUNT_KEY);
+
+    // Reset in-memory state to clean guest data
+    loadInitialData();
+
+    // Immediately re-render so user data vanishes from UI
+    renderAllViews();
+    updateAllMetrics();
+    renderSubpanel();
     updateUserSessionUI();
+
     if (notify) showToast('Signed out from cloud session.', 'info');
     showGatewayAuthPane('login');
     if (dom.appAuthGateway) dom.appAuthGateway.classList.remove('hidden');
@@ -4506,9 +4565,26 @@
   }
 
   async function handleContinueGuest() {
+    if (debounceSaveTimeout) {
+      clearTimeout(debounceSaveTimeout);
+      debounceSaveTimeout = null;
+    }
+    isSyncing = false;
+    pendingSyncData = null;
+
+    state.token = null;
+    state.user = null;
+    state.syncVersion = 0;
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    localStorage.removeItem(AUTH_USER_KEY);
+    loadInitialData();
+    renderAllViews();
+    updateAllMetrics();
+    renderSubpanel();
+
     if (dom.appAuthGateway) dom.appAuthGateway.classList.add('hidden');
     if (dom.authModalBackdrop) dom.authModalBackdrop.classList.add('hidden');
-    await showAppLoadingSplash('Entering Workspace (Local Mode)...', 1000);
+    await showAppLoadingSplash('Entering Workspace (Local Mode)...', 800);
     recordUserActivity();
     updateUserSessionUI();
     showToast('Entered Workspace in Local Storage mode', 'info');
@@ -4565,8 +4641,17 @@
         throw new Error(data.error || 'Authentication failed. Please verify credentials.');
       }
 
+      // Cancel pending autosaves
+      if (debounceSaveTimeout) {
+        clearTimeout(debounceSaveTimeout);
+        debounceSaveTimeout = null;
+      }
+      isSyncing = false;
+      pendingSyncData = null;
+
       state.token = data.token;
       state.user = data.user;
+      state.syncVersion = parseInt(localStorage.getItem(getUserSyncVersionKey(data.user)) || '0', 10) || 0;
       localStorage.setItem(AUTH_TOKEN_KEY, data.token);
       localStorage.setItem(AUTH_USER_KEY, JSON.stringify(data.user));
 
@@ -4574,8 +4659,14 @@
       saveLastLoggedInAccount(data.user, data.token);
       const profile = saveSavedProfile(name, email);
 
+      // Immediately switch in-memory state to this user's data before rendering
+      loadInitialData();
+      renderAllViews();
+      updateAllMetrics();
+      renderSubpanel();
+
       if (dom.appAuthGateway) dom.appAuthGateway.classList.add('hidden');
-      await showAppLoadingSplash(authMode === 'register' ? 'Creating Account & Synchronizing...' : 'Signing In & Loading Cloud Data...', 1200);
+      await showAppLoadingSplash(authMode === 'register' ? 'Creating Account & Synchronizing...' : 'Signing In & Loading Cloud Data...', 800);
 
       unlockAppSession(profile);
       showToast(`Welcome back, ${name}!`, 'success');
@@ -5255,14 +5346,27 @@
       dom.btnAuthModalQuickContinue.addEventListener('click', async () => {
         const lastAcc = getLastLoggedInAccount();
         if (lastAcc) {
+          if (debounceSaveTimeout) {
+            clearTimeout(debounceSaveTimeout);
+            debounceSaveTimeout = null;
+          }
+          isSyncing = false;
+          pendingSyncData = null;
+
           state.token = lastAcc.token;
           state.user = lastAcc.user;
+          state.syncVersion = parseInt(localStorage.getItem(getUserSyncVersionKey(lastAcc.user)) || '0', 10) || 0;
           if (lastAcc.token) {
             localStorage.setItem(AUTH_TOKEN_KEY, lastAcc.token);
             localStorage.setItem(AUTH_USER_KEY, JSON.stringify(lastAcc.user));
           }
+          loadInitialData();
+          renderAllViews();
+          updateAllMetrics();
+          renderSubpanel();
+
           closeAuthModal();
-          await showAppLoadingSplash(`Resuming session as ${lastAcc.name}...`, 1000);
+          await showAppLoadingSplash(`Resuming session as ${lastAcc.name}...`, 800);
           unlockAppSession(lastAcc);
           showToast(`Welcome back, ${lastAcc.name}!`, 'success');
           if (state.token) loadGoalsFromBackend();
@@ -5274,20 +5378,33 @@
       dom.btnGatewayContinue.addEventListener('click', async () => {
         const lastAcc = getLastLoggedInAccount();
         if (lastAcc) {
+          if (debounceSaveTimeout) {
+            clearTimeout(debounceSaveTimeout);
+            debounceSaveTimeout = null;
+          }
+          isSyncing = false;
+          pendingSyncData = null;
+
           state.token = lastAcc.token;
           state.user = lastAcc.user;
+          state.syncVersion = parseInt(localStorage.getItem(getUserSyncVersionKey(lastAcc.user)) || '0', 10) || 0;
           if (lastAcc.token) {
             localStorage.setItem(AUTH_TOKEN_KEY, lastAcc.token);
             localStorage.setItem(AUTH_USER_KEY, JSON.stringify(lastAcc.user));
           }
+          loadInitialData();
+          renderAllViews();
+          updateAllMetrics();
+          renderSubpanel();
+
           if (dom.appAuthGateway) dom.appAuthGateway.classList.add('hidden');
-          await showAppLoadingSplash(`Entering Workspace as ${lastAcc.name}...`, 1100);
+          await showAppLoadingSplash(`Entering Workspace as ${lastAcc.name}...`, 800);
           unlockAppSession(lastAcc);
           if (state.token) loadGoalsFromBackend();
         } else {
           const profile = getSavedProfile();
           if (dom.appAuthGateway) dom.appAuthGateway.classList.add('hidden');
-          await showAppLoadingSplash(`Entering Workspace...`, 1100);
+          await showAppLoadingSplash(`Entering Workspace...`, 800);
           unlockAppSession(profile);
           if (state.token) loadGoalsFromBackend();
         }
