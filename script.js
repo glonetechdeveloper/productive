@@ -935,74 +935,45 @@
   }
 
   // ==========================================================================
-  // DATA MANAGEMENT & SYNC
-  // ==========================================================================
-  function getDefaultChallenges() {
-    const today = getTodayISODate();
-    return [
-      {
-        id: 'ch_deepwork_7d',
-        title: '7-Day 6:00 AM Deep Work Sprint',
-        description: 'Execute minimum 5 hours of uninterrupted deep work before 12:00 PM daily. Strict accountability.',
-        category: 'Deep Work',
-        isPublic: true,
-        code: 'DEEP7D',
-        creator: 'Prince (You)',
-        creatorEmail: 'prince@workspace.io',
-        durationDays: 7,
-        startDate: today,
-        targetHoursPerDay: 5,
-        participants: [
-          { name: 'Prince (You)', email: 'prince@workspace.io', avatar: 'PR', streak: 4, hours: 22.5, completedDays: 4, rank: 1 },
-          { name: 'Alex Rivera', email: 'alex@dev.io', avatar: 'AR', streak: 3, hours: 19.0, completedDays: 3, rank: 2 },
-          { name: 'Elena Rostova', email: 'elena@arch.io', avatar: 'ER', streak: 4, hours: 18.5, completedDays: 4, rank: 3 },
-          { name: 'Marcus Chen', email: 'marcus@ai.org', avatar: 'MC', streak: 2, hours: 14.0, completedDays: 2, rank: 4 }
-        ],
-        checkIns: {
-          [today]: true
-        },
-        userJoined: true
-      },
-      {
-        id: 'ch_routine_mastery_30d',
-        title: '30-Day 18h Routine Discipline',
-        description: 'Follow your daily blueprint with 80%+ block completion rate. Private mastermind cohort.',
-        category: 'Routine Discipline',
-        isPublic: false,
-        code: 'ROUT30',
-        creator: 'Prince (You)',
-        creatorEmail: 'prince@workspace.io',
-        durationDays: 30,
-        startDate: today,
-        targetHoursPerDay: 6,
-        participants: [
-          { name: 'Prince (You)', email: 'prince@workspace.io', avatar: 'PR', streak: 12, hours: 78.0, completedDays: 12, rank: 1 },
-          { name: 'Jordan Hayes', email: 'jordan@tech.co', avatar: 'JH', streak: 11, hours: 71.5, completedDays: 11, rank: 2 },
-          { name: 'Samantha Wu', email: 'sam@growth.io', avatar: 'SW', streak: 9, hours: 58.0, completedDays: 9, rank: 3 }
-        ],
-        checkIns: {},
-        userJoined: true
-      },
-      {
-        id: 'ch_monk_mode_14d',
-        title: '14-Day Monk Mode Focus Sprint',
-        description: 'Zero social media during work hours. 6+ hours of high-leverage deliverables daily.',
-        category: 'No Distraction',
-        isPublic: true,
-        code: 'MONK14',
-        creator: 'Liam Vance',
-        creatorEmail: 'liam@founder.io',
-        durationDays: 14,
-        startDate: today,
-        targetHoursPerDay: 6,
-        participants: [
-          { name: 'Liam Vance', email: 'liam@founder.io', avatar: 'LV', streak: 8, hours: 51.0, completedDays: 8, rank: 1 },
-          { name: 'Chloe Dubois', email: 'chloe@design.fr', avatar: 'CD', streak: 7, hours: 44.5, completedDays: 7, rank: 2 }
-        ],
-        checkIns: {},
-        userJoined: false
+  function cleanupSampleDummyData(data) {
+    if (!data) return;
+    const dummyGoalIds = new Set(['g1', 'g2', 'g3', 'g4']);
+    if (Array.isArray(data.yearly_goals)) {
+      if (data.yearly_goals.length > 0 && data.yearly_goals.every(g => dummyGoalIds.has(g.id))) {
+        data.yearly_goals = [];
       }
-    ];
+    } else {
+      data.yearly_goals = [];
+    }
+
+    if (Array.isArray(data.custom_goals)) {
+      if (data.custom_goals.length === 1 && data.custom_goals[0].id === 'cg_sample_34d') {
+        data.custom_goals = [];
+      }
+    } else {
+      data.custom_goals = [];
+    }
+
+    const dummyChallengeIds = new Set(['ch_deepwork_7d', 'ch_routine_mastery_30d', 'ch_monk_mode_14d', 'c_75hard', 'c_monk14']);
+    if (Array.isArray(data.challenges)) {
+      if (data.challenges.length > 0 && data.challenges.every(c => dummyChallengeIds.has(c.id))) {
+        data.challenges = [];
+      }
+    } else {
+      data.challenges = [];
+    }
+
+    if (data.four_months && data.four_months.h1 && data.four_months.h1.m1 && data.four_months.h1.m1.target === 'Establish deep work morning routine and architecture baseline') {
+      data.four_months = {
+        h1: { m1: { target: '', milestones: [] }, m2: { target: '', milestones: [] }, m3: { target: '', milestones: [] }, m4: { target: '', milestones: [] } },
+        h2: { m1: { target: '', milestones: [] }, m2: { target: '', milestones: [] }, m3: { target: '', milestones: [] }, m4: { target: '', milestones: [] } },
+        h3: { m1: { target: '', milestones: [] }, m2: { target: '', milestones: [] }, m3: { target: '', milestones: [] }, m4: { target: '', milestones: [] } }
+      };
+    }
+  }
+
+  function getDefaultChallenges() {
+    return [];
   }
 
   function loadInitialData() {
@@ -1026,9 +997,10 @@
         } else if (state.year_data.settings.allow_past_timeblock_edit === undefined) {
           state.year_data.settings.allow_past_timeblock_edit = false;
         }
-        if (!state.year_data.challenges || state.year_data.challenges.length === 0) {
-          state.year_data.challenges = getDefaultChallenges();
+        if (!state.year_data.challenges) {
+          state.year_data.challenges = [];
         }
+        cleanupSampleDummyData(state.year_data);
       } catch (err) {
         console.error('Failed to parse local stored data:', err);
         state.year_data = createDefaultYearData();
@@ -1040,64 +1012,38 @@
   }
 
   function createDefaultYearData() {
-    const today = getTodayISODate();
-    const d34End = new Date(parseISODate(today));
-    d34End.setDate(d34End.getDate() + 34);
-
     return {
       settings: {
         schedule_start_hour: '05:00',
         schedule_end_hour: '23:00',
         allow_past_timeblock_edit: false
       },
-      yearly_goals: [
-        { id: 'g1', title: 'Scale Enterprise SaaS Revenue to $250k ARR', pillar: 'Career & Growth', targetMetric: '$250,000 ARR', status: 'In Progress' },
-        { id: 'g2', title: 'Complete Sub-4 Hour Marathon Championship', pillar: 'Health & Endurance', targetMetric: '42.2 km @ 5:35/km', status: 'In Progress' },
-        { id: 'g3', title: 'Read 24 Non-Fiction Core Architecture Books', pillar: 'Mastery', targetMetric: '24 Books', status: 'In Progress' },
-        { id: 'g4', title: 'Launch Production Cloud Developer Suite', pillar: 'Engineering', targetMetric: '3 Production Apps', status: 'Achieved' }
-      ],
-      custom_goals: [
-        {
-          id: 'cg_sample_34d',
-          title: '34-Day High-Velocity Product Launch',
-          pillar: 'Engineering',
-          startDate: today,
-          endDate: formatISODate(d34End),
-          durationDays: 34,
-          targetMetric: '1,000 Active Users',
-          status: 'In Progress',
-          milestones: [
-            { id: 'cm1', text: 'Finalize schema & PostgreSQL migration', completed: true },
-            { id: 'cm2', text: 'Build real-time websocket sync & auth gateway', completed: true },
-            { id: 'cm3', text: 'Execute beta user onboarding & analytics audit', completed: false },
-            { id: 'cm4', text: 'Public Launch Day & press rollout', completed: false }
-          ]
-        }
-      ],
+      yearly_goals: [],
+      custom_goals: [],
       four_months: {
         h1: {
-          m1: { target: 'Establish deep work morning routine and architecture baseline', milestones: [{ text: 'Design core system DB', completed: true }, { text: 'Write serverless auth endpoints', completed: true }, { text: 'Ship MVP v1.0', completed: false }] },
-          m2: { target: 'Scale feature set and automate deployment pipelines', milestones: [{ text: 'Implement weekly sprint reviews', completed: false }, { text: 'Add analytics dashboard', completed: false }] },
-          m3: { target: 'Optimization and user retention testing', milestones: [{ text: 'Beta feedback loop', completed: false }, { text: 'Performance audit', completed: false }] },
-          m4: { target: 'Horizon 1 retrospective & major milestone launch', milestones: [{ text: 'Public release launch', completed: false }, { text: 'Review metrics', completed: false }] }
+          m1: { target: '', milestones: [] },
+          m2: { target: '', milestones: [] },
+          m3: { target: '', milestones: [] },
+          m4: { target: '', milestones: [] }
         },
         h2: {
-          m1: { target: 'Expansion of userbase & enterprise workflows', milestones: [{ text: 'Enterprise pilot rollout', completed: false }] },
-          m2: { target: 'Multi-device offline caching enhancements', milestones: [] },
-          m3: { target: 'Q3 Product Iteration & Performance', milestones: [] },
-          m4: { target: 'Mid-year financial and health re-calibration', milestones: [] }
+          m1: { target: '', milestones: [] },
+          m2: { target: '', milestones: [] },
+          m3: { target: '', milestones: [] },
+          m4: { target: '', milestones: [] }
         },
         h3: {
-          m1: { target: 'End-of-year compounding push', milestones: [] },
-          m2: { target: 'Deep architectural refactoring', milestones: [] },
-          m3: { target: 'Final sprint targets', milestones: [] },
-          m4: { target: 'Annual retrospective & next year vision planning', milestones: [] }
+          m1: { target: '', milestones: [] },
+          m2: { target: '', milestones: [] },
+          m3: { target: '', milestones: [] },
+          m4: { target: '', milestones: [] }
         }
       },
       weekly_plans: {},
       daily_logs: {},
       custom_routines: [],
-      challenges: getDefaultChallenges()
+      challenges: []
     };
   }
 
@@ -1122,11 +1068,7 @@
     if (!state.year_data.weekly_plans[key]) {
       state.year_data.weekly_plans[key] = {
         strategy: '',
-        rocks: [
-          { id: 'r1', title: 'Complete high-priority architectural deliverables', completed: true },
-          { id: 'r2', title: '5x Morning Deep Work sprint execution', completed: false },
-          { id: 'r3', title: 'Conduct weekly retrospective and metrics audit', completed: false }
-        ]
+        rocks: []
       };
     }
     return state.year_data.weekly_plans[key];
@@ -2623,6 +2565,14 @@
     dom.weeklyRocksList.innerHTML = '';
     const q = (state.searchQuery || '').toLowerCase();
 
+    if (weeklyPlan.rocks.length === 0) {
+      dom.weeklyRocksList.innerHTML = `
+        <div style="padding: 1.5rem 1rem; text-align: center; color: var(--text-muted); font-size: 0.82rem;">
+          No weekly Big Rocks added yet. Click <strong>+ Add Big Rock</strong> to set your top deliverables for this week.
+        </div>
+      `;
+    }
+
     weeklyPlan.rocks.forEach((rock, idx) => {
       if (q && !(rock.title || '').toLowerCase().includes(q)) {
         return;
@@ -2862,6 +2812,24 @@
 
     if (activeCatFilter !== 'all') {
       filteredGoals = filteredGoals.filter(g => (g.pillar || '').trim().toLowerCase() === activeCatFilter);
+    }
+
+    if (filteredGoals.length === 0) {
+      dom.yearlyGoalsContainer.innerHTML = `
+        <div class="empty-state-card" style="grid-column: 1 / -1; padding: 3rem 1.5rem; text-align: center;">
+          <div class="empty-state-icon">${ICONS.plus}</div>
+          <h4 style="font-size: 1.05rem; font-weight: 600; margin: 0.6rem 0 0.35rem;">No Annual Goals Set Yet</h4>
+          <p style="font-size: 0.84rem; color: var(--text-muted); max-width: 400px; margin: 0 auto 1.25rem;">Define your top pillars, north star milestones, and quantitative targets for ${state.selectedYear}. Check the <em>How Abeg</em> guide for inspiration.</p>
+          <button class="btn-primary-pill" id="btnEmptyAddYearlyGoal" type="button">
+            <span>+ Add First Annual Goal</span>
+          </button>
+        </div>
+      `;
+      const emptyAddBtn = dom.yearlyGoalsContainer.querySelector('#btnEmptyAddYearlyGoal');
+      if (emptyAddBtn) {
+        emptyAddBtn.addEventListener('click', () => addNewYearlyGoal());
+      }
+      return;
     }
 
     if (dom.yearlyFilteredCountBadge) {
@@ -3660,6 +3628,19 @@
     // Sort by streak (descending), then hours (descending)
     participantsList.sort((a, b) => (b.streak || 0) - (a.streak || 0) || (b.hours || 0) - (a.hours || 0));
 
+    if (participantsList.length === 0) {
+      if (dom.leaderboardPodium) dom.leaderboardPodium.innerHTML = '';
+      dom.leaderboardTableBody.innerHTML = `
+        <tr>
+          <td colspan="7" style="text-align: center; padding: 2.5rem 1rem; color: var(--text-muted);">
+            <div style="font-size: 0.88rem; font-weight: 500; margin-bottom: 0.25rem;">No Challenges or Participants Active</div>
+            <div style="font-size: 0.78rem;">Join or create an accountability challenge to start logging streaks and appear on rankings.</div>
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
     // Render Podium (top 3)
     if (dom.leaderboardPodium) {
       if (participantsList.length >= 2) {
@@ -3734,10 +3715,15 @@
 
     if (publicList.length === 0) {
       dom.publicChallengesContainer.innerHTML = `
-        <div class="empty-state-card" style="grid-column: 1 / -1; padding: 2rem; text-align: center;">
-          <p style="font-size: 0.84rem; color: var(--text-muted);">You've joined all currently public community challenges! Create a new one or join with a private code.</p>
+        <div class="empty-state-card" style="grid-column: 1 / -1; padding: 2.5rem 1rem; text-align: center;">
+          <div class="empty-state-icon">${ICONS.plus}</div>
+          <h4 style="font-size: 1rem; font-weight: 600; margin: 0.5rem 0 0.25rem;">No Public Challenges Available</h4>
+          <p style="font-size: 0.82rem; color: var(--text-muted); max-width: 360px; margin: 0 auto 1.25rem;">Create a new public sprint for others to join, or enter a private invite code above.</p>
+          <button class="btn-primary-pill" id="btnBrowseEmptyCreate">+ Create Challenge</button>
         </div>
       `;
+      const btnBC = dom.publicChallengesContainer.querySelector('#btnBrowseEmptyCreate');
+      if (btnBC) btnBC.addEventListener('click', () => switchChallengeTab('create'));
       return;
     }
 

@@ -2557,6 +2557,293 @@ a {
   color: var(--text-muted);
 }
 
+/* Guide Samples & Interactive Illustrations */
+.guide-sample-container {
+  margin-top: 0.75rem;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.guide-sample-header {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.guide-sample-badge {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  color: var(--text-primary);
+  padding: 0.2rem 0.5rem;
+  border-radius: var(--radius-sm);
+}
+
+.guide-sample-title {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.guide-sample-horizons-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+}
+
+@media (max-width: 900px) {
+  .guide-sample-horizons-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .guide-sample-horizons-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.guide-sample-month-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 0.8rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.guide-sample-month-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.guide-sample-month-tag {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.guide-sample-target-txt {
+  font-size: 0.76rem;
+  font-style: italic;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.guide-sample-checkpoints {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  border-top: 1px dashed var(--border-subtle);
+  padding-top: 0.5rem;
+}
+
+.sample-checkpoint-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.73rem;
+  color: var(--text-secondary);
+}
+
+.sample-checkpoint-item.done {
+  color: var(--text-muted);
+  text-decoration: line-through;
+}
+
+.sample-chk-box {
+  width: 13px;
+  height: 13px;
+  border: 1px solid var(--border-medium);
+  border-radius: 3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  line-height: 1;
+  color: var(--text-primary);
+  flex-shrink: 0;
+}
+
+.sample-checkpoint-item.done .sample-chk-box {
+  background-color: var(--text-primary);
+  color: var(--bg-surface);
+}
+
+/* Sample Goals Grid */
+.guide-sample-goals-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 0.75rem;
+}
+
+@media (max-width: 680px) {
+  .guide-sample-goals-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.guide-sample-goal-card {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.guide-sample-goal-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.guide-sample-pillar-badge {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.guide-sample-goal-title {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+  line-height: 1.35;
+}
+
+.guide-sample-metric-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.75rem;
+  border-top: 1px solid var(--border-subtle);
+  padding-top: 0.45rem;
+  color: var(--text-muted);
+}
+
+.guide-sample-metric-val {
+  font-family: var(--font-mono);
+  color: var(--text-primary);
+}
+
+/* Challenge Arena Guide Illustration */
+.guide-arena-illustration {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 0.85rem;
+}
+
+@media (max-width: 768px) {
+  .guide-arena-illustration {
+    grid-template-columns: 1fr;
+  }
+}
+
+.illustrate-card-preview {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-medium);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+}
+
+.illustrate-podium-preview {
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.illustrate-podium-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.45rem 0.65rem;
+  background-color: var(--bg-card);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  font-size: 0.78rem;
+}
+
+.illustrate-podium-row.first {
+  border-color: var(--border-medium);
+}
+
+.illustrate-podium-user {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.illustrate-podium-user strong {
+  color: var(--text-primary);
+}
+
+.illustrate-podium-badge {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.illustrate-flow-steps {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.65rem;
+  margin-top: 0.4rem;
+}
+
+@media (max-width: 768px) {
+  .illustrate-flow-steps {
+    grid-template-columns: 1fr;
+  }
+}
+
+.illustrate-flow-box {
+  background-color: var(--bg-surface);
+  border: 1px dashed var(--border-medium);
+  border-radius: var(--radius-sm);
+  padding: 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.illustrate-flow-num {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.illustrate-flow-text {
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
 .kbd-table {
   display: flex;
   flex-direction: column;
