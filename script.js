@@ -9,6 +9,7 @@
   'use strict';
 
   // --- Constants & Config ---
+  const APP_VERSION = '2.2.2';
   const API_BASE_URL = window.API_BASE_URL || 'https://lumen-backend-mu.vercel.app';
   const STORAGE_KEY = 'productive_workspace_data_v1'; // Legacy fallback
   const AUTH_TOKEN_KEY = 'productive_jwt_token';
@@ -521,6 +522,10 @@
     settingsDbStatusDesc: document.getElementById('settingsDbStatusDesc'),
     settingsDbStatusBadge: document.getElementById('settingsDbStatusBadge'),
     btnSaveCloseSettings: document.getElementById('btnSaveCloseSettings'),
+    btnSettingsCheckUpdate: document.getElementById('btnSettingsCheckUpdate'),
+    settingsUpdateBtnText: document.getElementById('settingsUpdateBtnText'),
+    settingsUpdateBtnIcon: document.getElementById('settingsUpdateBtnIcon'),
+    settingsAppVersionDesc: document.getElementById('settingsAppVersionDesc'),
 
     // Challenges Stage View Elements
     viewChallenge: document.getElementById('view-challenge'),
@@ -3322,6 +3327,9 @@
         ? `Authenticated user: ${state.user?.email || 'Cloud user'} (version v${state.syncVersion || 0})`
         : 'Running offline with browser localStorage storage.';
     }
+    if (dom.settingsAppVersionDesc) {
+      dom.settingsAppVersionDesc.textContent = `Installed Version: v${APP_VERSION} \u2022 Check for latest updates, force-refresh cache, and reload the PWA.`;
+    }
     if (dom.settingsModalBackdrop) {
       dom.settingsModalBackdrop.classList.remove('hidden');
     }
@@ -3330,6 +3338,87 @@
   function closeSettingsModal() {
     if (dom.settingsModalBackdrop) {
       dom.settingsModalBackdrop.classList.add('hidden');
+    }
+  }
+
+  async function handleCheckAndUpdateApp() {
+    const btn = dom.btnSettingsCheckUpdate;
+    const text = dom.settingsUpdateBtnText;
+    const icon = dom.settingsUpdateBtnIcon;
+
+    if (btn) btn.disabled = true;
+    if (text) text.textContent = 'Checking updates...';
+    if (icon) icon.classList.add('spin-animation');
+
+    showToast('Checking for latest software version & PWA updates...', 'info');
+
+    try {
+      // 1. If serviceWorker registration exists, trigger update check
+      if ('serviceWorker' in navigator && swRegistration) {
+        try {
+          await swRegistration.update();
+        } catch (e) {
+          console.warn('[PWA] ServiceWorker update check failed:', e);
+        }
+      }
+
+      // 2. Check if an updated worker is waiting or currently installing
+      let targetWorker = newWorkerWaiting || (swRegistration && swRegistration.waiting);
+
+      if (!targetWorker && swRegistration && swRegistration.installing) {
+        await new Promise((resolve) => {
+          const inst = swRegistration.installing;
+          if (!inst) return resolve();
+          inst.addEventListener('statechange', () => {
+            if (inst.state === 'installed' || inst.state === 'activated') {
+              targetWorker = inst;
+              resolve();
+            }
+          });
+          setTimeout(resolve, 1200);
+        });
+      }
+
+      if (targetWorker) {
+        if (text) text.textContent = 'Applying update...';
+        showToast('New version found! Activating latest build...', 'success');
+        targetWorker.postMessage({ type: 'SKIP_WAITING' });
+        setTimeout(() => {
+          window.location.reload();
+        }, 800);
+        return;
+      }
+
+      // 3. Purge obsolete caches
+      if ('caches' in window) {
+        const keys = await caches.keys();
+        await Promise.all(
+          keys.map((k) => {
+            if (k !== 'productive-pwa-v' + APP_VERSION) {
+              return caches.delete(k);
+            }
+            return Promise.resolve();
+          })
+        );
+      }
+
+      if (text) text.textContent = 'Reloading app...';
+      showToast('Cache refreshed. Reloading workspace now...', 'success');
+      setTimeout(() => {
+        window.location.reload();
+      }, 700);
+    } catch (err) {
+      console.error('Update check failed:', err);
+      showToast('Reloading to load fresh workspace...', 'info');
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    } finally {
+      setTimeout(() => {
+        if (btn) btn.disabled = false;
+        if (text) text.textContent = 'Check & Update App';
+        if (icon) icon.classList.remove('spin-animation');
+      }, 3000);
     }
   }
 
@@ -5433,6 +5522,10 @@
 
     if (dom.btnSaveCloseSettings) {
       dom.btnSaveCloseSettings.addEventListener('click', closeSettingsModal);
+    }
+
+    if (dom.btnSettingsCheckUpdate) {
+      dom.btnSettingsCheckUpdate.addEventListener('click', handleCheckAndUpdateApp);
     }
 
     if (dom.btnSettingsOpenHours) {

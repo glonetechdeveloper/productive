@@ -3171,6 +3171,11 @@ a {
   to { transform: rotate(360deg); }
 }
 
+.spin-animation {
+  animation: spin 0.75s linear infinite;
+  transform-origin: center;
+}
+
 /* --------------------------------------------------------------------------
    18. TOAST NOTIFICATIONS
    -------------------------------------------------------------------------- */
